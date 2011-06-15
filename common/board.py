@@ -3,8 +3,10 @@ class Territory(object):
         self.name = name
         self.image = image
         self.neighbors = neighbors
+        self.owner = None
+        self.troopCount = 0
         
-    def isValidMove(self, territory):
+    def isNeighbor(self, territory):
         return territory in self.neighbors
 
     def __hash__(self):
