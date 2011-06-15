@@ -18,6 +18,8 @@ class SM(object):
         self.remainingTroops = 0
         self.source = None
         self.target = None
+        self.awardCard = False
+        self.setsExchanged = 0
 
     def playerNames(self):
         return [p.name for p in self.players]
@@ -62,6 +64,19 @@ class SM(object):
             selection = self.livePlayers
             i = (selection.index(self.currentPlayer) + 1) % len(selection)
         return selection[i]
+
+    def cardsExchangable(self, indexes):
+        try:
+            cards = [self.currentPlayer.cards[i] for i in indexes]
+        except:
+            return False
+        units = [c.unit for c in cards]
+        if units in Card.validCombinations:
+            return cards
+        return False
+
+    def cardValue(self):
+        return 1
 
     def draftCount(self, player):
         return 1
@@ -135,19 +150,27 @@ class SM(object):
 
         elif s == State.Draft:
             if action == Action.ExchangeCards:
+                cards = self.exchangecards(args)
+                if not cards:
+                    return False
                 pass
+
             elif action == Action.PlaceTroops:
+                if self.currentPlayer.cardCount() > 4:
+                    return False
                 if n < 1 or n > self.remainingTroops:
                     return False
                 if not self.placeTroops(t, n):
                     return False
-                self.remainingTroops -= n:
+                self.remainingTroops -= n
                 if self.remainingTroops == 0:
                     self.substate = State.Attack
                 return True
 
         elif s == State.Attack:
             if action == Action.Attack:
+                if self.currentPlayer.cardCount() > 4:
+                    return False
                 (source, target, n) = args
                 source = self.territory(source)
                 target = self.territory(target)
@@ -163,6 +186,9 @@ class SM(object):
                 self.remainingTroops = n
                 return True
             elif action == Action.EndAttack:
+                if self.awardCard:
+                    self.currentPlayer
+                self.awardCard = False
                 self.substate = State.Fortify
                 return True
 
@@ -190,8 +216,10 @@ class SM(object):
                 self.source.troopCount -= attackerLoss
                 self.target.troopCount -= defenderLoss
                 if self.target.troopCount == 0:
+                    self.awardCard = True
                     if self.territoryCount(self.target.owner) == 1:
-                        #transfer risk cards
+                        self.currentPlayer.cards += self.target.owner.cards
+                        self.target.owner.cards = []
                         self.target.owner.isPlaying = False
                         if self.livePlayerCount == 1:
                             self.substate = State.GameOver
@@ -225,6 +253,9 @@ class SM(object):
                 self.target.troopCount += n
                 return True
             elif action == Action.EndTurn:
+                if self.awardCard and self.board.cards:
+                    self.currentPlayer.cards.append(self.board.cards.pop())
+                    self.awardCard = False
                 self.currentPlayer = self.nextPlayer()
                 self.substate = State.Draft
                 return True

@@ -3,9 +3,10 @@ class Player(object):
         self.name = name
         self.color = color
         self.isPlaying = True
-    
-    def __hash__(self):
-        return hash(self.name)
+        self.cards = []
 
     def __str__(self):
         return self.name
+
+    def cardCount(self):
+        return len(self.cards)

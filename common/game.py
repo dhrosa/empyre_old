@@ -1,7 +1,3 @@
-class Game(object):
-    def __init__(self, board):
-        self.board = board
-
 class State(object):
     (
         OutOfSync,
