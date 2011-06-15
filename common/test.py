@@ -55,6 +55,10 @@ sm.next(Action.PlaceTroops, ["NY", 4])
 sm.next(Action.Attack, ["NY", "MA", 8])
 while MA.owner == p2 and sm.substate != State.Attack:
     sm.next(Action.RollDice)
-sm.next(Action.MoveTroops)
+sm.next(Action.EndAttack)
+for t in territories:
+    print t
+sm.next(Action.Fortify, ["MA", "NY", 2])
+sm.next(Action.EndTurn)
 for t in territories:
     print t

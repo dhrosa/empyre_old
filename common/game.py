@@ -9,10 +9,9 @@ class State(object):
         Attack,
         AttackerRoll,
         DefenderRoll,
-        Victory,
         Fortify,
         GameOver,
-    ) = range(12)
+    ) = range(11)
 
 class Action(object):
     (
@@ -25,10 +24,9 @@ class Action(object):
         Attack,
         Retreat,
         EndAttack,
-        MoveTroops,
         Fortify,
         EndTurn,
-     ) = range(12)
+     ) = range(11)
 
     validArgs = {
         AddPlayer: (str, int),
@@ -39,7 +37,7 @@ class Action(object):
         PlaceTroops: (str, int),
         Attack: (str, str, int),
         Retreat: (),
-        MoveTroops: (int),
+        EndAttack: (),
         Fortify: (str, str, int),
         EndTurn: (),
     }

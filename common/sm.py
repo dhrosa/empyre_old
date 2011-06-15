@@ -34,6 +34,12 @@ class SM(object):
     def __str__(self):
         return "substate: %s, current: %s, first: %s, dice: %s, remaining: %s, source: %s, target: %s" % (self.substate, self.currentPlayer, self.firstPlayer, self.diceRolls, self.remainingTroops, self.source, self.target)
 
+    def clear(self):
+        self.diceRolls = []
+        self.remainingTroops = 0
+        self.source = None
+        self.target = None
+
     def playerNames(self):
         return [p.name for p in self.players]
 
@@ -209,9 +215,9 @@ class SM(object):
                 self.remainingTroops = n
                 return True
             elif action == Action.EndAttack:
-                if self.awardCard:
-                    self.currentPlayer
-                self.awardCard = False
+                if self.awardCard and self.board.cards:
+                    self.currentPlayer.cards.append(self.board.cards.pop())
+                    self.awardCard = False
                 self.substate = State.Fortify
                 return True
 
@@ -221,6 +227,8 @@ class SM(object):
                 self.substate = State.DefenderRoll
                 return True
             if action == Action.Retreat:
+                self.diceRolls = []
+                self.remainingTroops = 0
                 self.substate = State.Attack
                 return True
     
@@ -248,30 +256,29 @@ class SM(object):
                             self.substate = State.GameOver
                             return True
                     self.target.owner = self.currentPlayer
-                    self.substate = State.Victory
+                    self.target.troopCount = self.remainingTroops
+                    self.source.troopCount -= self.remainingTroops
+                    self.remainingTroops = 0
+                    self.substate = State.Attack
+                    return True
                 elif self.remainingTroops == 0:
                     self.substate = State.Attack
-                return True
-                    
-        elif s == State.Victory:
-            if action == Action.MoveTroops:
-                self.target.troopCount = self.remainingTroops
-                self.source.troopCount -= self.remainingTroops
-                self.remainingTroops = 0
-                self.substate = State.Attack
                 return True
             
         elif s == State.Fortify:
             if action == Action.Fortify:
                 (source, target, n) = args
-                source = self.territory(source)
-                target = self.territory(target)
-                if not (source.owner == target.owner == self.currentPlayer):
+                try:
+                    source = self.board.territories[source]
+                    target = self.board.territories[target]
+                except:
                     return False
-                if n >= source.troopCount:
+                if not (source.owner == target.owner and source.owner == self.currentPlayer):
                     return False
-                self.source.troopCount -= n
-                self.target.troopCount += n
+                if n < 1 or n >= source.troopCount:
+                    return False
+                source.troopCount -= n
+                target.troopCount += n
                 return True
             elif action == Action.EndTurn:
                 if self.awardCard and self.board.cards:
