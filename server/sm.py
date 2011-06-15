@@ -1,6 +1,5 @@
-from game import State, Action
-from board import Board, Territory, Region
-from player import Player
+from common.game import State, Action, Player
+from common.board import Board
 from random import randint
 
 def rollDice(n):
@@ -135,8 +134,8 @@ class SM(object):
                         index = self.diceRolls.index(highest)
                         self.currentPlayer = self.tiedPlayers[self.diceRolls.index(highest)]
                         self.firstPlayer = self.currentPlayer
-                        self.diceRolls = []
                         self.tiedPlayers = []
+                        self.clear()
                         self.substate = State.InitialPlacement
                         return True
                 else:
@@ -227,8 +226,7 @@ class SM(object):
                 self.substate = State.DefenderRoll
                 return True
             if action == Action.Retreat:
-                self.diceRolls = []
-                self.remainingTroops = 0
+                self.clear()
                 self.substate = State.Attack
                 return True
     
@@ -258,10 +256,11 @@ class SM(object):
                     self.target.owner = self.currentPlayer
                     self.target.troopCount = self.remainingTroops
                     self.source.troopCount -= self.remainingTroops
-                    self.remainingTroops = 0
+                    self.clear()
                     self.substate = State.Attack
                     return True
                 elif self.remainingTroops == 0:
+                    self.clear()
                     self.substate = State.Attack
                 return True
             

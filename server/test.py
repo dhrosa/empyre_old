@@ -1,5 +1,8 @@
+import sys
+sys.path.append(sys.path[0] + "/../")
+
 from sm import *
-from board import *
+from common.board import *
 
 import inspect
 print "States:"
