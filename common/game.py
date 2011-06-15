@@ -47,7 +47,7 @@ class Action(object):
     @staticmethod
     def argMatch(action, args):
         try:
-            valid = self.validArgs[action]
+            valid = Action.validArgs[action]
             for i, a in enumerate(args):
                 if not type(a) == valid[i]:
                     return False

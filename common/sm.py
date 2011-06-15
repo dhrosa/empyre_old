@@ -1,25 +1,38 @@
 from game import State, Action
 from board import Board, Territory, Region
+from player import Player
 from random import randint
 
-def diceRoll(n):
-    return sorted([randint(1, 6) for i in range(n)])
+def rollDice(n):
+    return sorted([randint(1, 6) for i in range(n)], reverse=True)
+
+def debug(func):
+    def printer(s, action, args=[]):
+        if func(s, action, args):
+            print "OK ",
+        else:
+            print "FAIL ",
+        print s
+        print "=" * 80
+    return printer
 
 class SM(object):
     def __init__(self, board):
-        self.substate = State.OutOfSync
+        self.substate = State.Lobby
         self.board = board
         self.players = []
         self.currentPlayer = None
         self.firstPlayer = None
         self.tiedPlayers = []
-        self.substate = Lobby
         self.diceRolls = []
         self.remainingTroops = 0
         self.source = None
         self.target = None
         self.awardCard = False
         self.setsExchanged = 0
+
+    def __str__(self):
+        return "substate: %s, current: %s, first: %s, dice: %s, remaining: %s, source: %s, target: %s" % (self.substate, self.currentPlayer, self.firstPlayer, self.diceRolls, self.remainingTroops, self.source, self.target)
 
     def playerNames(self):
         return [p.name for p in self.players]
@@ -37,22 +50,21 @@ class SM(object):
         return len(self.livePlayers())
 
     def territoryNames(self):
-        return [t.name for t in self.board.territories]
+        return [t for t in self.board.territories.keys]
 
     def isValidTerritory(self, t):
         return t in self.territoryNames()
 
-    def territory(self, territoryName):
-        for t in self.board.territories:
-            if t.name == territoryName:
-                return (t, i)
-
     def territoryCount(self, player):
-        return sum([1 for t in self.board.territories if t.owner == player])
+        return sum([1 for t in self.board.territories.values() if t.owner == player])
+
+    def freeTerritoryCount(self):
+        return sum([1 for t in self.board.territories.values() if not t.owner])
 
     def placeTroops(self, territoryName, n):
-        t = self.territory(territoryName)
-        if not t:
+        try:
+            t = self.board.territories[territoryName]
+        except:
             return False
         if t.owner != self.currentPlayer:
             return False
@@ -61,8 +73,8 @@ class SM(object):
 
     def nextPlayer(self, selection = None):
         if not selection:
-            selection = self.livePlayers
-            i = (selection.index(self.currentPlayer) + 1) % len(selection)
+            selection = self.livePlayers()
+        i = (selection.index(self.currentPlayer) + 1) % len(selection)
         return selection[i]
 
     def cardsExchangable(self, indexes):
@@ -79,9 +91,10 @@ class SM(object):
         return 1
 
     def draftCount(self, player):
-        return 1
+        return 4
 
-    def next(self, action, args):
+    @debug
+    def next(self, action, args=[]):
         s = self.substate
         if not Action.argMatch(action, args):
             return False
@@ -95,27 +108,29 @@ class SM(object):
                 if len(self.players) < 2:
                     return False
                 self.currentPlayer = self.players[0]
-                self.livePlayers = self.players
+                self.tiedPlayers = self.players
                 self.substate = State.ChoosingOrder
                 return True
     
         elif s == State.ChoosingOrder:
             if action == Action.RollDice:
-                self.diceRolls.append(diceRoll(2))
+                self.diceRolls.append(sum(rollDice(2)))
                 if len(self.diceRolls) == self.tiedPlayerCount():
                     highest = max(self.diceRolls)
                     if self.diceRolls.count(highest) > 1:
                         self.tiedPlayers = []
-                        for i, p in enumerate(self.tiedPlayers):
+                        for i, p in enumerate(self.players):
                             if self.diceRolls[i] == highest:
                                 self.tiedPlayers.append(p)
                         self.diceRolls = []
+                        self.currentPlayer = self.nextPlayer(self.tiedPlayers)
                         return True
                     else:
                         index = self.diceRolls.index(highest)
-                        self.currentPlayer = self.tiedPlayers[i]
+                        self.currentPlayer = self.tiedPlayers[self.diceRolls.index(highest)]
                         self.firstPlayer = self.currentPlayer
                         self.diceRolls = []
+                        self.tiedPlayers = []
                         self.substate = State.InitialPlacement
                         return True
                 else:
@@ -125,11 +140,17 @@ class SM(object):
         elif s == State.InitialPlacement:
             if action == Action.PlaceTroops:
                 t = args[0]
-                if not self.placeTroops(t, 1):
+                try:
+                    t = self.board.territories[t]
+                except:
                     return False
+                if t.owner:
+                    return False
+                t.owner = self.currentPlayer
+                t.troopCount = 1
                 self.currentPlayer = self.nextPlayer()
-                if self.currentPlayer == self.firstPlayer():
-                    self.substate = InitialDraft
+                if self.freeTerritoryCount() == 0:
+                    self.substate = State.InitialDraft
                     self.remainingTroops = self.draftCount(self.currentPlayer)
                 return True
 
@@ -156,6 +177,7 @@ class SM(object):
                 pass
 
             elif action == Action.PlaceTroops:
+                (t, n) = args
                 if self.currentPlayer.cardCount() > 4:
                     return False
                 if n < 1 or n > self.remainingTroops:
@@ -172,9 +194,10 @@ class SM(object):
                 if self.currentPlayer.cardCount() > 4:
                     return False
                 (source, target, n) = args
-                source = self.territory(source)
-                target = self.territory(target)
-                if not target or not source:
+                try:
+                    source = self.board.territories[source]
+                    target = self.board.territories[target]
+                except:
                     return False
                 if source.owner != self.currentPlayer or target.owner == self.currentPlayer:
                     return False
@@ -194,7 +217,7 @@ class SM(object):
 
         elif s == State.AttackerRoll:
             if action == Action.RollDice:
-                self.diceRolls = self.rollDice(min(self.remainingTroops, 3))
+                self.diceRolls = rollDice(min(self.remainingTroops, 3))
                 self.substate = State.DefenderRoll
                 return True
             if action == Action.Retreat:
@@ -203,11 +226,11 @@ class SM(object):
     
         elif s == State.DefenderRoll:
             if action == Action.RollDice:
-                defenceRolls = self.rollDice(min(self.target.troopCount, 2))
+                defenceRolls = rollDice(min(self.target.troopCount, 2))
                 count = min(len(self.diceRolls), len(defenceRolls))
                 attackerLoss = 0
                 defenderLoss = 0
-                for i in count:
+                for i in range(count):
                     if defenceRolls[i] >= self.diceRolls[i]:
                         attackerLoss += 1
                     else:
@@ -232,11 +255,9 @@ class SM(object):
                     
         elif s == State.Victory:
             if action == Action.MoveTroops:
-                n = args[0]
-                if n < self.remainingTroops or n >= self.source.troopCount:
-                    return False
-                self.source.troopCount -= n
-                self.target.troopCount += n
+                self.target.troopCount = self.remainingTroops
+                self.source.troopCount -= self.remainingTroops
+                self.remainingTroops = 0
                 self.substate = State.Attack
                 return True
             
@@ -259,3 +280,5 @@ class SM(object):
                 self.currentPlayer = self.nextPlayer()
                 self.substate = State.Draft
                 return True
+
+        return False

@@ -1,21 +1,25 @@
 from random import shuffle
 
 class Territory(object):
-    def __init__(self, name, image, neighbors):
+    def __init__(self, name, image):
         self.name = name
         self.image = image
-        self.neighbors = neighbors
         self.owner = None
         self.troopCount = 0
-        
-    def isNeighbor(self, territory):
-        return territory in self.neighbors
 
-    def __hash__(self):
-        return hash(self.name)
+    def __eq__(self, other):
+        return self.name == other.name
 
     def __str__(self):
-        return self.name
+        return "%s: %s, %d" % (self.name, self.owner, self.troopCount)
+
+class Border(object):
+    def __init__(self, t1, t2):
+        self.t1 = t1
+        self.t2 = t2
+
+    def __eq__(self, other):
+        return (self.t1 == other.t1 and self.t2 == other.t2) or (self.t1 == other.t2 and self.t2 == other.t1)
 
 class Region(object):
     def __init__(self, name, bonus, territories):
@@ -60,8 +64,9 @@ class Card(object):
         self.unit = unit
 
 class Board(object):
-    def __init__(self, territories, regions):
+    def __init__(self, territories, borders, regions):
         self.territories = dict([(t.name, t) for t in territories])
+        self.borders = borders
         self.regions = regions
         self.cards = []
         units = []
