@@ -23,10 +23,10 @@ class Server(QTcpServer):
         c.moveToThread(thread)
         c.closed.connect(thread.quit)
         c.closed.connect(self.removeConnection)
+        c.messageReceived.connect(self.handleMessage)
         self.updated.connect(c.sendMessage)
         thread.start()
         print "%s connected." % (c.peerAddress().toString())
-        self.updated.emit(Message.Chat, ["Diony", "sup world"])
         
     def socketErrorHandler(self, socketError):
         print socketError
@@ -34,6 +34,11 @@ class Server(QTcpServer):
     def removeConnection(self, conn):
         print "client disconnected."
         self.connections.remove(conn)
+
+    def handleMessage(self, msg, args):
+        if msg == Message.Chat:
+            print "%s: %s" % (args[0], args[1])
+            self.updated.emit(Message.Chat, args)
 
 if __name__ == "__main__":
     app = QCoreApplication(sys.argv)

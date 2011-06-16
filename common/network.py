@@ -54,7 +54,7 @@ class Connection(QTcpSocket):
 
     def waitForBytes(self, n):
         while self.bytesAvailable() < n:
-            if not waitForReadyRead(10000):
+            if not self.waitForReadyRead(10000):
                 self.done()
 
     def sendMessage(self, msg, args):
@@ -84,5 +84,5 @@ class Connection(QTcpSocket):
                 args.append(stream.readRawData(length))
             elif aType == int:
                 self.waitForBytes(4)
-                args.append(stream.readInt32())
+                args.append(stream.readInt32())        
         self.messageReceived.emit(msg, args)
