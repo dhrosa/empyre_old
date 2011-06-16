@@ -65,29 +65,3 @@ class Action(object):
         except:
             return False
         return True
-
-class Message(object):
-    (
-        RequestState,
-        CurrentState,
-        Chat,
-        Whisper,
-    ) = range(4)
-    
-    validArgs = {
-        RequestState: (),
-        CurrentState: (),
-        Chat: (str, str),
-        Whisper: (str, str, str),
-    }
-
-    @staticmethod
-    def argMatch(msg, args):
-        try:
-            valid = Message.validArgs[msg]
-            for i, a in enumerate(args):
-                if not type(a) == valid[i]:
-                    return False
-        except:
-            return False
-        return True

@@ -2,8 +2,7 @@ import sys
 sys.path.append(sys.path[0] + "/../")
 
 from sm import SM
-from connection import Connection
-from common.game import Message
+from common.network import Message, Connection
 
 from PyQt4.QtNetwork import QTcpServer, QTcpSocket
 from PyQt4.QtCore import QCoreApplication, pyqtSignal, QThread
@@ -26,11 +25,14 @@ class Server(QTcpServer):
         c.closed.connect(self.removeConnection)
         self.updated.connect(c.sendMessage)
         thread.start()
+        print "%s connected." % (c.peerAddress().toString())
+        self.updated.emit(Message.Chat, ["Diony", "sup world"])
         
     def socketErrorHandler(self, socketError):
         print socketError
 
     def removeConnection(self, conn):
+        print "client disconnected."
         self.connections.remove(conn)
 
 if __name__ == "__main__":
