@@ -1,27 +1,40 @@
-from PyQt4.QtCore import pyqtSignal, QThread, QByteArray, QDataStream, QCoreApplication
+from PyQt4.QtCore import pyqtSignal, Qt, QObject, QByteArray, QDataStream, QMetaType
 from PyQt4.QtNetwork import QTcpSocket
 
-class Connection(QThread):
+from common.game import Action
+
+class Connection(QTcpSocket):
     socketError = pyqtSignal(int)
+    closed = pyqtSignal(QObject)
+
+    def __emitError(self, err):
+        if err == self.RemoteHostClosedError:
+            self.done()
+            return
+        self.socketError.emit(int(err))
+
+    def done(self):
+        self.closed.emit(self)
 
     def __init__(self, id, parent = None):
-        QThread.__init__(self, parent)
-        self.id = id
-
-
-    def run(self):
-        self.socket = QTcpSocket()
-        if not self.socket.setSocketDescriptor(self.id):
-            self.socketError.emit(self.socket.error())
+        QTcpSocket.__init__(self, parent)
+        if not self.setSocketDescriptor(id):
+            self.deleteLater()
             return
-        self.socket.setSocketOption(QTcpSocket.LowDelayOption, True)
-        self.socket.waitForConnected(30000)
-        payload = "Hello world!"
+        self.setSocketOption(self.LowDelayOption, True)
+        self.error.connect(self.__emitError, Qt.DirectConnection)
+        
+    def sendMessage(self, msg, args):
+        if not self.waitForConnected():
+            self.deleteLater()
+            return
         data = QByteArray()
-        stream = QDataStream(data, QTcpSocket.WriteOnly)
-        stream.writeInt32(len(payload))
-        stream.writeRawData(payload)
-        self.socket.write(data)
-        self.socket.waitForBytesWritten(30000)
-        self.socket.disconnectFromHost()
-        return
+        stream = QDataStream(data, self.WriteOnly)
+        stream.writeInt32(msg)
+        for arg in args:
+            if type(arg) == str:
+                stream.writeInt32(len(arg))
+                stream.writeRawData(arg)
+            elif type(arg) == int:
+                stream.writeInt32(arg)
+        self.write(data)
