@@ -32,7 +32,10 @@ class Client(QObject):
         self.sendReady.emit(Message.Join, [])
 
     def handleMessage(self, msg, args):
-        if msg == Message.JoinSuccess:
+        if msg == Message.Ping:
+            self.sendReady.emit(Message.Pong, [])
+
+        elif msg == Message.JoinSuccess:
             name = ""
             ok = False
             while not name or not ok:

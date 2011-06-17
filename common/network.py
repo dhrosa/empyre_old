@@ -3,6 +3,7 @@ from PyQt4.QtNetwork import QTcpSocket
 
 class Message(object):
     (
+        Pong,
         RequestState,
         Join,
         Rejoin,
@@ -11,9 +12,10 @@ class Message(object):
         ChangeColor,
         SendChat,
         SendWhisper,
-    ) = range(8)
+    ) = range(9)
 
     (
+        Ping,
         CurrentState,
         JoinSuccess,
         NameTaken,
@@ -24,9 +26,10 @@ class Message(object):
         NameChangeSuccess,
         ReceiveChat,
         ReceiveWhisper,
-    ) = range (100, 110)
+    ) = range (100, 111)
         
     validArgs = {
+        Pong: (),
         RequestState: (),
         CurrentState: (),
         Join: (),
@@ -37,6 +40,7 @@ class Message(object):
         SendChat: (str,),
         SendWhisper: (str, int),
         
+        Ping: (),
         CurrentState: (),
         NameTaken: (),
         JoinSuccess: (),
