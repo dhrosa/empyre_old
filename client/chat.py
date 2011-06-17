@@ -1,5 +1,5 @@
-from PyQt4.QtCore import pyqtSignal
-from PyQt4.QtGui import QWidget, QVBoxLayout, QTextEdit, QLineEdit
+from PyQt4.QtCore import pyqtSignal, Qt
+from PyQt4.QtGui import QWidget, QVBoxLayout, QTextEdit, QLineEdit, QSizePolicy
 
 class Chat(QWidget):
     lineEntered = pyqtSignal(str)
@@ -18,6 +18,7 @@ class Chat(QWidget):
         layout.addWidget(self.history)
         layout.addWidget(self.input)
         self.setLayout(layout)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         self.input.returnPressed.connect(self.__emitLineEntered)
         
     def clear(self):
@@ -26,7 +27,7 @@ class Chat(QWidget):
 
     def addLine(self, name, color, text):
         self.lines.append(
-            r"<p><span color=#%s><strong>%s</strong></span>: %s</p>" % (hex(color), name, text)
+            r"<p><span color=#%s><strong>%s</strong></span>: %s</p>" % (hex(color), Qt.escape(name), Qt.escape(text))
         )
         self.history.setHtml(
             "<html><body>%s</body></html>" % ("".join(self.lines))
