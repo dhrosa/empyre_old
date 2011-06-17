@@ -64,25 +64,24 @@ class Client(QObject):
 
         elif msg == Message.ColorChanged:
             name = str(args[0])
-            (r, g, b) = args[1:]
+            color = args[1:]
             if name == self.game.clientPlayer.name:
-                self.game.clientPlayer.color = (r, g, b)
-                self.mainWindow.changeColor(r, g, b)
+                self.game.clientPlayer.color = color
+                self.mainWindow.changeColor(color)
             else:
-                self.game.player(name).color = (r, g, b)
-            self.mainWindow.chat.changePlayerColor(name, r, g, b)
+                self.game.player(name).color = color
+            self.mainWindow.chat.changePlayerColor(name, color)
 
         elif msg == Message.ReceiveChat:
             (sender, text) = args
             p = self.game.player(sender)
-            (r, g, b) = p.color
-            self.mainWindow.chat.addLine(sender, r, g, b, text)
+            self.mainWindow.chat.addLine(sender, p.color, text)
 
     def sendChat(self, text):
         self.sendReady.emit(Message.SendChat, [str(text)])
 
-    def sendColorChange(self, r, g, b):
-        self.sendReady.emit(Message.ChangeColor, [r, g, b])
+    def sendColorChange(self, color):
+        self.sendReady.emit(Message.ChangeColor, color)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -4,7 +4,7 @@ from PyQt4.QtGui import *
 from chat import Chat
 
 class MainWindow(QWidget):
-    colorChanged = pyqtSignal(int, int, int)
+    colorChanged = pyqtSignal(list)
     nameChanged = pyqtSignal(str)
 
     def __emitNameChanged(self):
@@ -32,14 +32,14 @@ class MainWindow(QWidget):
             "Choose your color",
         )
         if color.isValid():
-            (r, g, b, _) = color.getRgb()
-            self.colorChanged.emit(r, g, b)
+            color = color.getRgb()
+            self.colorChanged.emit(list(color[:-1]))
 
     def changeName(self, newName):
         self.nameEdit.setText(newName)
 
-    def changeColor(self, r, g, b):
-        color = QColor.fromRgb(r, g, b)
+    def changeColor(self, color):
+        color = QColor.fromRgb(*color)
         pal = QPalette()
         pal.setColor(pal.Text, color)
         self.nameEdit.setPalette(pal)

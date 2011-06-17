@@ -38,10 +38,10 @@ class Chat(QWidget):
                 self.lines[i].name = after
         self.updateHistory()
 
-    def changePlayerColor(self, name, r, g, b):
+    def changePlayerColor(self, name, color):
         for i in range(len(self.lines)):
             if self.lines[i].name == name:
-                self.lines[i].color = (r, g, b)
+                self.lines[i].color = color
         self.updateHistory()
 
     def updateHistory(self):
@@ -50,7 +50,6 @@ class Chat(QWidget):
             "<html><body>%s</body></html>" % ("".join(lines))
         )
 
-
-    def addLine(self, name, r, g, b, text, whisper = False):
-        self.lines.append(Line(name, (r, g, b), text, whisper))
+    def addLine(self, name, color, text, whisper = False):
+        self.lines.append(Line(name, color, text, whisper))
         self.updateHistory()
