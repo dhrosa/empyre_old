@@ -40,11 +40,10 @@ class Server(QTcpServer):
         if conn.player:
             print "%s has disconnected." % (conn.player)
             if self.sm.substate == State.Lobby:
-                self.sm.players.remove(conn.player)
+                self.sm.next(Action.RemovePlayer, [conn.player.name])
         else:
             print "Anonymous client disconnected."
         self.connections.remove(conn)
-        print "marco"
 
     def handleMessage(self, msg, args):
         conn = self.sender()

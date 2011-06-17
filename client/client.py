@@ -56,7 +56,6 @@ class Client(QObject):
 
         elif msg == Message.ReceiveChat:
             (sender, text) = args
-            print sender, text
             self.mainWindow.chat.addLine(sender, 0, text)
 
     def sendChat(self, text):
