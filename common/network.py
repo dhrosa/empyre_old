@@ -33,7 +33,7 @@ class Message(object):
         RequestName: (str,),
         Rejoin: (str,),
         ChangeName: (str,),
-        ChangeColor: (int,),
+        ChangeColor: (int, int, int),
         SendChat: (str,),
         SendWhisper: (str, int),
         
@@ -42,7 +42,7 @@ class Message(object):
         JoinSuccess: (),
         NameAccepted: (str,),
         PlayerJoined: (str,),
-        ColorChanged: (str, int),
+        ColorChanged: (str, int, int, int),
         NameChanged: (str, str),
         NameChangeSuccess: (),
         ReceiveChat: (str, str),

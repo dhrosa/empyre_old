@@ -1,7 +1,7 @@
 class Player(object):
     def __init__(self, name):
         self.name = name
-        self.color = 0
+        self.color = (0, 0, 0)
         self.isPlaying = True
         self.cards = []
 
