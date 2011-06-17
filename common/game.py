@@ -1,7 +1,7 @@
 class Player(object):
-    def __init__(self, name, color):
+    def __init__(self, name):
         self.name = name
-        self.color = color
+        self.color = 0
         self.isPlaying = True
         self.cards = []
 
@@ -42,8 +42,8 @@ class Action(object):
      ) = range(11)
 
     validArgs = {
-        AddPlayer: (str, int),
-        RemovePlayer: (str),
+        AddPlayer: (str,),
+        RemovePlayer: (str,),
         StartGame: (),
         RollDice: (),
         ExchangeCards: (int, int, int),

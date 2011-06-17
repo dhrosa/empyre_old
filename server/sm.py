@@ -9,10 +9,14 @@ def debug(func):
     def printer(s, action, args=[]):
         if func(s, action, args):
             print "OK ",
+            print s
+            print "=" * 80
+            return True
         else:
             print "FAIL ",
-        print s
-        print "=" * 80
+            print s
+            print "=" * 80
+            return False
     return printer
 
 class SM(object):
@@ -98,7 +102,6 @@ class SM(object):
     def draftCount(self, player):
         return 4
 
-    @debug
     def next(self, action, args=[]):
         s = self.substate
         if not Action.argMatch(action, args):

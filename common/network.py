@@ -4,16 +4,49 @@ from PyQt4.QtNetwork import QTcpSocket
 class Message(object):
     (
         RequestState,
+        Join,
+        Rejoin,
+        RequestName,
+        ChangeName,
+        ChangeColor,
+        SendChat,
+        SendWhisper,
+    ) = range(8)
+
+    (
         CurrentState,
-        Chat,
-        Whisper,
-    ) = range(4)
-    
+        JoinSuccess,
+        NameTaken,
+        NameAccepted,
+        PlayerJoined,
+        ColorChanged,
+        NameChanged,
+        NameChangeSuccess,
+        ReceiveChat,
+        ReceiveWhisper,
+    ) = range (100, 110)
+        
     validArgs = {
         RequestState: (),
         CurrentState: (),
-        Chat: (str, str),
-        Whisper: (str, str, str),
+        Join: (),
+        RequestName: (str,),
+        Rejoin: (str,),
+        ChangeName: (str,),
+        ChangeColor: (int,),
+        SendChat: (str,),
+        SendWhisper: (str, int),
+        
+        CurrentState: (),
+        NameTaken: (),
+        JoinSuccess: (),
+        NameAccepted: (str,),
+        PlayerJoined: (str,),
+        ColorChanged: (str, int),
+        NameChanged: (str, str),
+        NameChangeSuccess: (),
+        ReceiveChat: (str, str),
+        ReceiveWhisper: (str, str),
     }
 
     @staticmethod
@@ -48,6 +81,8 @@ class Connection(QTcpSocket):
             if not self.setSocketDescriptor(id):
                 self.done()
                 return
+            self.id = id
+        self.player = None
         self.setSocketOption(self.LowDelayOption, True)
         self.error.connect(self.__emitError, Qt.DirectConnection)
         self.readyRead.connect(self.receiveMessage, Qt.DirectConnection)
@@ -57,7 +92,10 @@ class Connection(QTcpSocket):
             if not self.waitForReadyRead(10000):
                 self.done()
 
-    def sendMessage(self, msg, args):
+    def sendMessage(self, msg, args, id = None):
+        if id:
+            if self.socketDescriptor() != id:
+                return
         data = QByteArray()
         stream = QDataStream(data, self.WriteOnly)
         stream.writeInt32(msg)
@@ -86,3 +124,5 @@ class Connection(QTcpSocket):
                 self.waitForBytes(4)
                 args.append(stream.readInt32())        
         self.messageReceived.emit(msg, args)
+        if self.bytesAvailable() > 4:
+            self.readyRead.emit()
