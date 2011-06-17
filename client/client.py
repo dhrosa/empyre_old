@@ -3,7 +3,7 @@ import sys
 sys.path.append(sys.path[0] + "/../")
 
 from PyQt4.QtCore import pyqtSignal, QObject, QThread
-from PyQt4.QtGui import QApplication, QInputDialog
+from PyQt4.QtGui import QApplication, QInputDialog, QMessageBox
 
 from common.network import Message, Connection
 from common.game import Player
@@ -14,6 +14,7 @@ from gamestate import GameState
 
 class Client(QObject):
     sendReady = pyqtSignal(int, list)
+    readyToConnect = pyqtSignal(str, int)
 
     def __init__(self, host, port, parent = None):
         QObject.__init__(self, parent)
@@ -25,11 +26,13 @@ class Client(QObject):
         QApplication.setQuitOnLastWindowClosed(False)
         self.connection = Connection()
         self.connection.messageReceived.connect(self.handleMessage)
+        self.connection.connected.connect(self.sendJoinMessage)
+        self.connection.connectionFailed.connect(self.connectionFail)
         self.sendReady.connect(self.connection.sendMessage)
-        self.connection.connectToHost(host, port)
+        self.readyToConnect.connect(self.connection.tryConnectToHost)
         self.connection.moveToThread(thread)
         thread.start()
-        self.send(Message.Join, [])
+        self.tryConnect()
 
     def send(self, msg, args):
         self.sendReady.emit(msg, args)
@@ -40,16 +43,18 @@ class Client(QObject):
 
         elif msg == Message.JoinSuccess:
             name = ""
-            ok = False
-            while not name or not ok:
+            while not name:
                 (name, ok) = QInputDialog.getText(None, "Username", "Name")
+                if not ok:
+                    sys.exit()
             self.send(Message.RequestName, [str(name)])
 
         elif msg == Message.NameTaken:
             name = ""
-            ok = False
-            while not name or not ok:
+            while not name:
                 (name, ok) = QInputDialog.getText(None, "Name Taken", "New name")
+                if not ok:
+                    sys.exit()
             self.send(Message.RequestName, [str(name)])
         
         elif msg == Message.NameAccepted:
@@ -82,6 +87,19 @@ class Client(QObject):
             (sender, text) = args
             p = self.game.player(sender)
             self.mainWindow.chat.addLine(sender, p.color, text)
+
+    def tryConnect(self):
+        self.readyToConnect.emit(self.host, self.port)
+
+    def connectionFail(self):
+        if QMessageBox.critical(None,
+                                "Connection Failed",
+                                "Failed to connect to %s on port %d" % (self.host, self.port),
+                                QMessageBox.Retry | QMessageBox.Cancel):
+            self.tryConnect()
+                                
+    def sendJoinMessage(self):
+        self.send(Message.Join, [])
 
     def sendChat(self, text):
         self.send(Message.SendChat, [str(text)])
