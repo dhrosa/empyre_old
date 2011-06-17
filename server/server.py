@@ -18,6 +18,12 @@ class Server(QTcpServer):
        self.connections = []
        self.sm = SM(None)
 
+    def send(self, msg, args):
+        self.sendReady.emit(msg, args)
+
+    def sendTo(self, id, msg, args):
+        self.sendReadySpecific.emit(msg, args, id)
+
     def incomingConnection(self, socketDescriptor):
         c = Connection(socketDescriptor)
         c.socketError.connect(self.socketErrorHandler)
@@ -50,24 +56,24 @@ class Server(QTcpServer):
         if not conn.player:
             if msg == Message.Join:
                 print "%s connected." % (conn.peerAddress().toString())
-                self.sendReadySpecific.emit(Message.JoinSuccess, [], conn.id)
+                self.sendTo(conn.id, Message.JoinSuccess, [])
 
             elif msg == Message.RequestName:
                 name = str(args[0])
                 print "%s requested the name \"%s\"." % (conn.peerAddress().toString(), name)
                 if not self.sm.next(Action.AddPlayer, [name]):
                     print "Name taken."
-                    self.sendReadySpecific.emit(Message.NameTaken, [], conn.id)
+                    self.sendTo(conn.id, Message.NameTaken, [])
                 else:
                     print "%s has been granted the name \"%s\"." % (conn.peerAddress().toString(), name)
                     conn.player = self.sm.players[-1]
-                    self.sendReadySpecific.emit(Message.NameAccepted, [name], conn.id)
-                    self.sendReady.emit(Message.PlayerJoined, [name])
+                    self.sendTo(conn.id, Message.NameAccepted, [name])
+                    self.send(Message.PlayerJoined, [name])
         else:
             if msg == Message.SendChat:
                 text = str(args[0])
                 print "%s: %s" % (conn.player.name, text)
-                self.sendReady.emit(Message.ReceiveChat, [conn.player.name, text])
+                self.send(Message.ReceiveChat, [conn.player.name, text])
 
             elif msg == Message.ChangeName:
                 before = str(args[0])
@@ -78,19 +84,18 @@ class Server(QTcpServer):
                     if player == conn.player:
                         continue
                     if player.name == after:
-                        self.sendReadySpecific.emit(Message.NameTaken, [], conn.id)
+                        self.sendTo(conn.id, Message.NameTaken, [])
                         return
                 conn.player.name = after
-                self.sendReadySpecific.emit(Message.NameChangeSuccess, [conn.player.name], conn.id)
-                self.sendReady.emit(Message.NameChanged, [before, after])
-                
+                self.sendTo(conn.id, Message.NameChangeSuccess, [conn.player.name])
+                self.send(Message.NameChanged, [before, after])                
 
             elif msg == Message.ChangeColor:
                 color = args
                 player = conn.player
                 player.color = color
                 print "%s changed their color to (%d, %d, %d)" % (player.name, color[0], color[1], color[2])
-                self.sendReady.emit(Message.ColorChanged, [player.name] + color)
+                self.send(Message.ColorChanged, [player.name] + color)
 
 if __name__ == "__main__":
     app = QCoreApplication(sys.argv)

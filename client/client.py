@@ -29,25 +29,28 @@ class Client(QObject):
         self.connection.connectToHost(host, port)
         self.connection.moveToThread(thread)
         thread.start()
-        self.sendReady.emit(Message.Join, [])
+        self.send(Message.Join, [])
+
+    def send(self, msg, args):
+        self.sendReady.emit(msg, args)
 
     def handleMessage(self, msg, args):
         if msg == Message.Ping:
-            self.sendReady.emit(Message.Pong, [])
+            self.send(Message.Pong, [])
 
         elif msg == Message.JoinSuccess:
             name = ""
             ok = False
             while not name or not ok:
                 (name, ok) = QInputDialog.getText(None, "Username", "Name")
-            self.sendReady.emit(Message.RequestName, [str(name)])
+            self.send(Message.RequestName, [str(name)])
 
         elif msg == Message.NameTaken:
             name = ""
             ok = False
             while not name or not ok:
                 (name, ok) = QInputDialog.getText(None, "Name Taken", "New name")
-            self.sendReady.emit(Message.RequestName, [str(name)])
+            self.send(Message.RequestName, [str(name)])
         
         elif msg == Message.NameAccepted:
             name = str(args[0])
@@ -81,10 +84,10 @@ class Client(QObject):
             self.mainWindow.chat.addLine(sender, p.color, text)
 
     def sendChat(self, text):
-        self.sendReady.emit(Message.SendChat, [str(text)])
+        self.send(Message.SendChat, [str(text)])
 
     def sendColorChange(self, color):
-        self.sendReady.emit(Message.ChangeColor, color)
+        self.send(Message.ChangeColor, color)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
