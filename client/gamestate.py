@@ -7,6 +7,7 @@ class GameState(object):
 
     def addPlayer(self, name):
         self.players.append(Player(name))
+        return self.players[-1]
 
     def getPlayer(self, name):
         for i in range(len(self.players)):

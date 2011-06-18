@@ -63,14 +63,29 @@ class Client(QObject):
         
         elif msg == Message.NameAccepted:
             name = str(args[0])
-            self.game.addPlayer(name)
-            self.game.clientPlayer = self.game.players[0]
+            self.game.clientPlayerName = name
+            self.send(Message.RequestPlayerList, [])
+
+        elif msg == Message.BeginPlayerList:
+            pass
+
+        elif msg == Message.PlayerInfo:
+            name = str(args[0])
+            color = args[1:]
+            player = self.game.addPlayer(name)
+            player.color = color
+
+        elif msg == Message.EndPlayerList:
+            self.game.clientPlayer = self.game.getPlayer(self.game.clientPlayerName)
+            for p in self.game.players:
+                print p.name
+            del self.game.clientPlayerName
             self.mainWindow = MainWindow(self.game)
             self.mainWindow.setWindowTitle("Risk %s:%d" % (self.host, self.port))
             self.mainWindow.chat.lineEntered.connect(self.sendChat)
             self.mainWindow.colorChanged.connect(self.sendColorChange)
             self.mainWindow.show()
-            QApplication.setQuitOnLastWindowClosed(True)
+            QApplication.setQuitOnLastWindowClosed(True)            
             
         elif msg == Message.NameChanged:
             before = str(args[0])
@@ -97,7 +112,7 @@ class Client(QObject):
                 self.game.clientPlayer.color = color
                 self.mainWindow.changeColor(color)
             else:
-                self.game.player(name).color = color
+                self.game.getPlayer(name).color = color
             self.mainWindow.chat.changePlayerColor(name, color)
 
         elif msg == Message.ReceiveChat:

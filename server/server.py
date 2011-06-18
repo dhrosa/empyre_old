@@ -24,6 +24,11 @@ class Server(QTcpServer):
     def sendTo(self, id, msg, args):
         self.sendReadySpecific.emit(msg, args, id)
 
+    def sendExcept(self, id, msg, args):
+        for c in self.connections:
+            if c and c.valid and c.id != id:
+                self.sendTo(c.id, msg, args)
+
     def incomingConnection(self, socketDescriptor):
         c = Connection(socketDescriptor)
         c.socketError.connect(self.socketErrorHandler)
@@ -51,6 +56,7 @@ class Server(QTcpServer):
             print "%s has disconnected." % (conn.player)
             if self.sm.substate == State.Lobby:
                 self.sm.next(Action.RemovePlayer, [conn.player.name])
+                self.send(Message.PlayerLeft, [conn.player.name])
         else:
             print "Anonymous client disconnected."
         conn.deleteLater()
@@ -72,7 +78,7 @@ class Server(QTcpServer):
                     print "%s has been granted the name \"%s\"." % (conn.peerAddress().toString(), name)
                     conn.player = self.sm.players[-1]
                     self.sendTo(conn.id, Message.NameAccepted, [name])
-                    self.send(Message.PlayerJoined, [name])
+                    self.sendExcept(conn.id, Message.PlayerJoined, [name])
         else:
             if msg == Message.SendChat:
                 text = str(args[0])
@@ -100,6 +106,12 @@ class Server(QTcpServer):
                 player.color = color
                 print "%s changed their color to (%d, %d, %d)" % (player.name, color[0], color[1], color[2])
                 self.send(Message.ColorChanged, [player.name] + color)
+
+            elif msg == Message.RequestPlayerList:
+                self.sendTo(conn.id, Message.BeginPlayerList, [])
+                for p in self.sm.players:
+                    self.sendTo(conn.id, Message.PlayerInfo, [p.name] + list(p.color))
+                self.sendTo(conn.id, Message.EndPlayerList, [])
 
 if __name__ == "__main__":
     app = QCoreApplication(sys.argv)
