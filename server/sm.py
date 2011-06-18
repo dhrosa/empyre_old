@@ -97,7 +97,10 @@ class SM(object):
         return False
 
     def cardValue(self):
-        return 1
+        if (self.setsExchanged <= 5):
+            return 4 + 2 * self.setsExchanged
+        else:
+            return -10 + 5 * self.setsExchanged
 
     def draftCount(self, player):
         myTerritories = [territory for territory in self.board.territories if territory.owner == player]
