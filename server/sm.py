@@ -21,8 +21,14 @@ def debug(func):
 
 class SM(object):
     def __init__(self, board):
-        self.substate = State.Lobby
         self.board = board
+        self.reset()
+
+    def __str__(self):
+        return "substate: %s, current: %s, first: %s, dice: %s, remaining: %s, source: %s, target: %s" % (self.substate, self.currentPlayer, self.firstPlayer, self.diceRolls, self.remainingTroops, self.source, self.target)
+
+    def reset(self):
+        self.substate = State.Lobby
         self.players = []
         self.currentPlayer = None
         self.firstPlayer = None
@@ -33,9 +39,6 @@ class SM(object):
         self.target = None
         self.awardCard = False
         self.setsExchanged = 0
-
-    def __str__(self):
-        return "substate: %s, current: %s, first: %s, dice: %s, remaining: %s, source: %s, target: %s" % (self.substate, self.currentPlayer, self.firstPlayer, self.diceRolls, self.remainingTroops, self.source, self.target)
 
     def clear(self):
         self.diceRolls = []

@@ -13,6 +13,7 @@ from PyQt4.QtCore import QCoreApplication, pyqtSignal, QThread
 class Server(QTcpServer):
     sendReady = pyqtSignal(int, list)
     sendReadySpecific = pyqtSignal(int, list, int)
+    resetting = pyqtSignal()
 
     def __init__(self, boardName, board, parent = None):
        QTcpServer.__init__(self, parent)
@@ -46,6 +47,7 @@ class Server(QTcpServer):
         c.messageReceived.connect(self.handleMessage)
         self.sendReady.connect(c.sendMessage)
         self.sendReadySpecific.connect(c.sendMessage)
+        self.resetting.connect(c.done)
         thread.start()
         
     def socketErrorHandler(self, socketError):
@@ -125,6 +127,11 @@ class Server(QTcpServer):
                 for line in self.chatHistory:
                     self.sendTo(conn.id, Message.ReceiveChat, [line[0].name, line[1]])
 
+    def reset(self):
+        print "Resetting server."
+        self.resetting.emit()
+        self.sm.reset()
+
     def startGame(self):
         if not self.sm.next(Action.StartGame):
             print "Need more players to start."
@@ -149,5 +156,7 @@ if __name__ == "__main__":
         s = raw_input("")
         if s.lower() == 'quit':
             sys.exit(0)
+        if s.lower() == "reset":
+            server.reset()
         if s.lower() == "start":
             server.startGame()
