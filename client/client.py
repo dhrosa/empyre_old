@@ -96,13 +96,13 @@ class Client(QObject):
             
         elif msg == Message.PlayerJoined:
             name = str(args[0])
-            if name != self.game.clientPlayer.name:
-                if not self.game.getPlayer(name):
-                    self.game.addPlayer(name)
+            self.game.addPlayer(name)
+            self.mainWindow.chat.addInfoLine((86, 170, 0), "%s has joined." % (name))
 
         elif msg == Message.PlayerLeft:
             name = str(args[0])
             self.game.removePlayer(name)
+            self.mainWindow.chat.addInfoLine((170, 0, 0), "%s has left." % (name))
 
         elif msg == Message.ColorChanged:
             name = str(args[0])
@@ -117,7 +117,12 @@ class Client(QObject):
         elif msg == Message.ReceiveChat:
             (sender, text) = args
             p = self.game.getPlayer(sender)
-            self.mainWindow.chat.addLine(sender, p.color, text)
+            if not p:
+                color = (128, 128, 128)
+            else:
+                color = p.color
+            self.mainWindow.chat.addLine(sender, color, text)
+                
 
     def connectionFail(self):
         if QMessageBox.Retry == QMessageBox.critical(None,

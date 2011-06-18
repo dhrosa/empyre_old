@@ -120,6 +120,12 @@ class SM(object):
                     return False
                 self.players.append(Player(*args))
                 return True
+            elif action == Action.RemovePlayer:
+                for i in range(len(self.players)):
+                    if self.players[i].name == args[0]:
+                        del self.players[i]
+                        return True
+                return False
             elif action == Action.StartGame:
                 if len(self.players) < 2:
                     return False
