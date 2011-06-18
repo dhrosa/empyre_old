@@ -37,10 +37,10 @@ class Server(QTcpServer):
         thread = QThread(self)
         c.moveToThread(thread)
         QCoreApplication.instance().aboutToQuit.connect(thread.quit)
-        c.destroyed.connect(thread.quit)
-        thread.finished.connect(thread.deleteLater)
-        thread.destroyed.connect(self.pruneConnections)
+        c.closed.connect(thread.quit)
         c.closed.connect(self.handleDisconnect)
+        c.destroyed.connect(self.pruneConnections)
+        thread.finished.connect(thread.deleteLater)
         c.messageReceived.connect(self.handleMessage)
         self.sendReady.connect(c.sendMessage)
         self.sendReadySpecific.connect(c.sendMessage)
@@ -50,7 +50,7 @@ class Server(QTcpServer):
         print socketError
 
     def pruneConnections(self):
-        self.connections = [c for c in self.connections if c.valid]
+        self.connections = [c for c in self.connections if c]
 
     def handleDisconnect(self, conn):
         if conn.player:
@@ -60,7 +60,7 @@ class Server(QTcpServer):
                 self.send(Message.PlayerLeft, [conn.player.name])
         else:
             print "Anonymous client disconnected."
-        conn.deleteLater()
+        conn.deleteLater()        
 
     def handleMessage(self, msg, args):
         conn = self.sender()

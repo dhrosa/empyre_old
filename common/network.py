@@ -90,9 +90,9 @@ class Connection(QTcpSocket):
         self.socketError.emit(int(err))
 
     def done(self):
-        self.closed.emit(self)
-        self.valid = False
+        self.abort()
         self.moveToThread(QCoreApplication.instance().thread())
+        self.closed.emit(self)
 
     def __init__(self, id = None, parent = None):
         QTcpSocket.__init__(self, parent)
