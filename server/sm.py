@@ -100,7 +100,12 @@ class SM(object):
         return 1
 
     def draftCount(self, player):
-        return 4
+        myTerritories = [territory for territory in self.board.territories if territory.owner == player]
+        bonus = max(3, floor(len(myTerritories) / 3))
+        for region in self.board.regions:
+            if region.hasBonus(myTerritories):
+                bonus += region.bonus
+        return bonus
 
     def next(self, action, args=[]):
         s = self.substate
