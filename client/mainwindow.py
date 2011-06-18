@@ -2,6 +2,7 @@ from PyQt4.QtCore import pyqtSignal
 from PyQt4.QtGui import *
 
 from chat import Chat
+from boardwidget import BoardWidget
 
 class MainWindow(QWidget):
     colorChanged = pyqtSignal(list)
@@ -13,16 +14,26 @@ class MainWindow(QWidget):
     def __init__(self, game, parent = None):
         QWidget.__init__(self, parent)
         self.game = game
+        self.boardWidget = BoardWidget(self.game)
         self.chat = Chat()
         self.nameEdit = QLineEdit()
         self.nameEdit.setText(self.game.clientPlayer.name)
         self.nameEdit.returnPressed.connect(self.__emitNameChanged)
         changeColor = QPushButton("Change color")
         changeColor.released.connect(self.chooseColor)
-        layout = QGridLayout()
-        layout.addWidget(self.nameEdit, 0, 0)
-        layout.addWidget(changeColor, 0, 1)
-        layout.addWidget(self.chat, 1, 0, 4, 2)
+
+        infoLayout = QVBoxLayout()
+        infoLayout.addWidget(self.nameEdit)
+        infoLayout.addWidget(changeColor)
+        infoLayout.addWidget(self.chat)
+        info = QWidget()
+        info.setLayout(infoLayout)
+
+        layout = QHBoxLayout()
+        splitter = QSplitter()
+        splitter.addWidget(self.boardWidget)
+        splitter.addWidget(info)
+        layout.addWidget(splitter)
         self.setLayout(layout)
 
     def chooseColor(self):

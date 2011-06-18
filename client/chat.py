@@ -1,5 +1,5 @@
-from PyQt4.QtCore import pyqtSignal, Qt
-from PyQt4.QtGui import QWidget, QVBoxLayout, QTextEdit, QLineEdit, QSizePolicy
+from PyQt4.QtCore import pyqtSignal, Qt, QSize
+from PyQt4.QtGui import QWidget, QVBoxLayout, QTextEdit, QLineEdit
 
 class Line(object):
     (
@@ -28,8 +28,10 @@ class Chat(QWidget):
         layout.addWidget(self.history)
         layout.addWidget(self.input)
         self.setLayout(layout)
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         self.input.returnPressed.connect(self.__emitLineEntered)
+
+    def minimumSizeHint(self):
+        return QSize(300, 200)
         
     def clear(self):
         self.lines = []

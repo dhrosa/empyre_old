@@ -67,11 +67,12 @@ class Card(object):
         self.unit = unit
 
 class Board(object):
-    def __init__(self, name, territories, borders, regions):
+    def __init__(self, name, territories, borders, regions, image = None):
         self.name = name
         self.territories = dict([(t.name, t) for t in territories])
         self.borders = borders
         self.regions = regions
+        self.image = image
         self.cards = []
         units = []
         for (i, t) in enumerate(territories):
@@ -91,7 +92,7 @@ def loadBoard(boardName, images = False):
     base = sys.path[0] + "/../boards/%s/" % (boardName)
     if not os.path.exists(base):
         return
-    fileNames = [base + name for name in ["territories", "borders", "regions", "info"]]
+    fileNames = [base + name for name in ["territories", "borders", "regions", "info", "board.png"]]
     for fileName in fileNames:
         if not os.path.isfile(fileName):
             return
@@ -149,4 +150,4 @@ def loadBoard(boardName, images = False):
         if len(info) < 2:
             return
         name = info[1].strip()
-    return Board(name, territories.values(), borders, regions)
+    return Board(name, territories.values(), borders, regions, fileNames[4])

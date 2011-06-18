@@ -54,6 +54,7 @@ class Client(QObject):
                 QMessageBox.critical(None, "Board Missing", "You do not have the board \"%s\" required for this game." % (boardName), QMessageBox.Close)
                 self.connection.thread().quit()
                 sys.exit()
+            self.game.board = board
             name = ""
             while not name:
                 (name, ok) = QInputDialog.getText(None, "Username", "Name")
@@ -126,6 +127,9 @@ class Client(QObject):
                 self.game.getPlayer(name).color = color
             self.mainWindow.chat.changePlayerColor(name, color)
             self.mainWindow.chat.addInfoLine((0, 0, 170), "%s has changed their color." % (name))
+
+        elif msg == Message.GameStarted:
+            pass
 
         elif msg == Message.ReceiveChat:
             (sender, text) = args
