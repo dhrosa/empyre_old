@@ -88,8 +88,8 @@ class Server(QTcpServer):
                 self.send(Message.ReceiveChat, [conn.player.name, text])
 
             elif msg == Message.ChangeName:
-                before = str(args[0])
-                after = str(args[1])
+                before = conn.player.name
+                after = str(args[0])
                 if before == after:
                     return
                 for player in self.sm.players:
@@ -99,6 +99,7 @@ class Server(QTcpServer):
                         self.sendTo(conn.id, Message.NameTaken, [])
                         return
                 conn.player.name = after
+                print "%s changed their name to %s." % (before, after)
                 self.sendTo(conn.id, Message.NameChangeSuccess, [conn.player.name])
                 self.send(Message.NameChanged, [before, after])                
 

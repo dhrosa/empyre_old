@@ -37,14 +37,14 @@ class Chat(QWidget):
 
     def changePlayerName(self, before, after):
         for i in range(len(self.lines)):
-            if lines[i].type == Line.Chat:
+            if self.lines[i].type == Line.Chat:
                 if self.lines[i].data["name"] == before:
                     self.lines[i].data["name"] = after
         self.updateHistory()
 
     def changePlayerColor(self, name, color):
         for i in range(len(self.lines)):
-            if lines[i].type == Line.Chat:
+            if self.lines[i].type == Line.Chat:
                 if self.lines[i].data["name"] == name:
                     self.lines[i].data["color"] = color
         self.updateHistory()
@@ -64,6 +64,7 @@ class Chat(QWidget):
         self.history.setHtml(
             "<html><body>%s</body></html>" % ("".join(lines))
         )
+        self.history.verticalScrollBar().setValue(self.history.verticalScrollBar().maximum())
 
     def addLine(self, name, color, text):
         line = Line(type=Line.Chat, name=name, color=color, text=text)

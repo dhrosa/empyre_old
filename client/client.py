@@ -82,22 +82,24 @@ class Client(QObject):
             self.mainWindow.setWindowTitle("Risk %s:%d" % (self.host, self.port))
             self.mainWindow.chat.lineEntered.connect(self.sendChat)
             self.mainWindow.colorChanged.connect(self.sendColorChange)
+            self.mainWindow.nameChanged.connect(self.sendNameChange)
             self.mainWindow.show()
             QApplication.setQuitOnLastWindowClosed(True)
             self.send(Message.RequestChatHistory, [])
 
         elif msg == Message.NameChanged:
             before = str(args[0])
-            after = str(args[0])
+            after = str(args[1])
             player = self.game.getPlayer(before)
             if player:
                 player.name = after
             self.mainWindow.chat.changePlayerName(before, after)
+            self.mainWindow.chat.addInfoLine((0, 0, 170), "%s changed their name to %s" % (before, after))
             
         elif msg == Message.PlayerJoined:
             name = str(args[0])
             self.game.addPlayer(name)
-            self.mainWindow.chat.addInfoLine((86, 170, 0), "%s has joined." % (name))
+            self.mainWindow.chat.addInfoLine((0, 170, 0), "%s has joined." % (name))
 
         elif msg == Message.PlayerLeft:
             name = str(args[0])
@@ -113,6 +115,7 @@ class Client(QObject):
             else:
                 self.game.getPlayer(name).color = color
             self.mainWindow.chat.changePlayerColor(name, color)
+            self.mainWindow.chat.addInfoLine((0, 0, 170), "%s has changed their color." % (name))
 
         elif msg == Message.ReceiveChat:
             (sender, text) = args
@@ -142,6 +145,9 @@ class Client(QObject):
 
     def sendColorChange(self, color):
         self.send(Message.ChangeColor, color)
+
+    def sendNameChange(self, name):
+        self.send(Message.ChangeName, [str(name)])
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

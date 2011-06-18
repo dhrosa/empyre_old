@@ -60,7 +60,7 @@ class Message(object):
         PlayerLeft: (str,),
         ColorChanged: (str, int, int, int),
         NameChanged: (str, str),
-        NameChangeSuccess: (),
+        NameChangeSuccess: (str,),
         ReceiveChat: (str, str),
         ReceiveWhisper: (str, str),
     }
