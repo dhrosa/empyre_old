@@ -5,6 +5,7 @@ sys.path.append(sys.path[0] + "/../")
 from sm import SM
 from common.game import State, Action
 from common.network import Message, Connection
+from common.board import loadBoard
 
 from PyQt4.QtNetwork import QTcpServer, QTcpSocket
 from PyQt4.QtCore import QCoreApplication, pyqtSignal, QThread
@@ -123,6 +124,15 @@ class Server(QTcpServer):
 if __name__ == "__main__":
     app = QCoreApplication(sys.argv)
     server = Server()
+    try:
+        boardName = sys.argv[1]
+    except IndexError:
+        print "Please specify a board to load."
+        sys.exit(1)
+    board = loadBoard(boardName)
+    if not board:
+        print "Could not load board: %s" % (boardName)
+    print "Loaded \"%s\" board." % (board.name)
     if not server.listen(port=9002):
         print "could not listen"
     while True:
