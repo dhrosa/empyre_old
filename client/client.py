@@ -77,16 +77,15 @@ class Client(QObject):
 
         elif msg == Message.EndPlayerList:
             self.game.clientPlayer = self.game.getPlayer(self.game.clientPlayerName)
-            for p in self.game.players:
-                print p.name
             del self.game.clientPlayerName
             self.mainWindow = MainWindow(self.game)
             self.mainWindow.setWindowTitle("Risk %s:%d" % (self.host, self.port))
             self.mainWindow.chat.lineEntered.connect(self.sendChat)
             self.mainWindow.colorChanged.connect(self.sendColorChange)
             self.mainWindow.show()
-            QApplication.setQuitOnLastWindowClosed(True)            
-            
+            QApplication.setQuitOnLastWindowClosed(True)
+            self.send(Message.RequestChatHistory, [])
+
         elif msg == Message.NameChanged:
             before = str(args[0])
             after = str(args[0])

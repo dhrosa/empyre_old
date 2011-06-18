@@ -8,12 +8,13 @@ class Message(object):
         Join,
         Rejoin,
         RequestPlayerList,
+        RequestChatHistory,
         RequestName,
         ChangeName,
         ChangeColor,
         SendChat,
         SendWhisper,
-    ) = range(10)
+    ) = range(11)
 
     (
         Ping,
@@ -39,6 +40,7 @@ class Message(object):
         CurrentState: (),
         Join: (),
         RequestPlayerList: (),
+        RequestChatHistory: (),
         RequestName: (str,),
         Rejoin: (str,),
         ChangeName: (str,),

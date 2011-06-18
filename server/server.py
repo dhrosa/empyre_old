@@ -17,6 +17,7 @@ class Server(QTcpServer):
        QTcpServer.__init__(self, parent)
        self.connections = []
        self.sm = SM(None)
+       self.chatHistory = []
 
     def send(self, msg, args):
         self.sendReady.emit(msg, args)
@@ -83,6 +84,7 @@ class Server(QTcpServer):
             if msg == Message.SendChat:
                 text = str(args[0])
                 print "%s: %s" % (conn.player.name, text)
+                self.chatHistory.append([conn.player, text])
                 self.send(Message.ReceiveChat, [conn.player.name, text])
 
             elif msg == Message.ChangeName:
@@ -112,6 +114,10 @@ class Server(QTcpServer):
                 for p in self.sm.players:
                     self.sendTo(conn.id, Message.PlayerInfo, [p.name] + list(p.color))
                 self.sendTo(conn.id, Message.EndPlayerList, [])
+
+            elif msg == Message.RequestChatHistory:
+                for line in self.chatHistory:
+                    self.sendTo(conn.id, Message.ReceiveChat, [line[0].name, line[1]])
 
 if __name__ == "__main__":
     app = QCoreApplication(sys.argv)
