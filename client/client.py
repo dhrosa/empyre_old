@@ -63,19 +63,46 @@ class Client(QObject):
         
         elif msg == Message.NameAccepted:
             name = str(args[0])
-            self.game.clientPlayer = Player(name)
-            self.game.players.append(self.game.clientPlayer)
+            self.game.clientPlayerName = name
+            self.send(Message.RequestPlayerList, [])
+
+        elif msg == Message.BeginPlayerList:
+            pass
+
+        elif msg == Message.PlayerInfo:
+            name = str(args[0])
+            color = args[1:]
+            player = self.game.addPlayer(name)
+            player.color = color
+
+        elif msg == Message.EndPlayerList:
+            self.game.clientPlayer = self.game.getPlayer(self.game.clientPlayerName)
+            del self.game.clientPlayerName
             self.mainWindow = MainWindow(self.game)
             self.mainWindow.setWindowTitle("Risk %s:%d" % (self.host, self.port))
             self.mainWindow.chat.lineEntered.connect(self.sendChat)
             self.mainWindow.colorChanged.connect(self.sendColorChange)
             self.mainWindow.show()
             QApplication.setQuitOnLastWindowClosed(True)
+            self.send(Message.RequestChatHistory, [])
 
+        elif msg == Message.NameChanged:
+            before = str(args[0])
+            after = str(args[0])
+            player = self.game.getPlayer(before)
+            if player:
+                player.name = after
+            self.mainWindow.chat.changePlayerName(before, after)
+            
         elif msg == Message.PlayerJoined:
             name = str(args[0])
-            if not self.game.player(name):
-                self.game.players.append(Player(name))
+            if name != self.game.clientPlayer.name:
+                if not self.game.getPlayer(name):
+                    self.game.addPlayer(name)
+
+        elif msg == Message.PlayerLeft:
+            name = str(args[0])
+            self.game.removePlayer(name)
 
         elif msg == Message.ColorChanged:
             name = str(args[0])
@@ -84,12 +111,12 @@ class Client(QObject):
                 self.game.clientPlayer.color = color
                 self.mainWindow.changeColor(color)
             else:
-                self.game.player(name).color = color
+                self.game.getPlayer(name).color = color
             self.mainWindow.chat.changePlayerColor(name, color)
 
         elif msg == Message.ReceiveChat:
             (sender, text) = args
-            p = self.game.player(sender)
+            p = self.game.getPlayer(sender)
             self.mainWindow.chat.addLine(sender, p.color, text)
 
     def connectionFail(self):

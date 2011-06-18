@@ -1,9 +1,21 @@
+from common.game import Player
+
 class GameState(object):
     def __init__(self):
         self.players = []
         self.clientPlayer = None
 
-    def player(self, name):
-        for p in self.players:
-            if p.name == name:
-                return p
+    def addPlayer(self, name):
+        self.players.append(Player(name))
+        return self.players[-1]
+
+    def getPlayer(self, name):
+        for i in range(len(self.players)):
+            if self.players[i].name == name:
+                return self.players[i]
+
+    def removePlayer(self, name):
+        for i in range(len(self.players)):
+            if self.players[i].name == name:
+                del self.players[i]
+                return

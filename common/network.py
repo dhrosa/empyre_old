@@ -7,12 +7,14 @@ class Message(object):
         RequestState,
         Join,
         Rejoin,
+        RequestPlayerList,
+        RequestChatHistory,
         RequestName,
         ChangeName,
         ChangeColor,
         SendChat,
         SendWhisper,
-    ) = range(9)
+    ) = range(11)
 
     (
         Ping,
@@ -20,19 +22,25 @@ class Message(object):
         JoinSuccess,
         NameTaken,
         NameAccepted,
+        BeginPlayerList,
+        PlayerInfo,
+        EndPlayerList,
         PlayerJoined,
+        PlayerLeft,
         ColorChanged,
         NameChanged,
         NameChangeSuccess,
         ReceiveChat,
         ReceiveWhisper,
-    ) = range (100, 111)
+    ) = range (100, 115)
         
     validArgs = {
         Pong: (),
         RequestState: (),
         CurrentState: (),
         Join: (),
+        RequestPlayerList: (),
+        RequestChatHistory: (),
         RequestName: (str,),
         Rejoin: (str,),
         ChangeName: (str,),
@@ -45,7 +53,11 @@ class Message(object):
         NameTaken: (),
         JoinSuccess: (),
         NameAccepted: (str,),
+        BeginPlayerList: (),
+        PlayerInfo: (str, int, int, int),
+        EndPlayerList: (),
         PlayerJoined: (str,),
+        PlayerLeft: (str,),
         ColorChanged: (str, int, int, int),
         NameChanged: (str, str),
         NameChangeSuccess: (),
@@ -138,5 +150,6 @@ class Connection(QTcpSocket):
                 self.waitForBytes(4)
                 args.append(stream.readInt32())        
         self.messageReceived.emit(msg, args)
-        if self.bytesAvailable() > 4:
+        if self.bytesAvailable() > 0:
             self.readyRead.emit()
+
