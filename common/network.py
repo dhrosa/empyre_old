@@ -7,6 +7,7 @@ class Message(object):
         RequestState,
         Join,
         Rejoin,
+        RequestBoardName,
         RequestPlayerList,
         RequestChatHistory,
         RequestName,
@@ -14,12 +15,13 @@ class Message(object):
         ChangeColor,
         SendChat,
         SendWhisper,
-    ) = range(11)
+    ) = range(12)
 
     (
         Ping,
         CurrentState,
         JoinSuccess,
+        LoadBoard,
         NameTaken,
         NameAccepted,
         BeginPlayerList,
@@ -30,19 +32,21 @@ class Message(object):
         ColorChanged,
         NameChanged,
         NameChangeSuccess,
+        GameStarted,
         ReceiveChat,
         ReceiveWhisper,
-    ) = range (100, 115)
+    ) = range (100, 117)
         
     validArgs = {
         Pong: (),
         RequestState: (),
         CurrentState: (),
         Join: (),
+        Rejoin: (str, str),
+        RequestBoardName: (),
         RequestPlayerList: (),
         RequestChatHistory: (),
         RequestName: (str,),
-        Rejoin: (str,),
         ChangeName: (str,),
         ChangeColor: (int, int, int),
         SendChat: (str,),
@@ -50,8 +54,9 @@ class Message(object):
         
         Ping: (),
         CurrentState: (),
-        NameTaken: (),
         JoinSuccess: (),
+        LoadBoard: (str,),
+        NameTaken: (),
         NameAccepted: (str,),
         BeginPlayerList: (),
         PlayerInfo: (str, int, int, int),
@@ -61,6 +66,7 @@ class Message(object):
         ColorChanged: (str, int, int, int),
         NameChanged: (str, str),
         NameChangeSuccess: (str,),
+        GameStarted: (),
         ReceiveChat: (str, str),
         ReceiveWhisper: (str, str),
     }

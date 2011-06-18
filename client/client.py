@@ -7,6 +7,7 @@ from PyQt4.QtGui import QApplication, QInputDialog, QMessageBox
 
 from common.network import Message, Connection
 from common.game import Player
+from common.board import Board, loadBoard
 from chat import Chat
 from mainwindow import MainWindow
 from connectdialog import ConnectDialog
@@ -44,6 +45,15 @@ class Client(QObject):
             self.send(Message.Pong, [])
 
         elif msg == Message.JoinSuccess:
+            self.send(Message.RequestBoardName, [])
+        
+        elif msg == Message.LoadBoard:
+            boardName = str(args[0])
+            board = loadBoard(boardName, images=True)
+            if not board:
+                QMessageBox.critical(None, "Board Missing", "You do not have the board \"%s\" required for this game." % (boardName), QMessageBox.Close)
+                self.connection.thread().quit()
+                sys.exit()
             name = ""
             while not name:
                 (name, ok) = QInputDialog.getText(None, "Username", "Name")

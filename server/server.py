@@ -14,10 +14,11 @@ class Server(QTcpServer):
     sendReady = pyqtSignal(int, list)
     sendReadySpecific = pyqtSignal(int, list, int)
 
-    def __init__(self, parent = None):
+    def __init__(self, boardName, board, parent = None):
        QTcpServer.__init__(self, parent)
+       self.boardName = boardName
        self.connections = []
-       self.sm = SM(None)
+       self.sm = SM(board)
        self.chatHistory = []
 
     def send(self, msg, args):
@@ -70,6 +71,9 @@ class Server(QTcpServer):
                 print "%s connected." % (conn.peerAddress().toString())
                 self.sendTo(conn.id, Message.JoinSuccess, [])
 
+            elif msg == Message.RequestBoardName:
+                self.sendTo(conn.id, Message.LoadBoard, [self.boardName])
+
             elif msg == Message.RequestName:
                 name = str(args[0])
                 print "%s requested the name \"%s\"." % (conn.peerAddress().toString(), name)
@@ -121,9 +125,14 @@ class Server(QTcpServer):
                 for line in self.chatHistory:
                     self.sendTo(conn.id, Message.ReceiveChat, [line[0].name, line[1]])
 
+    def startGame(self):
+        if not self.sm.next(Action.StartGame):
+            print "Need more players to start."
+        else:
+            self.send(Message.GameStarted, [])
+    
 if __name__ == "__main__":
     app = QCoreApplication(sys.argv)
-    server = Server()
     try:
         boardName = sys.argv[1]
     except IndexError:
@@ -133,9 +142,12 @@ if __name__ == "__main__":
     if not board:
         print "Could not load board: %s" % (boardName)
     print "Loaded \"%s\" board." % (board.name)
+    server = Server(boardName, board)
     if not server.listen(port=9002):
         print "could not listen"
     while True:
         s = raw_input("")
         if s.lower() == 'quit':
             sys.exit(0)
+        if s.lower() == "start":
+            server.startGame()
