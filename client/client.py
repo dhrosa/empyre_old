@@ -2,7 +2,7 @@
 import sys
 sys.path.append(sys.path[0] + "/../")
 
-from PyQt4.QtCore import pyqtSignal, QObject, QThread
+from PyQt4.QtCore import pyqtSignal, QObject, QThread, Qt
 from PyQt4.QtGui import QApplication, QInputDialog, QMessageBox
 
 from common.network import Message, Connection
@@ -14,7 +14,7 @@ from gamestate import GameState
 
 class Client(QObject):
     sendReady = pyqtSignal(int, list)
-    readyToConnect = pyqtSignal(str, int)
+    readyToConnect = pyqtSignal()
 
     def __init__(self, host, port, parent = None):
         QObject.__init__(self, parent)
@@ -25,14 +25,16 @@ class Client(QObject):
         QApplication.instance().aboutToQuit.connect(thread.quit)
         QApplication.setQuitOnLastWindowClosed(False)
         self.connection = Connection()
+        self.connection.moveToThread(thread)
+        self.connection.host = host
+        self.connection.port = port
         self.connection.messageReceived.connect(self.handleMessage)
         self.connection.connected.connect(self.sendJoinMessage)
         self.connection.connectionFailed.connect(self.connectionFail)
         self.sendReady.connect(self.connection.sendMessage)
         self.readyToConnect.connect(self.connection.tryConnectToHost)
-        self.connection.moveToThread(thread)
+        thread.started.connect(self.connection.tryConnectToHost)
         thread.start()
-        self.tryConnect()
 
     def send(self, msg, args):
         self.sendReady.emit(msg, args)
@@ -46,6 +48,7 @@ class Client(QObject):
             while not name:
                 (name, ok) = QInputDialog.getText(None, "Username", "Name")
                 if not ok:
+                    self.connection.thread().quit()
                     sys.exit()
             self.send(Message.RequestName, [str(name)])
 
@@ -54,6 +57,7 @@ class Client(QObject):
             while not name:
                 (name, ok) = QInputDialog.getText(None, "Name Taken", "New name")
                 if not ok:
+                    self.connection.thread().quit()
                     sys.exit()
             self.send(Message.RequestName, [str(name)])
         
@@ -88,15 +92,15 @@ class Client(QObject):
             p = self.game.player(sender)
             self.mainWindow.chat.addLine(sender, p.color, text)
 
-    def tryConnect(self):
-        self.readyToConnect.emit(self.host, self.port)
-
     def connectionFail(self):
-        if QMessageBox.critical(None,
+        if QMessageBox.Retry == QMessageBox.critical(None,
                                 "Connection Failed",
                                 "Failed to connect to %s on port %d" % (self.host, self.port),
                                 QMessageBox.Retry | QMessageBox.Cancel):
-            self.tryConnect()
+            self.readyToConnect.emit()
+        else:
+            self.connection.thread().quit()
+            sys.exit()
                                 
     def sendJoinMessage(self):
         self.send(Message.Join, [])

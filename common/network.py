@@ -92,9 +92,9 @@ class Connection(QTcpSocket):
         self.error.connect(self.__emitError, Qt.DirectConnection)
         self.readyRead.connect(self.receiveMessage, Qt.DirectConnection)
         
-    def tryConnectToHost(self, host, port):
+    def tryConnectToHost(self):
         self.abort()
-        self.connectToHost(host, port)
+        self.connectToHost(self.host, self.port)
         if not self.waitForConnected(10000):
             self.connectionFailed.emit()
 
