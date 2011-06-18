@@ -29,11 +29,12 @@ class Server(QTcpServer):
         c.socketError.connect(self.socketErrorHandler)
         self.connections.append(c)
         thread = QThread(self)
-        thread.finished.connect(thread.deleteLater)
         c.moveToThread(thread)
         QCoreApplication.instance().aboutToQuit.connect(thread.quit)
-        c.closed.connect(thread.quit)
-        c.closed.connect(self.removeConnection)
+        c.destroyed.connect(thread.quit)
+        thread.finished.connect(thread.deleteLater)
+        thread.destroyed.connect(self.pruneConnections)
+        c.closed.connect(self.handleDisconnect)
         c.messageReceived.connect(self.handleMessage)
         self.sendReady.connect(c.sendMessage)
         self.sendReadySpecific.connect(c.sendMessage)
@@ -42,14 +43,17 @@ class Server(QTcpServer):
     def socketErrorHandler(self, socketError):
         print socketError
 
-    def removeConnection(self, conn):
+    def pruneConnections(self):
+        self.connections = [c for c in self.connections if c.valid]
+
+    def handleDisconnect(self, conn):
         if conn.player:
             print "%s has disconnected." % (conn.player)
             if self.sm.substate == State.Lobby:
                 self.sm.next(Action.RemovePlayer, [conn.player.name])
         else:
             print "Anonymous client disconnected."
-        self.connections.remove(conn)
+        conn.deleteLater()
 
     def handleMessage(self, msg, args):
         conn = self.sender()

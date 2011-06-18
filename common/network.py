@@ -1,4 +1,4 @@
-from PyQt4.QtCore import pyqtSignal, Qt, QObject, QByteArray, QDataStream
+from PyQt4.QtCore import pyqtSignal, Qt, QObject, QByteArray, QDataStream, QCoreApplication
 from PyQt4.QtNetwork import QTcpSocket
 
 class Message(object):
@@ -79,9 +79,12 @@ class Connection(QTcpSocket):
 
     def done(self):
         self.closed.emit(self)
+        self.valid = False
+        self.moveToThread(QCoreApplication.instance().thread())
 
     def __init__(self, id = None, parent = None):
         QTcpSocket.__init__(self, parent)
+        self.valid = True
         if id:
             if not self.setSocketDescriptor(id):
                 self.done()
