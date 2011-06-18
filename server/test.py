@@ -36,8 +36,8 @@ board = Board(territories, borders, [])
 
 sm = SM(board)
 
-sm.next(Action.AddPlayer, ["Diony", 1])
-sm.next(Action.AddPlayer, ["Mary", 2])
+sm.next(Action.AddPlayer, ["Diony"])
+sm.next(Action.AddPlayer, ["Mary"])
 sm.next(Action.StartGame)
 while sm.tiedPlayers:
     sm.next(Action.RollDice)
