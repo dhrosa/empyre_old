@@ -77,19 +77,6 @@ class Server(QTcpServer):
                 else:
                     self.sendTo(conn.id, Message.JoinSuccess)
 
-            elif msg == Message.Rejoin:
-                password = str(args[0])
-                for i in range(len(self.sm.players)):
-                    if self.sm.players[i].password == password:
-                        conn.player = self.sm.players[i]
-                        break
-                if conn.player:
-                    print "%s has rejoined." % (conn.player.name)
-                    self.sendTo(conn.id, Message.RejoinSuccess, [conn.player.name])
-                    self.sendExcept(conn.id, Message.PlayerRejoined, [conn.player.name])
-                else:
-                    self.sendTo(conn.id, Message.IncorrectPassword)
-
             elif msg == Message.RequestName:
                 name = str(args[0])
                 print "%s requested the name \"%s\"." % (conn.peerAddress().toString(), name)
@@ -103,16 +90,41 @@ class Server(QTcpServer):
                     print "%s has been granted the name \"%s\" and password: %s." % (conn.peerAddress().toString(), name, password)
                     self.sendTo(conn.id, Message.NameAccepted, [name, conn.player.password])
                     self.sendExcept(conn.id, Message.PlayerJoined, [name])
-        else:
-            if msg == Message.RequestBoardName:
-                print "Sending board information to %s." % (conn.player.name)
-                self.sendTo(conn.id, Message.LoadBoard, [self.boardName])
 
-            elif msg == Message.SendChat:
+            elif msg == Message.Rejoin:
+                password = str(args[0])
+                for i in range(len(self.sm.players)):
+                    if self.sm.players[i].password == password:
+                        conn.player = self.sm.players[i]
+                        break
+                if conn.player:
+                    print "%s has rejoined." % (conn.player.name)
+                    self.sendTo(conn.id, Message.RejoinSuccess, [conn.player.name])
+                    self.sendExcept(conn.id, Message.PlayerRejoined, [conn.player.name])
+                else:
+                    self.sendTo(conn.id, Message.IncorrectPassword)
+
+
+        else:
+            if msg == Message.SendChat:
                 text = str(args[0])
                 print "%s: %s" % (conn.player.name, text)
                 self.chatHistory.append([conn.player, text])
                 self.send(Message.ReceiveChat, [conn.player.name, text])
+
+            elif msg == Message.RequestBoardName:
+                print "Sending board information to %s." % (conn.player.name)
+                self.sendTo(conn.id, Message.LoadBoard, [self.boardName])
+
+            elif msg == Message.RequestPlayerList:
+                self.sendTo(conn.id, Message.BeginPlayerList)
+                for p in self.sm.players:
+                    self.sendTo(conn.id, Message.PlayerInfo, [p.name] + list(p.color))
+                self.sendTo(conn.id, Message.EndPlayerList)
+
+            elif msg == Message.RequestChatHistory:
+                for line in self.chatHistory:
+                    self.sendTo(conn.id, Message.ReceiveChat, [line[0].name, line[1]])
 
             elif msg == Message.ChangeName:
                 before = conn.player.name
@@ -137,15 +149,6 @@ class Server(QTcpServer):
                 print "%s changed their color to (%d, %d, %d)" % (player.name, color[0], color[1], color[2])
                 self.send(Message.ColorChanged, [player.name] + color)
 
-            elif msg == Message.RequestPlayerList:
-                self.sendTo(conn.id, Message.BeginPlayerList)
-                for p in self.sm.players:
-                    self.sendTo(conn.id, Message.PlayerInfo, [p.name] + list(p.color))
-                self.sendTo(conn.id, Message.EndPlayerList)
-
-            elif msg == Message.RequestChatHistory:
-                for line in self.chatHistory:
-                    self.sendTo(conn.id, Message.ReceiveChat, [line[0].name, line[1]])
 
     def readStdin(self):
         line = sys.stdin.readline().strip()

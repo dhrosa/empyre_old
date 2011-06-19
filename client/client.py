@@ -44,6 +44,15 @@ class Client(QObject):
         if msg == Message.Ping:
             self.send(Message.Pong)
 
+        elif msg == Message.ReceiveChat:
+            (sender, text) = args
+            p = self.game.getPlayer(sender)
+            if not p:
+                color = (128, 128, 128)
+            else:
+                color = p.color
+            self.mainWindow.chat.addLine(sender, color, text)
+
         elif msg == Message.JoinSuccess:
             name = ""
             while not name:
@@ -53,6 +62,25 @@ class Client(QObject):
                     sys.exit()
             self.send(Message.RequestName, [str(name)])
         
+        elif msg == Message.NameTaken:
+            name = ""
+            while not name:
+                (name, ok) = QInputDialog.getText(None, "Name Taken", "New name")
+                if not ok:
+                    self.connection.thread().quit()
+                    sys.exit()
+            self.send(Message.RequestName, [str(name)])
+        
+        elif msg == Message.NameAccepted:
+            self.clientPlayerName = str(args[0])
+            self.password = str(args[1])
+            self.send(Message.RequestPlayerList)
+
+        elif msg == Message.PlayerJoined:
+            name = str(args[0])
+            self.game.addPlayer(name)
+            self.mainWindow.chat.addInfoLine((0, 170, 0), "%s has joined." % (name))
+
         elif msg == Message.GameInProgress:
             password = ""
             while not password:
@@ -62,10 +90,35 @@ class Client(QObject):
                     sys.exit()
             self.send(Message.Rejoin, [str(password)])
 
+        elif msg == Message.IncorrectPassword:
+            password = ""
+            while not password:
+                (password, ok) = QInputDialog.getText(None, "Incorrect Password", "Password")
+                if not ok:
+                    self.connection.thread().quit()
+                    sys.exit()
+            self.send(Message.Rejoin, [str(password)])
+
         elif msg == Message.RejoinSuccess:
             name = str(args[0])
             self.clientPlayerName = name
             self.send(Message.RequestPlayerList)
+
+        elif msg == Message.PlayerRejoined:
+            name = str(args[0])
+            self.mainWindow.chat.addInfoLine((0, 170, 0), "%s has rejoined." % (name))
+
+        elif msg == Message.BeginPlayerList:
+            pass
+
+        elif msg == Message.PlayerInfo:
+            name = str(args[0])
+            color = args[1:]
+            player = self.game.addPlayer(name)
+            player.color = color
+
+        elif msg == Message.EndPlayerList:
+            self.send(Message.RequestBoardName)
 
         elif msg == Message.LoadBoard:
             boardName = str(args[0])
@@ -91,51 +144,7 @@ class Client(QObject):
                 self.mainWindow.boardWidget.setEnabled(True)
             QApplication.setQuitOnLastWindowClosed(True)
             self.send(Message.RequestChatHistory)
-
-        elif msg == Message.NameTaken:
-            name = ""
-            while not name:
-                (name, ok) = QInputDialog.getText(None, "Name Taken", "New name")
-                if not ok:
-                    self.connection.thread().quit()
-                    sys.exit()
-            self.send(Message.RequestName, [str(name)])
-        
-        elif msg == Message.NameAccepted:
-            self.clientPlayerName = str(args[0])
-            self.password = str(args[1])
-            self.send(Message.RequestPlayerList)
-
-        elif msg == Message.BeginPlayerList:
-            pass
-
-        elif msg == Message.PlayerInfo:
-            name = str(args[0])
-            color = args[1:]
-            player = self.game.addPlayer(name)
-            player.color = color
-
-        elif msg == Message.EndPlayerList:
-            self.send(Message.RequestBoardName)
-
-        elif msg == Message.NameChanged:
-            before = str(args[0])
-            after = str(args[1])
-            player = self.game.getPlayer(before)
-            if player:
-                player.name = after
-            self.mainWindow.chat.changePlayerName(before, after)
-            self.mainWindow.chat.addInfoLine((0, 0, 170), "%s changed their name to %s" % (before, after))
             
-        elif msg == Message.PlayerJoined:
-            name = str(args[0])
-            self.game.addPlayer(name)
-            self.mainWindow.chat.addInfoLine((0, 170, 0), "%s has joined." % (name))
-
-        elif msg == Message.PlayerRejoined:
-            name = str(args[0])
-            self.mainWindow.chat.addInfoLine((0, 170, 0), "%s has rejoined." % (name))
-
         elif msg == Message.PlayerLeft:
             name = str(args[0])
             self.game.removePlayer(name)
@@ -156,18 +165,18 @@ class Client(QObject):
             self.mainWindow.chat.changePlayerColor(name, color)
             self.mainWindow.chat.addInfoLine((0, 0, 170), "%s has changed their color." % (name))
 
+        elif msg == Message.NameChanged:
+            before = str(args[0])
+            after = str(args[1])
+            player = self.game.getPlayer(before)
+            if player:
+                player.name = after
+            self.mainWindow.chat.changePlayerName(before, after)
+            self.mainWindow.chat.addInfoLine((0, 0, 170), "%s changed their name to %s" % (before, after))
+
         elif msg == Message.GameStarted:
             self.mainWindow.boardWidget.setEnabled(True)
             self.mainWindow.chat.addInfoLine((0, 170, 0), "The game has started!")
-
-        elif msg == Message.ReceiveChat:
-            (sender, text) = args
-            p = self.game.getPlayer(sender)
-            if not p:
-                color = (128, 128, 128)
-            else:
-                color = p.color
-            self.mainWindow.chat.addLine(sender, color, text)
                 
 
     def connectionFail(self):
