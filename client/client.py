@@ -45,13 +45,13 @@ class Client(QObject):
             self.send(Message.Pong)
 
         elif msg == Message.ReceiveChat:
-            (sender, text) = args
+            (sender, text, timestamp) = args
             p = self.game.getPlayer(sender)
             if not p:
                 color = (128, 128, 128)
             else:
                 color = p.color
-            self.mainWindow.chat.addLine(Line(Line.Chat, sender=sender, text=text, playerColor=color))
+            self.mainWindow.chat.addLine(Line(Line.Chat, sender=sender, text=text, playerColor=color, timestamp = timestamp))
 
         elif msg == Message.JoinSuccess:
             name = ""

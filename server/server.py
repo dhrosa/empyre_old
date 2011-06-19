@@ -11,7 +11,7 @@ from common.network import Message, Connection
 from common.board import loadBoard
 
 from PyQt4.QtNetwork import QTcpServer, QTcpSocket
-from PyQt4.QtCore import QCoreApplication, pyqtSignal, QThread, QSocketNotifier
+from PyQt4.QtCore import QCoreApplication, pyqtSignal, QThread, QSocketNotifier, QTime
 
 class Server(QTcpServer):
     sendReady = pyqtSignal(int, list)
@@ -109,8 +109,10 @@ class Server(QTcpServer):
             if msg == Message.SendChat:
                 text = str(args[0])
                 print "%s: %s" % (conn.player.name, text)
-                self.chatHistory.append([conn.player, text])
-                self.send(Message.ReceiveChat, [conn.player.name, text])
+                time = QTime.currentTime()
+                timestamp = time.second() + time.minute() * 60 + (time.hour() * 60 * 60)
+                self.chatHistory.append([conn.player, text, timestamp])
+                self.send(Message.ReceiveChat, [conn.player.name, text, timestamp])
 
             elif msg == Message.RequestBoardName:
                 print "Sending board information to %s." % (conn.player.name)

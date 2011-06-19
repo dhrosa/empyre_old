@@ -61,7 +61,7 @@ class Message(object):
 
         Ping: (),
         CurrentState: (),
-        ReceiveChat: (str, str),
+        ReceiveChat: (str, str, int),
         ReceiveWhisper: (str, str),
         JoinSuccess: (),
         NameTaken: (),

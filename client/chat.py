@@ -10,8 +10,9 @@ class Line(object):
         PlayerLeave,
     ) = range(5)
 
-    def __init__(self, type, sender = None, target = None, text = None, playerColor = None):
+    def __init__(self, type, timestamp = None, sender = None, target = None, text = None, playerColor = None):
         self.type = type
+        self.timestamp = timestamp
         self.sender = sender
         self.target = target
         self.text = text
@@ -64,7 +65,12 @@ class Chat(QWidget):
                 (r, g, b) = line.playerColor
                 sender = line.sender
                 text = line.text
-                lines.append("<p><strong style=\"color: rgb(%d, %d, %d)\">%s</strong>: %s</p>" % (r, g, b, sender, text))
+                t = line.timestamp
+                (s, m, h) = (t % 60, (t / 60) % 60, t / 3600)
+                h %= 12
+                if h == 0:
+                    h = 12
+                lines.append("<p><strong style=\"color: rgb(%d, %d, %d)\">[%d:%d:%d] %s</strong>: %s</p>" % (r, g, b, h, m, s, sender, text))
             else:
                 if line.type == Line.Info:
                     (r, g, b) = (0, 0, 170)
