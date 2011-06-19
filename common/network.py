@@ -6,6 +6,7 @@ class Message(object):
         Pong,
         RequestState,
         SendChat,
+        WhisperError,
         SendWhisper,
         Join,
         RequestName,
@@ -15,7 +16,7 @@ class Message(object):
         RequestChatHistory,
         ChangeName,
         ChangeColor,
-    ) = range(12)
+    ) = range(13)
 
     (
         Ping,
@@ -49,7 +50,8 @@ class Message(object):
         Pong: (),
         RequestState: (),
         SendChat: (str,),
-        SendWhisper: (str, int),
+        SendWhisper: (str, str),
+        WhisperError: (),
         Join: (),
         RequestName: (str,),
         Rejoin: (str,),
@@ -62,7 +64,7 @@ class Message(object):
         Ping: (),
         CurrentState: (),
         ReceiveChat: (str, str, int),
-        ReceiveWhisper: (str, str),
+        ReceiveWhisper: (str, str, str, int),
         JoinSuccess: (),
         NameTaken: (),
         NameAccepted: (str,str),

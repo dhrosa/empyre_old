@@ -46,6 +46,11 @@ class SM(object):
         self.source = None
         self.target = None
 
+    def getPlayer(self, name):
+        for i in range(len(self.players)):
+            if self.players[i].name == name:
+                return self.players[i]
+
     def playerNames(self):
         return [p.name for p in self.players]
 

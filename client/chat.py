@@ -6,9 +6,10 @@ class Line(object):
         Chat,
         Whisper,
         Info,
-        PlayerJoin,
-        PlayerLeave,
-    ) = range(5)
+        PlayerJoined,
+        PlayerRejoined,
+        PlayerLeft,
+    ) = range(6)
 
     def __init__(self, type, timestamp = None, sender = None, target = None, text = None, playerColor = None):
         self.type = type
@@ -53,7 +54,7 @@ class Chat(QWidget):
 
     def changePlayerColor(self, name, color):
         for i in range(len(self.lines)):
-            if self.lines[i].type == Line.Chat:
+            if self.lines[i].type == Line.Chat or self.lines[i].type == Line.Whisper:
                 if self.lines[i].sender == name:
                     self.lines[i].playerColor = color
         self.updateHistory()
@@ -61,7 +62,7 @@ class Chat(QWidget):
     def updateHistory(self):
         lines = []
         for line in self.lines:
-            if line.type == Line.Chat:
+            if line.type == Line.Chat or line.type == Line.Whisper:
                 (r, g, b) = line.playerColor
                 sender = line.sender
                 text = line.text
@@ -70,18 +71,22 @@ class Chat(QWidget):
                 h %= 12
                 if h == 0:
                     h = 12
-                lines.append("<p><strong style=\"color: rgb(%d, %d, %d)\">[%d:%d:%d] %s</strong>: %s</p>" % (r, g, b, h, m, s, sender, text))
+                if line.type == Line.Whisper:
+                    target = line.target
+                    lines.append("<p><strong style=\"color: rgb(%d, %d, %d)\">[%d:%d:%d] %s >> %s</strong>: %s</p>" % (r, g, b, h, m, s, sender, target, text))
+                else:
+                    lines.append("<p><strong style=\"color: rgb(%d, %d, %d)\">[%d:%d:%d] %s</strong>: %s</p>" % (r, g, b, h, m, s, sender, text))
             else:
                 if line.type == Line.Info:
                     (r, g, b) = (0, 0, 170)
                     text = line.text
-                elif line.type == Line.PlayerJoin:
+                elif line.type == Line.PlayerJoined:
                     (r, g, b) = (0, 170, 0)
                     text = "%s has joined." % (line.target)
-                elif line.type == Line.PlayerRejoin:
+                elif line.type == Line.PlayerRejoined:
                     (r, g, b) = (0, 170, 0)
                     text = "%s has rejoined." % (line.target)
-                elif line.type == Line.PlayerLeave:
+                elif line.type == Line.PlayerLeft:
                     (r, g, b) = (170, 0, 0)
                     text = "%s has left." % (line.target)
                 lines.append("<p style=\"color: rgb(%d, %d, %d)\">** %s **</p>" % (r, g, b, text))

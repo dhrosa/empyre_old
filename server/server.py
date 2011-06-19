@@ -114,6 +114,22 @@ class Server(QTcpServer):
                 self.chatHistory.append([conn.player, text, timestamp])
                 self.send(Message.ReceiveChat, [conn.player.name, text, timestamp])
 
+            elif msg == Message.SendWhisper:
+                target = str(args[0])
+                text = str(args[1])
+                targetPlayer = self.sm.getPlayer(target)
+                if not targetPlayer:
+                    self.sendTo(conn.id, Message.WhisperError)
+                else:
+                    time = QTime.currentTime()
+                    timestamp = time.second() + time.minute() * 60 + (time.hour() * 60 * 60)
+                    for c in self.connections:
+                        if c.player == targetPlayer:
+                            self.sendTo(c.id, Message.ReceiveWhisper, [conn.player.name, c.player.name, text, timestamp])
+                            self.sendTo(conn.id, Message.ReceiveWhisper, [conn.player.name, c.player.name, text, timestamp])
+                            print "%s >> %s: %s" % (conn.player.name, target, text)
+                            break
+
             elif msg == Message.RequestBoardName:
                 print "Sending board information to %s." % (conn.player.name)
                 self.sendTo(conn.id, Message.LoadBoard, [self.boardName])

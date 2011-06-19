@@ -53,6 +53,14 @@ class Client(QObject):
                 color = p.color
             self.mainWindow.chat.addLine(Line(Line.Chat, sender=sender, text=text, playerColor=color, timestamp = timestamp))
 
+        elif msg == Message.ReceiveWhisper:
+            (sender, target, text, timestamp) = args
+            p = self.game.getPlayer(sender)
+            self.mainWindow.chat.addLine(Line(Line.Whisper, sender=sender, target=target, text=text, playerColor=p.color, timestamp = timestamp))
+
+        elif msg == Message.WhisperError:
+            self.mainWindow.chat.addLine(Line(type=Line.Info, text="No such player."))
+
         elif msg == Message.JoinSuccess:
             name = ""
             while not name:
@@ -206,7 +214,18 @@ class Client(QObject):
         self.send(Message.Join)
 
     def sendChat(self, text):
-        self.send(Message.SendChat, [str(text)])
+        if not str(text):
+            return
+        parts = str(text).split(" ")
+        if parts[0] == "/to":
+            if len(parts) < 3:
+                self.mainWindow.chat.addLine(Line(type=Line.Info, text="Invalid command."))
+                return
+            target = parts[1]
+            text = " ".join(parts[2:])
+            self.send(Message.SendWhisper, [target, text])
+        else:
+            self.send(Message.SendChat, [str(text)])
 
     def sendColorChange(self, color):
         self.send(Message.ChangeColor, color)
