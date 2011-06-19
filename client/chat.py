@@ -4,12 +4,18 @@ from PyQt4.QtGui import QWidget, QVBoxLayout, QTextEdit, QLineEdit
 class Line(object):
     (
         Chat,
+        Whisper,
         Info,
-    ) = range(2)
+        PlayerJoin,
+        PlayerLeave,
+    ) = range(5)
 
-    def __init__(self, type, **kwargs):
+    def __init__(self, type, sender = None, target = None, text = None, playerColor = None):
         self.type = type
-        self.data = kwargs
+        self.sender = sender
+        self.target = target
+        self.text = text
+        self.playerColor = playerColor
 
 class Chat(QWidget):
     lineEntered = pyqtSignal(str)
@@ -40,39 +46,45 @@ class Chat(QWidget):
     def changePlayerName(self, before, after):
         for i in range(len(self.lines)):
             if self.lines[i].type == Line.Chat:
-                if self.lines[i].data["name"] == before:
-                    self.lines[i].data["name"] = after
+                if self.lines[i].sender == before:
+                    self.lines[i].sender = after
         self.updateHistory()
 
     def changePlayerColor(self, name, color):
         for i in range(len(self.lines)):
             if self.lines[i].type == Line.Chat:
-                if self.lines[i].data["name"] == name:
-                    self.lines[i].data["color"] = color
+                if self.lines[i].sender == name:
+                    self.lines[i].playerColor = color
         self.updateHistory()
 
     def updateHistory(self):
         lines = []
         for line in self.lines:
             if line.type == Line.Chat:
-                (r, g, b) = line.data["color"]
-                name = line.data["name"]
-                text = line.data["text"]
-                lines.append("<p><strong style=\"color: rgb(%d, %d, %d)\">%s</strong>: %s</p>" % (r, g, b, name, text))
-            elif line.type == Line.Info:
-                (r, g, b) = line.data["color"]
-                text = line.data["text"]
-                lines.append("<p style=\"color: rgb(%d, %d, %d)\"><strong>%s</strong></p>" % (r, g, b, text))
+                (r, g, b) = line.playerColor
+                sender = line.sender
+                text = line.text
+                lines.append("<p><strong style=\"color: rgb(%d, %d, %d)\">%s</strong>: %s</p>" % (r, g, b, sender, text))
+            else:
+                if line.type == Line.Info:
+                    (r, g, b) = (0, 0, 170)
+                    text = line.text
+                elif line.type == Line.PlayerJoin:
+                    (r, g, b) = (0, 170, 0)
+                    text = "%s has joined." % (line.target)
+                elif line.type == Line.PlayerRejoin:
+                    (r, g, b) = (0, 170, 0)
+                    text = "%s has rejoined." % (line.target)
+                elif line.type == Line.PlayerLeave:
+                    (r, g, b) = (170, 0, 0)
+                    text = "%s has left." % (line.target)
+                lines.append("<p style=\"color: rgb(%d, %d, %d)\">** %s **</p>" % (r, g, b, text))
         self.history.setHtml(
             "<html><body>%s</body></html>" % ("".join(lines))
         )
         self.history.verticalScrollBar().setValue(self.history.verticalScrollBar().maximum())
 
-    def addLine(self, name, color, text):
-        line = Line(type=Line.Chat, name=name, color=color, text=text)
+    def addLine(self, line):
         self.lines.append(line)
         self.updateHistory()
 
-    def addInfoLine(self, color, text):
-        self.lines.append(Line(type=Line.Info, color=color, text=text))
-        self.updateHistory()

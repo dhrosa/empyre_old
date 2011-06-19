@@ -8,7 +8,7 @@ from PyQt4.QtGui import QApplication, QInputDialog, QMessageBox
 from common.network import Message, Connection
 from common.game import Player
 from common.board import Board, loadBoard
-from chat import Chat
+from chat import Chat, Line
 from mainwindow import MainWindow
 from connectdialog import ConnectDialog
 from gamestate import GameState
@@ -51,7 +51,7 @@ class Client(QObject):
                 color = (128, 128, 128)
             else:
                 color = p.color
-            self.mainWindow.chat.addLine(sender, color, text)
+            self.mainWindow.chat.addLine(Line(Line.Chat, sender=sender, text=text, playerColor=color))
 
         elif msg == Message.JoinSuccess:
             name = ""
@@ -79,7 +79,7 @@ class Client(QObject):
         elif msg == Message.PlayerJoined:
             name = str(args[0])
             self.game.addPlayer(name)
-            self.mainWindow.chat.addInfoLine((0, 170, 0), "%s has joined." % (name))
+            self.mainWindow.chat.addLine(Line(Line.PlayerJoined, target=name))
 
         elif msg == Message.GameInProgress:
             password = ""
@@ -106,7 +106,7 @@ class Client(QObject):
 
         elif msg == Message.PlayerRejoined:
             name = str(args[0])
-            self.mainWindow.chat.addInfoLine((0, 170, 0), "%s has rejoined." % (name))
+            self.mainWindow.chat.addLine(Line(Line.PlayerRejoined, target=name))
 
         elif msg == Message.BeginPlayerList:
             pass
@@ -137,10 +137,13 @@ class Client(QObject):
             self.mainWindow.nameChanged.connect(self.sendNameChange)
             self.mainWindow.show()
             try:
-                self.mainWindow.chat.addInfoLine((0, 0, 170), "Welcome to the game! Your password is \"%s\". Use this password to rejoin the game once it has started." % (self.password))
+                self.mainWindow.chat.addLine(Line(Line.Info, text="Welcome to the game!"))
+                self.mainWindow.chat.addLine(Line(Line.Info, text="Your password is \"%s\"." % self.password))
+                self.mainWindow.chat.addLine(Line(Line.Info, text="Use this password to rejoin the game once it has started."))
+                self.mainWindow.chat.addLine(Line(Line.Info, text="Remember to change your color before the game starts."))
                 del self.password
             except AttributeError:
-                self.mainWindow.chat.addInfoLine((0, 0, 170), "Welcome back to the game!")
+                self.mainWindow.chat.addLine(Line(Line.Info, text="Welcome back to the game!"))
                 self.mainWindow.boardWidget.setEnabled(True)
             QApplication.setQuitOnLastWindowClosed(True)
             self.send(Message.RequestChatHistory)
@@ -148,11 +151,11 @@ class Client(QObject):
         elif msg == Message.PlayerLeft:
             name = str(args[0])
             self.game.removePlayer(name)
-            self.mainWindow.chat.addInfoLine((170, 0, 0), "%s has left." % (name))
+            self.mainWindow.chat.addLine(Line(Line.PlayerLeft, target=name))
 
         elif msg == Message.PlayerLeftDuringGame:
             name = str(args[0])
-            self.mainWindow.chat.addInfoLine((170, 0, 0), "%s has left." % (name))
+            self.mainWindow.chat.addLine(Line(Line.PlayerLeft, target=name))
 
         elif msg == Message.ColorChanged:
             name = str(args[0])
@@ -163,17 +166,17 @@ class Client(QObject):
             else:
                 self.game.getPlayer(name).color = color
             self.mainWindow.chat.changePlayerColor(name, color)
-            self.mainWindow.chat.addInfoLine((0, 0, 170), "%s has changed their color." % (name))
+            self.mainWindow.chat.addLine(Line(Line.Info, text="%s has changed their color." % (name)))
 
         elif msg == Message.NameChangeTaken:
             self.mainWindow.nameEdit.setText(self.game.clientPlayer.name)
-            self.mainWindow.chat.addInfoLine((170, 0, 0), "That name is already taken.")
+            self.mainWindow.chat.addLine(Line(Line.Info, text="That name is already taken."))
 
         elif msg == Message.NameChangeSuccess:
             name = str(args[0])
             self.mainWindow.nameEdit.setText(name)
             self.game.clientPlayer.name = name
-            self.mainWindow.chat.addInfoLine((0, 0, 170), "You successfully changed your name.")
+            self.mainWindow.chat.addLine(Line(Line.Info, text="You successfully changed your name."))
 
         elif msg == Message.NameChanged:
             before = str(args[0])
@@ -182,11 +185,11 @@ class Client(QObject):
             if player:
                 player.name = after
             self.mainWindow.chat.changePlayerName(before, after)
-            self.mainWindow.chat.addInfoLine((0, 0, 170), "%s changed their name to %s" % (before, after))
+            self.mainWindow.chat.addLine(Line(Line.Info, text="%s changed their name to %s" % (before, after)))
 
         elif msg == Message.GameStarted:
             self.mainWindow.boardWidget.setEnabled(True)
-            self.mainWindow.chat.addInfoLine((0, 170, 0), "The game has started!")
+            self.mainWindow.chat.addLine(Line(Line.Info, text="The game has started!"))
                 
 
     def connectionFail(self):
