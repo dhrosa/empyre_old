@@ -140,7 +140,8 @@ def loadBoard(boardName, images = False):
                 print "%s: Coordinates must be integral."
                 return
         else:
-            center = None
+            center = (0, 0)
+            print "Warning: %s has no center." % id
         territories[id] = Territory(t["name"], territoryImage, center)
     borders = []
     if not "borders" in d:

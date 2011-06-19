@@ -3,12 +3,15 @@ name: New England
 territories:
   - id: ME
     name: Maine
+    center: [215, 125]
 
   - id: NH
     name: New Hampshire
+    center: [105, 240]
 
   - id: VT
     name: Vermont
+    center: [45, 215]
 
   - id: MA
     name: Massachusetts
@@ -16,9 +19,11 @@ territories:
 
   - id: RI
     name: Rhode Island
+    center: [105, 355]
 
   - id: CT
     name: Connecticut
+    center: [50, 370]
 
 borders:
   - [ME, NH]
