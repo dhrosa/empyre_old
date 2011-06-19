@@ -129,7 +129,7 @@ class Client(QObject):
             self.mainWindow.chat.addInfoLine((0, 0, 170), "%s has changed their color." % (name))
 
         elif msg == Message.GameStarted:
-            pass
+            self.mainWindow.boardWidget.setEnabled(True)
 
         elif msg == Message.ReceiveChat:
             (sender, text) = args

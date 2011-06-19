@@ -7,6 +7,7 @@ class BoardWidget(QWidget):
         self.game = game
         self.currentTerritory = None
         self.setMouseTracking(True)
+        self.setEnabled(False)
         self.loadImages()
 
     def loadImages(self):
@@ -39,6 +40,11 @@ class BoardWidget(QWidget):
             painter.end()
             self.selectionImages[t] = selection
 
+    def territoryAt(self, x, y):
+        for t in self.game.board.territories.values():
+            if t.image.pixel(x, y):
+                return t
+
     def minimumSizeHint(self):
         return self.game.board.image.size()
 
@@ -47,11 +53,6 @@ class BoardWidget(QWidget):
         self.sx = float(self.game.board.image.width()) / self.scaledPixmap.width()
         self.sy = float(self.game.board.image.height()) / self.scaledPixmap.height()
         self.recreateMasks()
-
-    def territoryAt(self, x, y):
-        for t in self.game.board.territories.values():
-            if t.image.pixel(x, y):
-                return t
 
     def mouseMoveEvent(self, event):
         if self.scaledPixmap.rect().contains(event.pos()):
@@ -73,6 +74,10 @@ class BoardWidget(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.drawPixmap(0, 0, self.scaledPixmap)
-        if self.currentTerritory:
-            painter.drawImage(0, 0, self.selectionImages[self.currentTerritory])
+        rect = self.scaledPixmap.rect()
+        if self.isEnabled():
+            if self.currentTerritory:
+                painter.drawImage(0, 0, self.selectionImages[self.currentTerritory])
+        else:
+            painter.fillRect(rect, QColor(127, 127, 127, 127))
         painter.end()
