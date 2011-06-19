@@ -51,14 +51,13 @@ class BoardWidget(QWidget):
 
     def resizeEvent(self, event):
         self.scaledPixmap = QPixmap.fromImage(self.game.board.image).scaled(event.size(), Qt.KeepAspectRatio)
-        self.sx = float(self.game.board.image.width()) / self.scaledPixmap.width()
-        self.sy = float(self.game.board.image.height()) / self.scaledPixmap.height()
+        self.scaleFactor = float(self.game.board.image.width()) / self.scaledPixmap.width()
         self.recreateMasks()
 
     def mouseMoveEvent(self, event):
         if self.scaledPixmap.rect().contains(event.pos()):
-            x = event.pos().x() * self.sx
-            y = event.pos().y() * self.sy
+            x = event.pos().x() * self.scaleFactor
+            y = event.pos().y() * self.scaleFactor
             self.currentTerritory = self.territoryAt(x, y)
         else:
             self.currentTerritory = None
