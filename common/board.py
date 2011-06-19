@@ -1,11 +1,12 @@
 from random import shuffle
 
 class Territory(object):
-    def __init__(self, name, image):
+    def __init__(self, name, image, center = None):
         self.name = name
         self.image = image
         self.owner = None
         self.troopCount = 0
+        self.center = center
 
     def __eq__(self, other):
         return self.name == other.name
@@ -92,65 +93,96 @@ class Board(object):
 def loadBoard(boardName, images = False):
     import sys
     import os.path
+    import yaml
     base = sys.path[0] + "/../boards/%s/" % (boardName)
     if not os.path.exists(base):
+        print "Board does not exist."
         return
-    fileNames = [base + name for name in ["territories", "borders", "regions", "info", "board.png"]]
-    for fileName in fileNames:
-        if not os.path.isfile(fileName):
-            return
+    yamlFile = base + "board.yaml"
+    if not os.path.exists(yamlFile):
+        print "Board configuration file missing."
+        return
+    f = open(yamlFile)
+    try:
+        d = yaml.load(f.read())
+    except:
+        print "Invalid board file."
+        return
+    f.close()
+    name = d["name"] if "name" in d else boardName
+    image = (base + d["image"]) if "image" in d else (base + "board.png")
+    if not "territories" in d:
+        print "Board has no territories."
+        return
     territories = {}
-    with open(fileNames[0]) as f:
-        info = f.readline()
-        while info:
-            info = info.split(" ")
-            if len(info) < 2:
-                return
-            shortname = info[0]
-            name = " ".join(info[1:]).strip()
-            territories[shortname] = Territory(name, base + shortname + ".png" if images else None)
-            info = f.readline()
-
-    borders = []
-    with open(fileNames[1]) as f:
-        info = f.readline()
-        while info:
-            info = info.split(" ")
-            if len(info) < 2:
-                return
-            (t1, t2) = info
-            t2 = t2.strip()
-            try:
-                borders.append(Border(territories[t1], territories[t2]))
-            except KeyError:
-                print (t1, t2)
-                return
-            info = f.readline()
-    
-    regions = []
-    with open(fileNames[2]) as f:
-        info = f.readline()
-        while info:
-            info = info.split("=")
-            if len(info) < 3:
-                return
-            name = info[0].strip()
-            shortnames = info[1].strip().split(" ")
-            bonus = int(info[2])
-            regionTerritories =  []
-            for t in shortnames:
-                try:
-                    regionTerritories.append(territories[t])
-                except KeyError:
-                    return
-            regions.append(Region(name, bonus, regionTerritories))
-            info = f.readline()
-
-    name = ""
-    with open(fileNames[3]) as f:
-        info = f.readline()
-        info = info.split("=")
-        if len(info) < 2:
+    for t in d["territories"]:
+        if not "id" in t or not "name" in t:
+            print "Invalid territory description."
             return
-        name = info[1].strip()
-    return Board(name, territories.values(), borders, regions, fileNames[4])
+        id = t["id"]
+        territoryImage = (base + t["image"]) if "image" in t else (base + id + ".png")
+        if not os.path.exists(territoryImage):
+            print "File: %s missing." % territoryImage
+            return
+        if "center" in t:
+            center = t["center"]
+            if type(center) != list:
+                print "%s: Center must be a coordinate pair." % id
+                return
+            if len(center) != 2:
+                print "%s: Must list two coordinates." % id
+                return
+            try:
+                x = int(center[0])
+                y = int(center[1])
+            except ValueError:
+                print "%s: Coordinates must be integral."
+                return
+        else:
+            (x, y) = (0, 0)
+        territories[id] = Territory(t["name"], territoryImage, (x, y))
+    borders = []
+    if not "borders" in d:
+        print "Board has no borders."
+        return
+    for b in d["borders"]:
+        if type(b) != list:
+            print "Border must be a list."
+            return
+        if len(b) != 2:
+            print "Border must contain two territories."
+            return
+        (t1, t2) = b
+        if t1 not in territories:
+            print "Territory %s does not exist." % t1
+            return
+        if t2 not in territories:
+            print "Territory %s does not exist." % t1
+            return
+        borders.append(Border(territories[t1], territories[t2]))
+    regions = []
+    if "regions" in d:
+        for r in d["regions"]:
+            if not "name" in r:
+                print "Region must have name."
+                return
+            regionName = r["name"]
+            if not "bonus" in r:
+                print "%s: Missing bonus." % regionName
+                return
+            bonus = r["bonus"]
+            if not "territories" in r:
+                print "%s: Missing territories." % regionName
+                return
+            terrs = r["territories"]
+            if type(terrs) != list:
+                print "%s: Territories must be a list." % regionName
+                return
+            regionTerritories = []
+            for t in terrs:
+                if not t in territories:
+                    print "%s: %s does not exist." % (regionName, t)
+                    return
+                regionTerritories.append(territories[t])
+            regions.append(Region(regionName, bonus, regionTerritories))
+    return Board(name, territories.values(), borders, regions, image)

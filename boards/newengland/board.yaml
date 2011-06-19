@@ -1,0 +1,38 @@
+name: New England
+
+territories:
+  - id: ME
+    name: Maine
+
+  - id: NH
+    name: New Hampshire
+
+  - id: VT
+    name: Vermont
+
+  - id: MA
+    name: Massachusetts
+    center: [110, 315]
+
+  - id: RI
+    name: Rhode Island
+
+  - id: CT
+    name: Connecticut
+
+borders:
+  - [ME, NH]
+  - [NH, VT]
+  - [VT, MA]
+  - [MA, RI]
+  - [MA, CT]
+  - [RI, CT]
+
+regions:
+  - name: North
+    bonus: 3
+    territories: [ME, NH, VT]
+
+  - name: South
+    bonus: 5
+    territories: [MA, CT, RI]
