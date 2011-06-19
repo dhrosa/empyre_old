@@ -1,11 +1,30 @@
 from PyQt4.QtCore import pyqtSignal, Qt
 from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor
 
+class ColoredMaskCache(object):
+    def __init__(self):
+        self.cache = {}
+    
+    def clear(self):
+        self.cache = {}
+
+    def get(self, territory, color):
+        colorCode = color[0] + color[1] * 256 + color[2] * 256 * 256
+        hash = territory.name + str(colorCode)
+        if hash in self.cache:
+            return self.cache[hash]
+
+    def set(self, territory, color, mask):
+        colorCode = color[0] + color[1] * 256 + color[2] * 256 * 256
+        hash = territory.name + str(colorCode)
+        self.cache[hash] = mask
+
 class BoardWidget(QWidget):
     def __init__(self, game, parent = None):
         QWidget.__init__(self, parent)
         self.game = game
         self.currentTerritory = None
+        self.coloredMaskCache = ColoredMaskCache()
         self.setMouseTracking(True)
         self.setEnabled(False)
         self.loadImages()
@@ -29,6 +48,7 @@ class BoardWidget(QWidget):
         rect = self.scaledPixmap.rect()
         for t in self.game.board.territories.values():
             self.masks[t] = t.image.scaled(size)
+        self.coloredMaskCache.clear()
 
     def territoryAt(self, x, y):
         for t in self.game.board.territories.values():
@@ -42,6 +62,7 @@ class BoardWidget(QWidget):
         self.scaledPixmap = QPixmap.fromImage(self.game.board.image).scaled(event.size(), Qt.KeepAspectRatio)
         self.scaleFactor = float(self.game.board.image.width()) / self.scaledPixmap.width()
         self.recreateMasks()
+        self.coloredMaskCache.clear()
 
     def mouseMoveEvent(self, event):
         if self.scaledPixmap.rect().contains(event.pos()):
@@ -60,20 +81,24 @@ class BoardWidget(QWidget):
         if self.currentTerritory:
             print "Clicked on %s." % (self.currentTerritory.name)
 
-    def mask(self, territory, color):
-        mask = self.masks[territory]
-        size = mask.size()
-        rect = self.scaledPixmap.rect()
-        image = QImage(size, QImage.Format_ARGB32_Premultiplied)
-        image.fill(0)
-        painter = QPainter()
-        painter.begin(image)
-        painter.setCompositionMode(QPainter.CompositionMode_Source)
-        painter.fillRect(rect, QColor(color[0], color[1], color[2], 127))
-        painter.setCompositionMode(QPainter.CompositionMode_DestinationIn)
-        painter.drawImage(0, 0, mask)
-        painter.end()
-        return image
+    def coloredMask(self, territory, color):
+        pixmap = self.coloredMaskCache.get(territory, color)
+        if not pixmap:
+            mask = self.masks[territory]
+            size = mask.size()
+            rect = self.scaledPixmap.rect()
+            image = QImage(size, QImage.Format_ARGB32_Premultiplied)
+            image.fill(0)
+            painter = QPainter()
+            painter.begin(image)
+            painter.setCompositionMode(QPainter.CompositionMode_Source)
+            painter.fillRect(rect, QColor(color[0], color[1], color[2], 127))
+            painter.setCompositionMode(QPainter.CompositionMode_DestinationIn)
+            painter.drawImage(0, 0, mask)
+            painter.end()
+            pixmap = QPixmap.fromImage(image)
+            self.coloredMaskCache.set(territory, color, pixmap)
+        return pixmap
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -81,11 +106,11 @@ class BoardWidget(QWidget):
         rect = self.scaledPixmap.rect()
         if self.isEnabled():
             if self.currentTerritory:
-                painter.drawImage(0, 0, self.mask(self.currentTerritory, (127, 127, 0)))
+                painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, (127, 127, 0)))
         else:
             painter.fillRect(rect, QColor(0, 0, 0, 200))
             painter.drawText(rect, Qt.AlignCenter, "Waiting for the game to start.")
         for t in self.game.board.territories.values():
             if t.owner:
-                painer.drawImage(0, 0, self.mask(t, t.owner.color))
+                painer.drawPixmap(0, 0, self.coloredMask(t, t.owner.color))
         painter.end()
