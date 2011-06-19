@@ -4,6 +4,7 @@ class Player(object):
         self.color = (0, 0, 0)
         self.isPlaying = True
         self.cards = []
+        self.password = ""
 
     def __str__(self):
         return self.name

@@ -117,6 +117,8 @@ class SM(object):
         s = self.substate
         if not Action.argMatch(action, args):
             return False
+        if action == Action.RemovePlayer and self.substate != State.Lobby:
+            return True
         if s == State.Lobby:
             if action == Action.AddPlayer:
                 if args[0] in self.playerNames():
@@ -136,7 +138,7 @@ class SM(object):
                 self.tiedPlayers = self.players
                 self.substate = State.ChoosingOrder
                 return True
-    
+
         elif s == State.ChoosingOrder:
             if action == Action.RollDice:
                 self.diceRolls.append(sum(rollDice(2)))

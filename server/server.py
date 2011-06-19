@@ -2,6 +2,9 @@
 import sys
 sys.path.append(sys.path[0] + "/../")
 
+import random
+import string
+
 from sm import SM
 from common.game import State, Action
 from common.network import Message, Connection
@@ -22,13 +25,13 @@ class Server(QTcpServer):
        self.sm = SM(board)
        self.chatHistory = []
 
-    def send(self, msg, args):
+    def send(self, msg, args = []):
         self.sendReady.emit(msg, args)
 
-    def sendTo(self, id, msg, args):
+    def sendTo(self, id, msg, args = []):
         self.sendReadySpecific.emit(msg, args, id)
 
-    def sendExcept(self, id, msg, args):
+    def sendExcept(self, id, msg, args = []):
         for c in self.connections:
             if c and c.valid and c.id != id:
                 self.sendTo(c.id, msg, args)
@@ -55,9 +58,11 @@ class Server(QTcpServer):
     def handleDisconnect(self, conn):
         if conn.player:
             print "%s has disconnected." % (conn.player)
+            self.sm.next(Action.RemovePlayer, [conn.player.name])
             if self.sm.substate == State.Lobby:
-                self.sm.next(Action.RemovePlayer, [conn.player.name])
                 self.send(Message.PlayerLeft, [conn.player.name])
+            else:
+                self.send(Message.PlayerLeftDuringGame, [conn.player.name])
         else:
             print "Anonymous client disconnected."
         self.connections = [c for c in self.connections if c.id != conn.id]
@@ -67,10 +72,23 @@ class Server(QTcpServer):
         if not conn.player:
             if msg == Message.Join:
                 print "%s connected." % (conn.peerAddress().toString())
-                self.sendTo(conn.id, Message.JoinSuccess, [])
+                if self.sm.substate != State.Lobby:
+                    self.sendTo(conn.id, Message.GameInProgress, [])
+                else:
+                    self.sendTo(conn.id, Message.JoinSuccess, [])
 
-            elif msg == Message.RequestBoardName:
-                self.sendTo(conn.id, Message.LoadBoard, [self.boardName])
+            elif msg == Message.Rejoin:
+                password = str(args[0])
+                for i in range(len(self.sm.players)):
+                    if self.sm.players[i].password == password:
+                        conn.player = self.sm.players[i]
+                        break
+                if conn.player:
+                    print "%s has rejoined." % (conn.player.name)
+                    self.sendTo(conn.id, Message.RejoinSuccess, [conn.player.name])
+                    self.sendExcept(conn.id, Message.PlayerRejoined, [conn.player.name])
+                else:
+                    self.sendTo(conn.id, Message.IncorrectPassword, [])
 
             elif msg == Message.RequestName:
                 name = str(args[0])
@@ -79,12 +97,18 @@ class Server(QTcpServer):
                     print "Name taken."
                     self.sendTo(conn.id, Message.NameTaken, [])
                 else:
-                    print "%s has been granted the name \"%s\"." % (conn.peerAddress().toString(), name)
+                    password = "".join([random.choice(string.ascii_lowercase) for i in range(8)])
                     conn.player = self.sm.players[-1]
-                    self.sendTo(conn.id, Message.NameAccepted, [name])
+                    conn.player.password = password
+                    print "%s has been granted the name \"%s\" and password: %s." % (conn.peerAddress().toString(), name, password)
+                    self.sendTo(conn.id, Message.NameAccepted, [name, conn.player.password])
                     self.sendExcept(conn.id, Message.PlayerJoined, [name])
         else:
-            if msg == Message.SendChat:
+            if msg == Message.RequestBoardName:
+                print "Sending board information to %s." % (conn.player.name)
+                self.sendTo(conn.id, Message.LoadBoard, [self.boardName])
+
+            elif msg == Message.SendChat:
                 text = str(args[0])
                 print "%s: %s" % (conn.player.name, text)
                 self.chatHistory.append([conn.player, text])
