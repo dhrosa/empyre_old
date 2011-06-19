@@ -144,6 +144,9 @@ class Connection(QTcpSocket):
         if id:
             if self.socketDescriptor() != id:
                 return
+        if not Message.argMatch(msg, args):
+            print "Message: %d, args: %s have invalid types. Message not sent." % (msg, args)
+            return
         data = QByteArray()
         stream = QDataStream(data, self.WriteOnly)
         stream.writeInt32(msg)
