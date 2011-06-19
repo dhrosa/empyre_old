@@ -73,9 +73,9 @@ class Server(QTcpServer):
             if msg == Message.Join:
                 print "%s connected." % (conn.peerAddress().toString())
                 if self.sm.substate != State.Lobby:
-                    self.sendTo(conn.id, Message.GameInProgress, [])
+                    self.sendTo(conn.id, Message.GameInProgress)
                 else:
-                    self.sendTo(conn.id, Message.JoinSuccess, [])
+                    self.sendTo(conn.id, Message.JoinSuccess)
 
             elif msg == Message.Rejoin:
                 password = str(args[0])
@@ -88,14 +88,14 @@ class Server(QTcpServer):
                     self.sendTo(conn.id, Message.RejoinSuccess, [conn.player.name])
                     self.sendExcept(conn.id, Message.PlayerRejoined, [conn.player.name])
                 else:
-                    self.sendTo(conn.id, Message.IncorrectPassword, [])
+                    self.sendTo(conn.id, Message.IncorrectPassword)
 
             elif msg == Message.RequestName:
                 name = str(args[0])
                 print "%s requested the name \"%s\"." % (conn.peerAddress().toString(), name)
                 if not self.sm.next(Action.AddPlayer, [name]):
                     print "Name taken."
-                    self.sendTo(conn.id, Message.NameTaken, [])
+                    self.sendTo(conn.id, Message.NameTaken)
                 else:
                     password = "".join([random.choice(string.ascii_lowercase) for i in range(8)])
                     conn.player = self.sm.players[-1]
@@ -123,7 +123,7 @@ class Server(QTcpServer):
                     if player == conn.player:
                         continue
                     if player.name == after:
-                        self.sendTo(conn.id, Message.NameTaken, [])
+                        self.sendTo(conn.id, Message.NameTaken)
                         return
                 conn.player.name = after
                 print "%s changed their name to %s." % (before, after)
@@ -138,10 +138,10 @@ class Server(QTcpServer):
                 self.send(Message.ColorChanged, [player.name] + color)
 
             elif msg == Message.RequestPlayerList:
-                self.sendTo(conn.id, Message.BeginPlayerList, [])
+                self.sendTo(conn.id, Message.BeginPlayerList)
                 for p in self.sm.players:
                     self.sendTo(conn.id, Message.PlayerInfo, [p.name] + list(p.color))
-                self.sendTo(conn.id, Message.EndPlayerList, [])
+                self.sendTo(conn.id, Message.EndPlayerList)
 
             elif msg == Message.RequestChatHistory:
                 for line in self.chatHistory:
@@ -159,7 +159,7 @@ class Server(QTcpServer):
             if not self.sm.next(Action.StartGame):
                 print "Need more players to start."
             else:
-                self.send(Message.GameStarted, [])
+                self.send(Message.GameStarted)
 
 if __name__ == "__main__":
     app = QCoreApplication(sys.argv)

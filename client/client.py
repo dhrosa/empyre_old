@@ -37,12 +37,12 @@ class Client(QObject):
         thread.started.connect(self.connection.tryConnectToHost)
         thread.start()
 
-    def send(self, msg, args):
+    def send(self, msg, args = []):
         self.sendReady.emit(msg, args)
 
     def handleMessage(self, msg, args):
         if msg == Message.Ping:
-            self.send(Message.Pong, [])
+            self.send(Message.Pong)
 
         elif msg == Message.JoinSuccess:
             name = ""
@@ -65,7 +65,7 @@ class Client(QObject):
         elif msg == Message.RejoinSuccess:
             name = str(args[0])
             self.clientPlayerName = name
-            self.send(Message.RequestPlayerList, [])
+            self.send(Message.RequestPlayerList)
 
         elif msg == Message.LoadBoard:
             boardName = str(args[0])
@@ -90,7 +90,7 @@ class Client(QObject):
                 self.mainWindow.chat.addInfoLine((0, 0, 170), "Welcome back to the game!")
                 self.mainWindow.boardWidget.setEnabled(True)
             QApplication.setQuitOnLastWindowClosed(True)
-            self.send(Message.RequestChatHistory, [])
+            self.send(Message.RequestChatHistory)
 
         elif msg == Message.NameTaken:
             name = ""
@@ -104,7 +104,7 @@ class Client(QObject):
         elif msg == Message.NameAccepted:
             self.clientPlayerName = str(args[0])
             self.password = str(args[1])
-            self.send(Message.RequestPlayerList, [])
+            self.send(Message.RequestPlayerList)
 
         elif msg == Message.BeginPlayerList:
             pass
@@ -116,7 +116,7 @@ class Client(QObject):
             player.color = color
 
         elif msg == Message.EndPlayerList:
-            self.send(Message.RequestBoardName, [])
+            self.send(Message.RequestBoardName)
 
         elif msg == Message.NameChanged:
             before = str(args[0])
@@ -181,7 +181,7 @@ class Client(QObject):
             sys.exit()
                                 
     def sendJoinMessage(self):
-        self.send(Message.Join, [])
+        self.send(Message.Join)
 
     def sendChat(self, text):
         self.send(Message.SendChat, [str(text)])
