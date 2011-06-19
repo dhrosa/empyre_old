@@ -135,12 +135,13 @@ def loadBoard(boardName, images = False):
             try:
                 x = int(center[0])
                 y = int(center[1])
+                center = (x, y)
             except ValueError:
                 print "%s: Coordinates must be integral."
                 return
         else:
-            (x, y) = (0, 0)
-        territories[id] = Territory(t["name"], territoryImage, (x, y))
+            center = None
+        territories[id] = Territory(t["name"], territoryImage, center)
     borders = []
     if not "borders" in d:
         print "Board has no borders."
