@@ -94,9 +94,10 @@ def loadBoard(boardName, images = False):
     import sys
     import os.path
     import yaml
-    base = sys.path[0] + "/../boards/%s/" % (boardName)
+    base = "../boards/%s/" % (boardName)
     if not os.path.exists(base):
         print "Board does not exist."
+        print base
         return
     yamlFile = base + "board.yaml"
     if not os.path.exists(yamlFile):
