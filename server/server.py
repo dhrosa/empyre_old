@@ -135,12 +135,12 @@ class Server(QTcpServer):
                     if player == conn.player:
                         continue
                     if player.name == after:
-                        self.sendTo(conn.id, Message.NameTaken)
+                        self.sendTo(conn.id, Message.NameChangeTaken)
                         return
                 conn.player.name = after
                 print "%s changed their name to %s." % (before, after)
-                self.sendTo(conn.id, Message.NameChangeSuccess, [conn.player.name])
-                self.send(Message.NameChanged, [before, after])                
+                self.sendTo(conn.id, Message.NameChangeSuccess, [after])
+                self.send(Message.NameChanged, [before, after])            
 
             elif msg == Message.ChangeColor:
                 color = args

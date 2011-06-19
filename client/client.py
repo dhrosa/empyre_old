@@ -165,6 +165,16 @@ class Client(QObject):
             self.mainWindow.chat.changePlayerColor(name, color)
             self.mainWindow.chat.addInfoLine((0, 0, 170), "%s has changed their color." % (name))
 
+        elif msg == Message.NameChangeTaken:
+            self.mainWindow.nameEdit.setText(self.game.clientPlayer.name)
+            self.mainWindow.chat.addInfoLine((170, 0, 0), "That name is already taken.")
+
+        elif msg == Message.NameChangeSuccess:
+            name = str(args[0])
+            self.mainWindow.nameEdit.setText(name)
+            self.game.clientPlayer.name = name
+            self.mainWindow.chat.addInfoLine((0, 0, 170), "You successfully changed your name.")
+
         elif msg == Message.NameChanged:
             before = str(args[0])
             after = str(args[1])

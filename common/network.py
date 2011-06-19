@@ -38,11 +38,12 @@ class Message(object):
         PlayerLeft,
         PlayerLeftDuringGame,
         ColorChanged,
+        NameChangeTaken,
         NameChangeSuccess,
         NameChanged,
         GameStarted,
 
-    ) = range (100, 122)
+    ) = range (100, 123)
         
     validArgs = {
         Pong: (),
@@ -78,6 +79,7 @@ class Message(object):
         PlayerLeft: (str,),
         PlayerLeftDuringGame: (str,),
         ColorChanged: (str, int, int, int),
+        NameChangeTaken: (),
         NameChangeSuccess: (str,),
         NameChanged: (str, str),
         GameStarted: (),
