@@ -1,0 +1,617 @@
+name: United States of America
+
+territories:
+  - id: WA
+    name: Washington
+
+  - id: WI
+    name: Wisconsin
+
+  - id: WV
+    name: West Virginia
+
+  - id: FL
+    name: Florida
+
+  - id: WY
+    name: Wyoming
+
+  - id: NH
+    name: New Hampshire
+
+  - id: NJ
+    name: New Jersey
+
+  - id: NM
+    name: New Mexico
+
+  - id: NC
+    name: North Carolina
+
+  - id: ND
+    name: North Dakota
+
+  - id: NE
+    name: Nebraska
+
+  - id: NY
+    name: New York
+
+  - id: RI
+    name: Rhode Island
+
+  - id: NV
+    name: Nevada
+
+  - id: CO
+    name: Colorado
+
+  - id: CA
+    name: California
+
+  - id: GA
+    name: Georgia
+
+  - id: CT
+    name: Connecticut
+
+  - id: OK
+    name: Oklahoma
+
+  - id: OH
+    name: Ohio
+
+  - id: KS
+    name: Kansas
+
+  - id: SC
+    name: South Carolina
+
+  - id: KY
+    name: Kentucky
+
+  - id: OR
+    name: Oregon
+
+  - id: SD
+    name: South Dakota
+
+  - id: DE
+    name: Delaware
+
+  - id: TX
+    name: Texas
+
+  - id: LA
+    name: Louisiana
+
+  - id: TN
+    name: Tennessee
+
+  - id: PA
+    name: Pennsylvania
+
+  - id: VA
+    name: Virginia
+
+  - id: AL
+    name: Alabama
+
+  - id: AR
+    name: Arkansas
+
+  - id: VT
+    name: Vermont
+
+  - id: IL
+    name: Illinois
+
+  - id: IN
+    name: Indiana
+
+  - id: IA
+    name: Iowa
+
+  - id: AZ
+    name: Arizona
+
+  - id: ID
+    name: Idaho
+
+  - id: ME
+    name: Maine
+
+  - id: MD
+    name: Maryland
+
+  - id: MA
+    name: Massachusetts
+
+  - id: UT
+    name: Utah
+
+  - id: MO
+    name: Missouri
+
+  - id: MN
+    name: Minnesota
+
+  - id: MI
+    name: Michigan
+
+  - id: MT
+    name: Montana
+
+  - id: MS
+    name: Mississippi
+
+borders:
+  - [WA, OR]
+  - [WA, ID]
+  - [OR, CA]
+  - [OR, ID]
+  - [OR, NV]
+  - [CA, NV]
+  - [CA, AZ]
+  - [NV, AZ]
+  - [NV, UT]
+  - [NV, ID]
+  - [ID, MT]
+  - [ID, WY]
+  - [MT, ND]
+  - [MT, SD]
+  - [MT, WY]
+  - [WY, SD]
+  - [WY, NE]
+  - [WY, CO]
+  - [WY, UT]
+  - [UT, CO]
+  - [UT, AZ]
+  - [AZ, NM]
+  - [NM, CO]
+  - [NM, OK]
+  - [NM, TX]
+  - [CO, NE]
+  - [CO, KS]
+  - [CO, OK]
+  - [TX, OK]
+  - [TX, LA]
+  - [TX, AR]
+  - [OK, KS]
+  - [OK, MO]
+  - [OK, AR]
+  - [KS, NE]
+  - [KS, MO]
+  - [NE, SD]
+  - [NE, IA]
+  - [NE, MO]
+  - [SD, ND]
+  - [SD, MN]
+  - [SD, IA]
+  - [ND, MN]
+  - [MN, WI]
+  - [MN, IA]
+  - [IA, WI]
+  - [IA, IL]
+  - [IA, MO]
+  - [MO, IL]
+  - [MO, KY]
+  - [MO, TN]
+  - [MO, AR]
+  - [AR, TN]
+  - [AR, MS]
+  - [LA, MS]
+  - [MS, TN]
+  - [MS, AL]
+  - [TN, KY]
+  - [TN, VA]
+  - [TN, NC]
+  - [TN, GA]
+  - [TN, AL]
+  - [KY, IL]
+  - [KY, IN]
+  - [KY, OH]
+  - [KY, WV]
+  - [KY, VA]
+  - [IL, WI]
+  - [IL, IN]
+  - [WI, MI]
+  - [MI, OH]
+  - [OH, PA]
+  - [OH, WV]
+  - [WV, PA]
+  - [WV, MD]
+  - [WV, VA]
+  - [AL, GA]
+  - [FL, GA]
+  - [GA, SC]
+  - [SC, NC]
+  - [NC, VA]
+  - [VA, MD]
+  - [MD, PA]
+  - [MD, DE]
+  - [DE, PA]
+  - [DE, NJ]
+  - [PA, NY]
+  - [PA, NJ]
+  - [NY, VT]
+  - [NY, MA]
+  - [NY, CT]
+  - [NY, NJ]
+  - [VT, NH]
+  - [VT, MA]
+  - [MA, NH]
+  - [MA, CT]
+  - [MA, RI]
+  - [CT, RI]
+  - [NH, ME]
+  
+regions:
+  - name: West Coast
+    bonus: 6
+    territories: [WA, OR, CA]
+    
+  - name: Rockies
+    bonus: 3
+    territories: [NV, AZ, UT, ID, MT, WY, CO, NM]
+    
+  - name: Western Midwest
+    bonus: 3
+    territories: [ND, SD, NE, KS, MN, IA, MO]
+    
+  - name: Eastern Midwest
+    bonus: 4
+    territories: [WI, MI, IL, IN, OH]
+    
+  - name: Southwest
+    bonus: 6
+    territories: [TX, OK, AR, LA]
+    
+  - name: Central Southeast
+    bonus: 3
+    territories: [KY, TN, MS, AL]
+    
+  - name: South Atlantic
+    bonus: 6
+    territories: [FL, GA, SC, NC, VA]
+    
+  - name: Mid-Atlantic
+    bonus: 8
+    territories: [NY, PA, NJ, MD, DE, VA, WV]
+    
+  - name: New England
+    bonus: 6
+    territories: [ME, NH, VT, MA, RI, CT]
+name: United States of America
+
+territories:
+  - id: WA
+    name: Washington
+    center: [132, 132]
+
+  - id: WI
+    name: Wisconsin
+    center: [616, 237]
+
+  - id: WV
+    name: West Virginia
+    center: [804, 357]
+
+  - id: FL
+    name: Florida
+    center: [774, 606]
+
+  - id: WY
+    name: Wyoming
+    center: [322, 270]
+
+  - id: NH
+    name: New Hampshire
+    center: [929, 202]
+
+  - id: NJ
+    name: New Jersey
+    center: [894, 302]
+
+  - id: NM
+    name: New Mexico
+    center: [327, 475]
+
+  - id: NC
+    name: North Carolina
+    center: [819, 426]
+
+  - id: ND
+    name: North Dakota
+    center: [449, 175]
+
+  - id: NE
+    name: Nebraska
+    center: [455, 314]
+
+  - id: NY
+    name: New York
+    center: [866, 238]
+
+  - id: RI
+    name: Rhode Island
+    center: [937, 254]
+
+  - id: NV
+    name: Nevada
+    center: [151, 347]
+
+  - id: CO
+    name: Colorado
+    center: [347, 367]
+
+  - id: CA
+    name: California
+    center: [101, 365]
+
+  - id: GA
+    name: Georgia
+    center: [768, 502]
+
+  - id: CT
+    name: Connecticut
+    center: [920, 262]
+
+  - id: OK
+    name: Oklahoma
+    center: [471, 459]
+
+  - id: OH
+    name: Ohio
+    center: [752, 325]
+
+  - id: KS
+    name: Kansas
+    center: [478, 386]
+
+  - id: SC
+    name: South Carolina
+    center: [808, 476]
+
+  - id: KY
+    name: Kentucky
+    center: [709, 393]
+
+  - id: OR
+    name: Oregon
+    center: [112, 207]
+
+  - id: SD
+    name: South Dakota
+    center: [447, 248]
+
+  - id: DE
+    name: Delaware
+    center: [887, 328]
+
+  - id: TX
+    name: Texas
+    center: [442, 556]
+
+  - id: LA
+    name: Louisiana
+    center: [607, 557]
+
+  - id: TN
+    name: Tennessee
+    center: [708, 436]
+
+  - id: PA
+    name: Pennsylvania
+    center: [839, 297]
+
+  - id: VA
+    name: Virginia
+    center: [822, 373]
+
+  - id: AL
+    name: Alabama
+    center: [705, 514]
+
+  - id: AR
+    name: Arkansas
+    center: [593, 472]
+
+  - id: VT
+    name: Vermont
+    center: [905, 207]
+
+  - id: IL
+    name: Illinois
+    center: [636, 350]
+
+  - id: IN
+    name: Indiana
+    center: [693, 346]
+
+  - id: IA
+    name: Iowa
+    center: [564, 302]
+
+  - id: AZ
+    name: Arizona
+    center: [218, 467]
+
+  - id: ID
+    name: Idaho
+    center: [214, 198]
+
+  - id: ME
+    name: Maine
+    center: [958, 164]
+
+  - id: MD
+    name: Maryland
+    center: [855, 345]
+
+  - id: MA
+    name: Massachusetts
+    center: [929, 239]
+
+  - id: UT
+    name: Utah
+    center: [240, 343]
+
+  - id: MO
+    name: Missouri
+    center: [586, 388]
+
+  - id: MN
+    name: Minnesota
+    center: [558, 204]
+
+  - id: MI
+    name: Michigan
+    center: [680, 239]
+
+  - id: MT
+    name: Montana
+    center: [298, 171]
+
+  - id: MS
+    name: Mississippi
+    center: [642, 519]
+
+borders:
+  - [WA, OR]
+  - [WA, ID]
+  - [OR, CA]
+  - [OR, ID]
+  - [OR, NV]
+  - [CA, NV]
+  - [CA, AZ]
+  - [NV, AZ]
+  - [NV, UT]
+  - [NV, ID]
+  - [ID, MT]
+  - [ID, WY]
+  - [MT, ND]
+  - [MT, SD]
+  - [MT, WY]
+  - [WY, SD]
+  - [WY, NE]
+  - [WY, CO]
+  - [WY, UT]
+  - [UT, CO]
+  - [UT, AZ]
+  - [AZ, NM]
+  - [NM, CO]
+  - [NM, OK]
+  - [NM, TX]
+  - [CO, NE]
+  - [CO, KS]
+  - [CO, OK]
+  - [TX, OK]
+  - [TX, LA]
+  - [TX, AR]
+  - [OK, KS]
+  - [OK, MO]
+  - [OK, AR]
+  - [KS, NE]
+  - [KS, MO]
+  - [NE, SD]
+  - [NE, IA]
+  - [NE, MO]
+  - [SD, ND]
+  - [SD, MN]
+  - [SD, IA]
+  - [ND, MN]
+  - [MN, WI]
+  - [MN, IA]
+  - [IA, WI]
+  - [IA, IL]
+  - [IA, MO]
+  - [MO, IL]
+  - [MO, KY]
+  - [MO, TN]
+  - [MO, AR]
+  - [AR, TN]
+  - [AR, MS]
+  - [LA, MS]
+  - [MS, TN]
+  - [MS, AL]
+  - [TN, KY]
+  - [TN, VA]
+  - [TN, NC]
+  - [TN, GA]
+  - [TN, AL]
+  - [KY, IL]
+  - [KY, IN]
+  - [KY, OH]
+  - [KY, WV]
+  - [KY, VA]
+  - [IL, WI]
+  - [IL, IN]
+  - [WI, MI]
+  - [MI, OH]
+  - [OH, PA]
+  - [OH, WV]
+  - [WV, PA]
+  - [WV, MD]
+  - [WV, VA]
+  - [AL, GA]
+  - [FL, GA]
+  - [GA, SC]
+  - [SC, NC]
+  - [NC, VA]
+  - [VA, MD]
+  - [MD, PA]
+  - [MD, DE]
+  - [DE, PA]
+  - [DE, NJ]
+  - [PA, NY]
+  - [PA, NJ]
+  - [NY, VT]
+  - [NY, MA]
+  - [NY, CT]
+  - [NY, NJ]
+  - [VT, NH]
+  - [VT, MA]
+  - [MA, NH]
+  - [MA, CT]
+  - [MA, RI]
+  - [CT, RI]
+  - [NH, ME]
+  
+regions:
+  - name: West Coast
+    bonus: 6
+    territories: [WA, OR, CA]
+    
+  - name: Rockies
+    bonus: 3
+    territories: [NV, AZ, UT, ID, MT, WY, CO, NM]
+    
+  - name: Western Midwest
+    bonus: 3
+    territories: [ND, SD, NE, KS, MN, IA, MO]
+    
+  - name: Eastern Midwest
+    bonus: 4
+    territories: [WI, MI, IL, IN, OH]
+    
+  - name: Southwest
+    bonus: 6
+    territories: [TX, OK, AR, LA]
+    
+  - name: Central Southeast
+    bonus: 3
+    territories: [KY, TN, MS, AL]
+    
+  - name: South Atlantic
+    bonus: 6
+    territories: [FL, GA, SC, NC, VA]
+    
+  - name: Mid-Atlantic
+    bonus: 8
+    territories: [NY, PA, NJ, MD, DE, VA, WV]
+    
+  - name: New England
+    bonus: 6
+    territories: [ME, NH, VT, MA, RI, CT]
+
