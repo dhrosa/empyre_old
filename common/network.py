@@ -16,7 +16,9 @@ class Message(object):
         RequestChatHistory,
         ChangeName,
         ChangeColor,
-    ) = range(13)
+
+        ReadyToPlay,
+    ) = range(14)
 
     (
         Ping,
@@ -44,7 +46,9 @@ class Message(object):
         NameChanged,
         GameStarted,
 
-    ) = range (100, 123)
+        YourTurn,
+
+    ) = range (100, 124)
         
     validArgs = {
         Pong: (),
@@ -60,6 +64,9 @@ class Message(object):
         RequestChatHistory: (),
         ChangeName: (str,),
         ChangeColor: (int, int, int),
+
+        ReadyToPlay: (),
+
 
         Ping: (),
         CurrentState: (),
@@ -85,6 +92,8 @@ class Message(object):
         NameChangeSuccess: (str,),
         NameChanged: (str, str),
         GameStarted: (),
+
+        YourTurn: (int,),
     }
 
     @staticmethod

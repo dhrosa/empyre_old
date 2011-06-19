@@ -28,18 +28,7 @@ class BoardWidget(QWidget):
         size = self.scaledPixmap.size()
         rect = self.scaledPixmap.rect()
         for t in self.game.board.territories.values():
-            mask = t.image.scaled(size)
-            self.masks[t] = mask
-            selection = QImage(size, QImage.Format_ARGB32_Premultiplied)
-            selection.fill(0)
-            painter = QPainter()
-            painter.begin(selection)
-            painter.setCompositionMode(QPainter.CompositionMode_Source)
-            painter.fillRect(rect, QColor(127, 127, 0, 127))
-            painter.setCompositionMode(QPainter.CompositionMode_DestinationIn)
-            painter.drawImage(0, 0, mask)
-            painter.end()
-            self.selectionImages[t] = selection
+            self.masks[t] = t.image.scaled(size)
 
     def territoryAt(self, x, y):
         for t in self.game.board.territories.values():
@@ -71,14 +60,32 @@ class BoardWidget(QWidget):
         if self.currentTerritory:
             print "Clicked on %s." % (self.currentTerritory.name)
 
+    def mask(self, territory, color):
+        mask = self.masks[territory]
+        size = mask.size()
+        rect = self.scaledPixmap.rect()
+        image = QImage(size, QImage.Format_ARGB32_Premultiplied)
+        image.fill(0)
+        painter = QPainter()
+        painter.begin(image)
+        painter.setCompositionMode(QPainter.CompositionMode_Source)
+        painter.fillRect(rect, QColor(color[0], color[1], color[2], 127))
+        painter.setCompositionMode(QPainter.CompositionMode_DestinationIn)
+        painter.drawImage(0, 0, mask)
+        painter.end()
+        return image
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.drawPixmap(0, 0, self.scaledPixmap)
         rect = self.scaledPixmap.rect()
         if self.isEnabled():
             if self.currentTerritory:
-                painter.drawImage(0, 0, self.selectionImages[self.currentTerritory])
+                painter.drawImage(0, 0, self.mask(self.currentTerritory, (127, 127, 0)))
         else:
             painter.fillRect(rect, QColor(0, 0, 0, 200))
             painter.drawText(rect, Qt.AlignCenter, "Waiting for the game to start.")
+        for t in self.game.board.territories.values():
+            if t.owner:
+                painer.drawImage(0, 0, self.mask(t, t.owner.color))
         painter.end()

@@ -198,6 +198,11 @@ class Client(QObject):
         elif msg == Message.GameStarted:
             self.mainWindow.boardWidget.setEnabled(True)
             self.mainWindow.chat.addLine(Line(Line.Info, text="The game has started!"))
+
+        elif msg == Message.YourTurn:
+            self.game.remainingTroops = args[0]
+            self.boardWidget.update()
+            self.mainWindow.chat.addLine(Line(Line.Info, text="It is now your turn."))
                 
 
     def connectionFail(self):
