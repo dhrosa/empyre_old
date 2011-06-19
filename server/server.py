@@ -8,7 +8,7 @@ from common.network import Message, Connection
 from common.board import loadBoard
 
 from PyQt4.QtNetwork import QTcpServer, QTcpSocket
-from PyQt4.QtCore import QCoreApplication, pyqtSignal, QThread
+from PyQt4.QtCore import QCoreApplication, pyqtSignal, QThread, QSocketNotifier
 
 class Server(QTcpServer):
     sendReady = pyqtSignal(int, list)
@@ -127,17 +127,20 @@ class Server(QTcpServer):
                 for line in self.chatHistory:
                     self.sendTo(conn.id, Message.ReceiveChat, [line[0].name, line[1]])
 
-    def reset(self):
-        print "Resetting server."
-        self.resetting.emit()
-        self.sm.reset()
+    def readStdin(self):
+        line = sys.stdin.readline().strip()
+        if line.lower() == "quit":
+            QCoreApplication.quit()
+        elif line.lower() == "reset":
+            print "Resetting server."
+            self.resetting.emit()
+            self.sm.reset()
+        elif line.lower() == "start":
+            if not self.sm.next(Action.StartGame):
+                print "Need more players to start."
+            else:
+                self.send(Message.GameStarted, [])
 
-    def startGame(self):
-        if not self.sm.next(Action.StartGame):
-            print "Need more players to start."
-        else:
-            self.send(Message.GameStarted, [])
-    
 if __name__ == "__main__":
     app = QCoreApplication(sys.argv)
     try:
@@ -150,13 +153,8 @@ if __name__ == "__main__":
         print "Could not load board: %s" % (boardName)
     print "Loaded \"%s\" board." % (board.name)
     server = Server(boardName, board)
+    socket = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Read)
+    socket.activated.connect(server.readStdin)
     if not server.listen(port=9002):
         print "could not listen"
-    while True:
-        s = raw_input("")
-        if s.lower() == 'quit':
-            sys.exit(0)
-        if s.lower() == "reset":
-            server.reset()
-        if s.lower() == "start":
-            server.startGame()
+    sys.exit(app.exec_())
