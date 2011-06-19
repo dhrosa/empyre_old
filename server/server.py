@@ -42,7 +42,6 @@ class Server(QTcpServer):
         QCoreApplication.instance().aboutToQuit.connect(thread.quit)
         c.closed.connect(thread.quit)
         c.closed.connect(self.handleDisconnect)
-        c.destroyed.connect(self.pruneConnections)
         thread.finished.connect(thread.deleteLater)
         c.messageReceived.connect(self.handleMessage)
         self.sendReady.connect(c.sendMessage)
@@ -53,9 +52,6 @@ class Server(QTcpServer):
     def socketErrorHandler(self, socketError):
         print socketError
 
-    def pruneConnections(self):
-        self.connections = [c for c in self.connections if c]
-
     def handleDisconnect(self, conn):
         if conn.player:
             print "%s has disconnected." % (conn.player)
@@ -64,7 +60,7 @@ class Server(QTcpServer):
                 self.send(Message.PlayerLeft, [conn.player.name])
         else:
             print "Anonymous client disconnected."
-        conn.deleteLater()        
+        self.connections = [c for c in self.connections if c.id != conn.id]
 
     def handleMessage(self, msg, args):
         conn = self.sender()
