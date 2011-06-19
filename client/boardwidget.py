@@ -79,5 +79,6 @@ class BoardWidget(QWidget):
             if self.currentTerritory:
                 painter.drawImage(0, 0, self.selectionImages[self.currentTerritory])
         else:
-            painter.fillRect(rect, QColor(127, 127, 127, 127))
+            painter.fillRect(rect, QColor(0, 0, 0, 200))
+            painter.drawText(rect, Qt.AlignCenter, "Waiting for the game to start.")
         painter.end()
