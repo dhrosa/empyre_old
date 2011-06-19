@@ -130,6 +130,7 @@ class Client(QObject):
 
         elif msg == Message.GameStarted:
             self.mainWindow.boardWidget.setEnabled(True)
+            self.mainWindow.chat.addInfoLine((0, 170, 0), "The game has started!")
 
         elif msg == Message.ReceiveChat:
             (sender, text) = args
