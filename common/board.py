@@ -187,4 +187,7 @@ def loadBoard(boardName, images = False):
                     return
                 regionTerritories.append(territories[t])
             regions.append(Region(regionName, bonus, regionTerritories))
+    terrs = []
+    for k in territories.keys():
+        terrs.append(territories[k])
     return Board(name, territories.values(), borders, regions, image)
