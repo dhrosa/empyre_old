@@ -6,7 +6,7 @@ from PyQt4.QtCore import pyqtSignal, QObject, QThread, Qt
 from PyQt4.QtGui import QApplication, QInputDialog, QMessageBox
 
 from common.network import Message, Connection
-from common.game import Player
+from common.game import Player, State
 from common.board import Board, loadBoard
 from chat import Chat, Line
 from mainwindow import MainWindow
@@ -43,6 +43,9 @@ class Client(QObject):
     def handleMessage(self, msg, args):
         if msg == Message.Ping:
             self.send(Message.Pong)
+
+        elif msg == Message.StateChanged:
+            self.handleStateChange(*args)
 
         elif msg == Message.ReceiveChat:
             (sender, text, timestamp) = args
@@ -195,15 +198,13 @@ class Client(QObject):
             self.mainWindow.chat.changePlayerName(before, after)
             self.mainWindow.chat.addLine(Line(Line.Info, text="%s changed their name to %s" % (before, after)))
 
-        elif msg == Message.GameStarted:
-            self.mainWindow.boardWidget.setEnabled(True)
-            self.mainWindow.chat.addLine(Line(Line.Info, text="The game has started!"))
 
-        elif msg == Message.YourTurn:
-            self.game.remainingTroops = args[0]
-            self.boardWidget.update()
-            self.mainWindow.chat.addLine(Line(Line.Info, text="It is now your turn."))
-                
+        elif msg == Message.TurnChanged:
+            name = str(args[0])
+            if name == self.game.clientPlayer.name:
+                self.mainWindow.chat.addLine(Line(Line.Info, text = "It is now your turn."))
+            else:
+                self.mainWindow.chat.addLine(Line(Line.Info, text = "It is now %s's turn." % name))
 
     def connectionFail(self):
         if QMessageBox.Retry == QMessageBox.critical(None,
@@ -214,7 +215,12 @@ class Client(QObject):
         else:
             self.connection.thread().quit()
             sys.exit()
-                                
+
+    def handleStateChange(self, old, new):
+        if old == State.Lobby:
+            self.mainWindow.chat.addLine(Line(Line.Info, text="The game has started!"))
+            self.mainWindow.boardWidget.setEnabled(True)
+
     def sendJoinMessage(self):
         self.send(Message.Join)
 

@@ -21,7 +21,7 @@ def debug(func):
     return printer
 
 class SM(QObject):
-    stateChanged = pyqtSignal(int)
+    stateChanged = pyqtSignal(int, int)
     turnChanged = pyqtSignal(Player)
     territoryUpdated = pyqtSignal(str, str, int)
 
@@ -38,7 +38,10 @@ class SM(QObject):
             if name == "currentPlayer":
                 self.turnChanged.emit(value)
             elif name == "substate":
-                self.stateChanged.emit(value)
+                try:
+                    self.stateChanged.emit(self.substate, value)
+                except AttributeError:
+                    pass
         super(SM, self).__setattr__(name, value)
 
     def reset(self):
@@ -153,9 +156,9 @@ class SM(QObject):
             elif action == Action.StartGame:
                 if len(self.players) < 2:
                     return False
+                self.substate = State.ChoosingOrder
                 self.currentPlayer = self.players[0]
                 self.tiedPlayers = self.players
-                self.substate = State.ChoosingOrder
                 return True
 
         elif s == State.ChoosingOrder:
@@ -173,11 +176,11 @@ class SM(QObject):
                         return True
                     else:
                         index = self.diceRolls.index(highest)
+                        self.substate = State.InitialPlacement
                         self.currentPlayer = self.tiedPlayers[self.diceRolls.index(highest)]
                         self.firstPlayer = self.currentPlayer
                         self.tiedPlayers = []
                         self.clear()
-                        self.substate = State.InitialPlacement
                         return True
                 else:
                     self.currentPlayer = self.nextPlayer(self.tiedPlayers)

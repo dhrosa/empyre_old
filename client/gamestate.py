@@ -4,6 +4,10 @@ class GameState(object):
     def __init__(self):
         self.players = []
         self.clientPlayer = None
+        self.state = None
+
+    def playerNames(self):
+        return [p.name for p in self.players]
 
     def addPlayer(self, name):
         self.players.append(Player(name))

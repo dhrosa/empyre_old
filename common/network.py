@@ -23,6 +23,7 @@ class Message(object):
     (
         Ping,
         CurrentState,
+        StateChanged,
         ReceiveChat,
         ReceiveWhisper,
         JoinSuccess,
@@ -46,9 +47,8 @@ class Message(object):
         NameChanged,
         GameStarted,
 
-        YourTurn,
-
-    ) = range (100, 124)
+        TurnChanged,
+    ) = range (100, 125)
         
     validArgs = {
         Pong: (),
@@ -69,7 +69,8 @@ class Message(object):
 
 
         Ping: (),
-        CurrentState: (),
+        CurrentState: (int,),
+        StateChanged: (int, int,),
         ReceiveChat: (str, str, int),
         ReceiveWhisper: (str, str, str, int),
         JoinSuccess: (),
@@ -93,7 +94,7 @@ class Message(object):
         NameChanged: (str, str),
         GameStarted: (),
 
-        YourTurn: (int,),
+        TurnChanged: (str,),
     }
 
     @staticmethod

@@ -23,9 +23,9 @@ class Server(QTcpServer):
        self.boardName = boardName
        self.connections = []
        self.sm = SM(board)
-       sm.stateChanged.connect(self.sendStateChange)
-       sm.turnChanged.connect(self.sendTurnChange)
-       sm.territoryUpdate.connect(self.sendTerritoryUpdate)
+       self.sm.stateChanged.connect(self.sendStateChange)
+       self.sm.turnChanged.connect(self.sendTurnChange)
+       self.sm.territoryUpdated.connect(self.sendTerritoryUpdate)
        self.chatHistory = []
 
     def send(self, msg, args = []):
@@ -182,21 +182,15 @@ class Server(QTcpServer):
         elif line.lower() == "start":
             if not self.sm.next(Action.StartGame):
                 print "Need more players to start."
-            else:
-                self.send(Message.GameStarted)
 
-    def sendStateChange(self, state):
-        pass
+    def sendStateChange(self, old, new):
+        self.send(Message.StateChanged, [old, new])
 
     def sendTurnChange(self, player):
-        pass
-        for c in self.connections:
-            if c.player == player:
-                self.sendTo(c.id, Message.YourTurn)
-        self.send(Message.TurnChanged, player.name)
+        self.send(Message.TurnChanged, [player.name])
 
-    def sendTerritoryUpdate(self, name, owner, int):
-        pass
+    def sendTerritoryUpdate(self, name, owner, troopCount):
+        self.send(Message.TerritoryUpdated, [name, owner, troopCount])
 
 if __name__ == "__main__":
     app = QCoreApplication(sys.argv)
