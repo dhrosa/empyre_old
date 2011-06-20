@@ -1,4 +1,4 @@
-from PyQt4.QtCore import pyqtSignal, Qt
+from PyQt4.QtCore import pyqtSignal, Qt, QRect
 from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor
 
 class ColoredMaskCache(object):
@@ -101,16 +101,39 @@ class BoardWidget(QWidget):
         return pixmap
 
     def paintEvent(self, event):
-        painter = QPainter(self)
+        painter = QPainter()
+        painter.begin(self)
         painter.drawPixmap(0, 0, self.scaledPixmap)
         rect = self.scaledPixmap.rect()
         if self.isEnabled():
             if self.currentTerritory:
                 painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, (127, 127, 0)))
+            for t in self.game.board.territories.values():
+                if t.owner:
+                    painer.drawPixmap(0, 0, self.coloredMask(t, t.owner.color))
         else:
             painter.fillRect(rect, QColor(0, 0, 0, 200))
             painter.drawText(rect, Qt.AlignCenter, "Waiting for the game to start.")
-        for t in self.game.board.territories.values():
-            if t.owner:
-                painer.drawPixmap(0, 0, self.coloredMask(t, t.owner.color))
+
+        #draw player info
+        painter.setPen(QColor(255, 255, 255))
+        painter.setBrush(QColor(0, 0, 0, 200))
+        playerCount = len(self.game.players)
+        height = painter.fontMetrics().height() + 4
+        width = max([painter.fontMetrics().width(name) for name in self.game.playerNames()]) + 8
+        playersRect = QRect(0, 0, width, height * playerCount + 8)
+        playersRect.moveRight(rect.right())
+        playersRect.moveTop(0)
+        left = playersRect.left() + 4
+        painter.drawRect(playersRect)
+        for (i, p) in enumerate(self.game.players):
+            if p == self.game.currentPlayer:
+                painter.setBrush(QColor(0, 170, 0))
+                painter.drawRect(left - 4, i * height + 4, width, height)
+            painter.setPen(QColor(255, 255, 255))
+            painter.drawText(left, (i + 1) * height, p.name)
+            x = left - height - 8
+            y = i * height + 4
+            painter.setBrush(QColor(*(p.color)))
+            painter.drawRect(x, y, height, height)
         painter.end()

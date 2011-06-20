@@ -20,6 +20,7 @@ class GameState(QObject):
 
     def addPlayer(self, name):
         self.players.append(Player(name))
+        self.changed.emit()
         return self.players[-1]
 
     def getPlayer(self, name):

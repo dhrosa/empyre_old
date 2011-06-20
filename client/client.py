@@ -139,7 +139,7 @@ class Client(QObject):
                 self.connection.thread().quit()
                 sys.exit()
             self.game.board = board
-            self.game.clientPlayer = self.game.addPlayer(self.clientPlayerName)
+            self.game.clientPlayer = self.game.getPlayer(self.clientPlayerName)
             del self.clientPlayerName
             self.mainWindow = MainWindow(self.game)
             self.game.changed.connect(self.mainWindow.boardWidget.update)
@@ -185,8 +185,7 @@ class Client(QObject):
         elif msg == Message.NameChangeSuccess:
             name = str(args[0])
             self.mainWindow.nameEdit.setText(name)
-            self.game.clientPlayer.name = name
-            self.mainWindow.chat.addLine("You successfully changed your name.")
+            self.game.setPlayerName(self.game.clientPlayer.name, name)
 
         elif msg == Message.NameChanged:
             before = str(args[0])
