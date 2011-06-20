@@ -202,6 +202,7 @@ class Client(QObject):
             name = str(args[0])
             if name == self.game.clientPlayer.name:
                 self.mainWindow.chat.addLine("It is now your turn.")
+                self.mainWindow.activateWindow()
                 if self.game.state == State.ChoosingOrder:
                     self.send(Message.RollDice)
             else:
@@ -242,8 +243,18 @@ class Client(QObject):
         if old == State.Lobby:
             self.mainWindow.chat.addLine("The game has started!")
             self.mainWindow.boardWidget.setEnabled(True)
+        s = ""
         if new == State.ChoosingOrder:
-            self.mainWindow.setStatus("Now choosing play order. The highest roller goes first.")
+            s = "Now choosing play order. The highest roller goes first."
+        elif new == State.InitialPlacement:
+            s = "Choose your starting territories."
+        elif new == State.InitialDraft:
+            s = "Place your starting armies."
+        elif new == State.Draft:
+            s = "Place your armies."
+        elif new == State.Attack:
+            s = "Choose a neighboring territory to attack."
+        self.mainWindow.setStatus(s)
         self.game.state = new
 
     def sendJoinMessage(self):
