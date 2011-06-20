@@ -96,6 +96,9 @@ class Chat(QWidget):
         self.history.verticalScrollBar().setValue(self.history.verticalScrollBar().maximum())
 
     def addLine(self, line):
-        self.lines.append(line)
+        if type(line) == str:
+            self.lines.append(Line(Line.Info, text=line))
+        else:
+            self.lines.append(line)
         self.updateHistory()
 

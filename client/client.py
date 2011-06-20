@@ -62,7 +62,7 @@ class Client(QObject):
             self.mainWindow.chat.addLine(Line(Line.Whisper, sender=sender, target=target, text=text, playerColor=p.color, timestamp = timestamp))
 
         elif msg == Message.WhisperError:
-            self.mainWindow.chat.addLine(Line(type=Line.Info, text="No such player."))
+            self.mainWindow.chat.addLine("No such player.")
 
         elif msg == Message.JoinSuccess:
             name = ""
@@ -148,13 +148,13 @@ class Client(QObject):
             self.mainWindow.nameChanged.connect(self.sendNameChange)
             self.mainWindow.show()
             try:
-                self.mainWindow.chat.addLine(Line(Line.Info, text="Welcome to the game!"))
-                self.mainWindow.chat.addLine(Line(Line.Info, text="Your password is \"%s\"." % self.password))
-                self.mainWindow.chat.addLine(Line(Line.Info, text="Use this password to rejoin the game once it has started."))
-                self.mainWindow.chat.addLine(Line(Line.Info, text="Remember to change your color before the game starts."))
+                self.mainWindow.chat.addLine("Welcome to the game!")
+                self.mainWindow.chat.addLine("Your password is \"%s\"." % self.password)
+                self.mainWindow.chat.addLine("Use this password to rejoin the game once it has started.")
+                self.mainWindow.chat.addLine("Remember to change your color before the game starts.")
                 del self.password
             except AttributeError:
-                self.mainWindow.chat.addLine(Line(Line.Info, text="Welcome back to the game!"))
+                self.mainWindow.chat.addLine("Welcome back to the game!")
                 self.mainWindow.boardWidget.setEnabled(True)
             QApplication.setQuitOnLastWindowClosed(True)
             self.send(Message.RequestChatHistory)
@@ -177,17 +177,17 @@ class Client(QObject):
             else:
                 self.game.getPlayer(name).color = color
             self.mainWindow.chat.changePlayerColor(name, color)
-            self.mainWindow.chat.addLine(Line(Line.Info, text="%s has changed their color." % (name)))
+            self.mainWindow.chat.addLine("%s has changed their color." % (name))
 
         elif msg == Message.NameChangeTaken:
             self.mainWindow.nameEdit.setText(self.game.clientPlayer.name)
-            self.mainWindow.chat.addLine(Line(Line.Info, text="That name is already taken."))
+            self.mainWindow.chat.addLine("That name is already taken.")
 
         elif msg == Message.NameChangeSuccess:
             name = str(args[0])
             self.mainWindow.nameEdit.setText(name)
             self.game.clientPlayer.name = name
-            self.mainWindow.chat.addLine(Line(Line.Info, text="You successfully changed your name."))
+            self.mainWindow.chat.addLine("You successfully changed your name.")
 
         elif msg == Message.NameChanged:
             before = str(args[0])
@@ -196,15 +196,15 @@ class Client(QObject):
             if player:
                 player.name = after
             self.mainWindow.chat.changePlayerName(before, after)
-            self.mainWindow.chat.addLine(Line(Line.Info, text="%s changed their name to %s" % (before, after)))
+            self.mainWindow.chat.addLine("%s changed their name to %s" % (before, after))
 
 
         elif msg == Message.TurnChanged:
             name = str(args[0])
             if name == self.game.clientPlayer.name:
-                self.mainWindow.chat.addLine(Line(Line.Info, text = "It is now your turn."))
+                self.mainWindow.chat.addLine("It is now your turn.")
             else:
-                self.mainWindow.chat.addLine(Line(Line.Info, text = "It is now %s's turn." % name))
+                self.mainWindow.chat.addLine("It is now %s's turn." % name)
 
     def connectionFail(self):
         if QMessageBox.Retry == QMessageBox.critical(None,
@@ -218,7 +218,7 @@ class Client(QObject):
 
     def handleStateChange(self, old, new):
         if old == State.Lobby:
-            self.mainWindow.chat.addLine(Line(Line.Info, text="The game has started!"))
+            self.mainWindow.chat.addLine("The game has started!")
             self.mainWindow.boardWidget.setEnabled(True)
 
     def sendJoinMessage(self):
@@ -230,7 +230,7 @@ class Client(QObject):
         parts = str(text).split(" ")
         if parts[0] == "/to":
             if len(parts) < 3:
-                self.mainWindow.chat.addLine(Line(type=Line.Info, text="Invalid command."))
+                self.mainWindow.chat.addLine("Invalid command.")
                 return
             target = parts[1]
             text = " ".join(parts[2:])
