@@ -21,6 +21,7 @@ class ColoredMaskCache(object):
 
 class BoardWidget(QWidget):
     territoryClaimed = pyqtSignal(str)
+    drafted = pyqtSignal(str, int)
 
     def __init__(self, game, parent = None):
         QWidget.__init__(self, parent)
@@ -79,9 +80,19 @@ class BoardWidget(QWidget):
             self.setToolTip("")
         self.update()
 
-    def mouseReleaseEvent(self, event):
-        if self.currentTerritory and self.game.state == State.InitialPlacement:
-            self.territoryClaimed.emit(self.currentTerritory.name)
+    def mouseReleaseEvent(self, e):
+        if self.currentTerritory:
+            if self.game.state == State.InitialPlacement:
+                self.territoryClaimed.emit(self.currentTerritory.name)
+            elif self.game.state in (State.InitialDraft, State.Draft):
+                m = e.modifiers()
+                if m & Qt.ShiftModifier:
+                    count = 5
+                elif m & Qt.AltModifier:
+                    count = 10
+                else:
+                    count = 1
+                self.drafted.emit(self.currentTerritory.name, count)
 
     def coloredMask(self, territory, color):
         pixmap = self.coloredMaskCache.get(territory, color)

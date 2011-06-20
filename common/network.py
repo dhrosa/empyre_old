@@ -20,7 +20,8 @@ class Message(object):
         ReadyToPlay,
         RollDice,
         ClaimTerritory,
-    ) = range(16)
+        Draft,
+    ) = range(17)
 
     (
         Ping,
@@ -72,6 +73,7 @@ class Message(object):
         ReadyToPlay: (),
         RollDice: (),
         ClaimTerritory: (str,),
+        Draft: (str, int),
 
         Ping: (),
         CurrentState: (int,),
@@ -101,7 +103,7 @@ class Message(object):
 
         TurnChanged: (str,),
         DiceRolled: (str, int, int),
-        TerritoryUpdated: (str, str, int,)
+        TerritoryUpdated: (str, str, int,),
     }
 
     @staticmethod

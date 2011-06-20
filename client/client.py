@@ -148,6 +148,7 @@ class Client(QObject):
             self.mainWindow = MainWindow(self.game)
             self.game.changed.connect(self.mainWindow.boardWidget.update)
             self.mainWindow.boardWidget.territoryClaimed.connect(self.sendClaimTerritory)
+            self.mainWindow.boardWidget.drafted.connect(self.sendDraft)
             self.mainWindow.setWindowTitle("Risk %s:%d" % (self.host, self.port))
             self.mainWindow.chat.lineEntered.connect(self.sendChat)
             self.mainWindow.colorChanged.connect(self.sendColorChange)
@@ -282,6 +283,9 @@ class Client(QObject):
 
     def sendClaimTerritory(self, name):
         self.send(Message.ClaimTerritory, [str(name)])
+
+    def sendDraft(self, name, count):
+        self.send(Message.Draft, [str(name), count])
 
 debug = False
 clientName = ""

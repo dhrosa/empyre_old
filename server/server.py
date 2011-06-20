@@ -185,9 +185,15 @@ class Server(QTcpServer):
                     self.sm.next(Action.RollDice)
 
             elif msg == Message.ClaimTerritory:
-                name = str(args[0])
                 if conn.player == self.sm.currentPlayer:
+                    name = str(args[0])
                     self.sm.next(Action.PlaceTroops, [name])
+
+            elif msg == Message.Draft:
+                if conn.player == self.sm.currentPlayer:
+                    name = str(args[0])
+                    count = args[1]
+                    self.sm.next(Action.PlaceTroops, [name, count])
 
     def readStdin(self):
         line = sys.stdin.readline().strip()

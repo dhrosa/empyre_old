@@ -97,12 +97,14 @@ class SM(QObject):
         return sum([1 for t in self.board.iterTerritories() if not t.owner])
 
     def placeTroops(self, territoryName, n):
+        n = min(self.remainingTroops, n)
         t = self.board.getTerritory(territoryName)
         if not t:
             return False
         if t.owner != self.currentPlayer:
             return False
         t.troopCount += n
+        self.territoryUpdated.emit(t.name, self.currentPlayer.name, t.troopCount)
         return True
 
     def nextPlayer(self, selection = None):
@@ -214,7 +216,7 @@ class SM(QObject):
                 if not self.placeTroops(t, n):
                     return False
                 self.remainingTroops -= n
-                if self.remainingTroops == 0:
+                if self.remainingTroops <= 0:
                     self.currentPlayer = self.nextPlayer()
                     self.remainingTroops = self.draftCount(self.currentPlayer)
                     if self.currentPlayer == self.firstPlayer:
@@ -232,12 +234,12 @@ class SM(QObject):
                 (t, n) = args
                 if self.currentPlayer.cardCount() > 4:
                     return False
-                if n < 1 or n > self.remainingTroops:
+                if n < 1:
                     return False
                 if not self.placeTroops(t, n):
                     return False
                 self.remainingTroops -= n
-                if self.remainingTroops == 0:
+                if self.remainingTroops < 0:
                     self.substate = State.Attack
                 return True
 
