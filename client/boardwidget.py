@@ -117,10 +117,13 @@ class BoardWidget(QWidget):
             for t in self.game.board.iterTerritories():
                 if t.owner:
                     painter.drawPixmap(0, 0, self.coloredMask(t, t.owner.color))
+            #loop again so text is not drawn under territories
+            for t in self.game.board.iterTerritories():
+                if t.owner:
                     x = t.center[0] * self.scaleFactor - 12
                     y = t.center[1] * self.scaleFactor - 12
-                    width = 24
-                    height = 24
+                    width = 25
+                    height = 25
                     painter.drawEllipse(x, y, width, height)
                     painter.drawText(x, y, width, height, Qt.AlignCenter, str(t.troopCount))
 
