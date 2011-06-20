@@ -1,6 +1,7 @@
 from common.game import State, Action, Player
 from common.board import Board
 from random import randint
+from math import floor
 from PyQt4.QtCore import pyqtSignal, QObject
 
 def rollDice(n):
@@ -86,22 +87,18 @@ class SM(QObject):
     def livePlayerCount(self):
         return len(self.livePlayers())
 
-    def territoryNames(self):
-        return [t for t in self.board.territories.keys]
-
-    def isValidTerritory(self, t):
-        return t in self.territoryNames()
+    def ownedTerritories(self, player):
+        return [t for t in self.board.iterTerritories() if t.owner == player]
 
     def territoryCount(self, player):
-        return sum([1 for t in self.board.territories.values() if t.owner == player])
+        return len(self.ownedTerritories(player))
 
     def freeTerritoryCount(self):
-        return sum([1 for t in self.board.territories.values() if not t.owner])
+        return sum([1 for t in self.board.iterTerritories() if not t.owner])
 
     def placeTroops(self, territoryName, n):
-        try:
-            t = self.board.territories[territoryName]
-        except:
+        t = self.board.getTerritory(territoryName)
+        if not t:
             return False
         if t.owner != self.currentPlayer:
             return False
@@ -131,7 +128,7 @@ class SM(QObject):
             return -10 + 5 * self.setsExchanged
 
     def draftCount(self, player):
-        myTerritories = [territory for territory in self.board.territories if territory.owner == player]
+        myTerritories = self.ownedTerritories(player)
         bonus = max(3, floor(len(myTerritories) / 3))
         for region in self.board.regions:
             if region.hasBonus(myTerritories):
@@ -142,7 +139,6 @@ class SM(QObject):
     def next(self, action, args=[]):
         s = self.substate
         if not Action.argMatch(action, args):
-            print "arg mismatch"
             return False
         if action == Action.RemovePlayer and self.substate != State.Lobby:
             return True
@@ -250,10 +246,9 @@ class SM(QObject):
                 if self.currentPlayer.cardCount() > 4:
                     return False
                 (source, target, n) = args
-                try:
-                    source = self.board.territories[source]
-                    target = self.board.territories[target]
-                except:
+                source = self.board.getTerritory(source)
+                target = self.board.territories(target)
+                if not source or not target:
                     return False
                 if source.owner != self.currentPlayer or target.owner == self.currentPlayer:
                     return False
@@ -318,10 +313,9 @@ class SM(QObject):
         elif s == State.Fortify:
             if action == Action.Fortify:
                 (source, target, n) = args
-                try:
-                    source = self.board.territories[source]
-                    target = self.board.territories[target]
-                except:
+                source = self.board.getTerritory(source)
+                target = self.board.getTerritory(target)
+                if not source or not target:
                     return False
                 if not (source.owner == target.owner and source.owner == self.currentPlayer):
                     return False

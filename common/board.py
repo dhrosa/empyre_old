@@ -35,7 +35,10 @@ class Region(object):
         self.territories = territories
 
     def hasBonus(self, territories):
-        return self.territories in territories
+        for t in self.territories:
+            if t not in territories:
+                return False
+        return True
 
     def __str__(self):
         return "%s: %d" % (self.name, self.bonus)
@@ -73,7 +76,7 @@ class Card(object):
 class Board(object):
     def __init__(self, name, territories, borders, regions, image = None):
         self.name = name
-        self.territories = dict([(t.name, t) for t in territories])
+        self.__territories = dict([(t.name, t) for t in territories])
         self.borders = borders
         self.regions = regions
         self.image = image
@@ -85,25 +88,30 @@ class Board(object):
 
     def reset(self):
         units = []
-        for (i, t) in enumerate(self.territories):
+        for (i, t) in enumerate(self.__territories):
             units.append(i % 3)
         shuffle(units)
-        for (t, u) in zip(self.territories, units):
+        for (t, u) in zip(self.__territories, units):
             self.cards.append(Card(t, u))
         self.cards += [Card(None, Card.Wild)] * 2
         shuffle(self.cards)
         for t in self.territoryNames():
-            self.territories[t].owner = None
-            self.territories[t].troopCount = None
+            self.__territories[t].owner = None
+            self.__territories[t].troopCount = None
 
     def getTerritory(self, name):
         try:
-            return self.territories[name]
+            return self.__territories[name]
         except KeyError:
             return
 
+    def iterTerritories(self):
+        for t in self.__territories.keys():
+            yield self.__territories[t]
+
     def territoryNames(self):
-        return self.territories.keys()
+        return self.__territories.keys()
+
 
 def loadBoard(boardName, images = False):
     import sys

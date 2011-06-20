@@ -35,13 +35,13 @@ class BoardWidget(QWidget):
 
     def loadImages(self):
         self.game.board.image = QImage(self.game.board.image)
-        names = self.game.board.territories.keys()
+        names = self.game.board.territoryNames()
         progress = QProgressDialog("Loading Board", "", 0, len(names))
         progress.setCancelButton(None)
         progress.setMinimumDuration(0)
         for (i, name) in enumerate(names):
             progress.setValue(i)
-            t = self.game.board.territories[name]
+            t = self.game.board.getTerritory(name)
             t.image = QImage(t.image)
         self.resize(self.minimumSizeHint())
 
@@ -50,12 +50,12 @@ class BoardWidget(QWidget):
         self.selectionImages = {}
         size = self.scaledPixmap.size()
         rect = self.scaledPixmap.rect()
-        for t in self.game.board.territories.values():
+        for t in self.game.board.iterTerritories():
             self.masks[t] = t.image.scaled(size)
         self.coloredMaskCache.clear()
 
     def territoryAt(self, x, y):
-        for t in self.game.board.territories.values():
+        for t in self.game.board.iterTerritories():
             if t.image.pixel(x, y):
                 return t
 
@@ -114,7 +114,7 @@ class BoardWidget(QWidget):
         if self.isEnabled():
             if self.currentTerritory:
                 painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, (127, 127, 0)))
-            for t in self.game.board.territories.values():
+            for t in self.game.board.iterTerritories():
                 if t.owner:
                     painter.drawPixmap(0, 0, self.coloredMask(t, t.owner.color))
                     x = t.center[0] * self.scaleFactor - 12
