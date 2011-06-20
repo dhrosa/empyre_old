@@ -96,7 +96,7 @@ class BoardWidget(QWidget):
             painter = QPainter()
             painter.begin(image)
             painter.setCompositionMode(QPainter.CompositionMode_Source)
-            painter.fillRect(rect, QColor(color[0], color[1], color[2], 127))
+            painter.fillRect(rect, QColor(color[0], color[1], color[2], 225))
             painter.setCompositionMode(QPainter.CompositionMode_DestinationIn)
             painter.drawImage(0, 0, mask)
             painter.end()
@@ -109,12 +109,21 @@ class BoardWidget(QWidget):
         painter.begin(self)
         painter.drawPixmap(0, 0, self.scaledPixmap)
         rect = self.scaledPixmap.rect()
+        painter.setPen(QColor(255, 255, 255))
+        painter.setBrush(QColor(0, 0, 0))
         if self.isEnabled():
             if self.currentTerritory:
                 painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, (127, 127, 0)))
             for t in self.game.board.territories.values():
                 if t.owner:
                     painter.drawPixmap(0, 0, self.coloredMask(t, t.owner.color))
+                    x = t.center[0] * self.scaleFactor - 12
+                    y = t.center[1] * self.scaleFactor - 12
+                    width = 24
+                    height = 24
+                    painter.drawEllipse(x, y, width, height)
+                    painter.drawText(x, y, width, height, Qt.AlignCenter, str(t.troopCount))
+
         else:
             painter.fillRect(rect, QColor(0, 0, 0, 200))
             painter.drawText(rect, Qt.AlignCenter, "Waiting for the game to start.")
@@ -138,6 +147,6 @@ class BoardWidget(QWidget):
             painter.drawText(left, (i + 1) * height, p.name)
             x = left - height - 8
             y = i * height + 4
-            painter.setBrush(QColor(*(p.color)))
+            painter.setBrush(QColor(*p.color))
             painter.drawRect(x, y, height, height)
         painter.end()

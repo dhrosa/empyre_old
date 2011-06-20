@@ -204,12 +204,13 @@ class Client(QObject):
             name = str(args[0])
             if name == self.game.clientPlayer.name:
                 self.mainWindow.chat.addLine("It is now your turn.")
+                if self.game.state == State.ChoosingOrder:
+                    self.send(Message.RollDice)
             else:
                 self.mainWindow.chat.addLine("It is now %s's turn." % name)
             self.game.currentPlayer = self.game.getPlayer(name)
             self.game.changed.emit()
-            if self.game.state == State.ChoosingOrder:
-                self.send(Message.RollDice)
+
 
         elif msg == Message.DiceRolled:
             (name, n, encoded) = args
