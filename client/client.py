@@ -92,7 +92,8 @@ class Client(QObject):
 
         elif msg == Message.PlayerJoined:
             name = str(args[0])
-            self.game.addPlayer(name)
+            player = self.game.addPlayer(name)
+            player.color = args[1:]
             self.mainWindow.chat.addLine(Line(Line.PlayerJoined, target=name))
 
         elif msg == Message.GameInProgress:
@@ -157,7 +158,6 @@ class Client(QObject):
                 self.mainWindow.chat.addLine("Welcome to the game!")
                 self.mainWindow.chat.addLine("Your password is \"%s\"." % self.password)
                 self.mainWindow.chat.addLine("Use this password to rejoin the game once it has started.")
-                self.mainWindow.chat.addLine("Remember to change your color before the game starts.")
                 del self.password
                 self.send(Message.ReadyToPlay)
             except AttributeError:
@@ -179,8 +179,6 @@ class Client(QObject):
             name = str(args[0])
             color = args[1:]
             self.game.setPlayerColor(name, color)
-            if name == self.game.clientPlayer.name:
-                self.mainWindow.changeColor(color)
             self.mainWindow.chat.changePlayerColor(name, color)
             self.mainWindow.chat.addLine("%s has changed their color." % (name))
 

@@ -112,7 +112,7 @@ class BoardWidget(QWidget):
         painter.setBrush(Qt.black)
         if self.isEnabled():
             if self.currentTerritory:
-                painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, QColor(170, 170, 0)))
+                painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, QColor(*self.game.clientPlayer.color)))
             for t in self.game.board.iterTerritories():
                 if t.owner:
                     painter.drawPixmap(0, 0, self.coloredMask(t, QColor(*t.owner.color)))

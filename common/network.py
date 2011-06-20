@@ -81,7 +81,7 @@ class Message(object):
         JoinSuccess: (),
         NameTaken: (),
         NameAccepted: (str,str),
-        PlayerJoined: (str,),
+        PlayerJoined: (str, int, int, int),
         GameInProgress: (),
         IncorrectPassword: (),
         RejoinSuccess: (str,),

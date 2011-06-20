@@ -48,9 +48,3 @@ class MainWindow(QWidget):
 
     def changeName(self, newName):
         self.nameEdit.setText(newName)
-
-    def changeColor(self, color):
-        color = QColor.fromRgb(*color)
-        pal = QPalette()
-        pal.setColor(pal.Text, color)
-        self.nameEdit.setPalette(pal)

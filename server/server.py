@@ -91,9 +91,12 @@ class Server(QTcpServer):
                     password = "".join([random.choice(string.ascii_lowercase) for i in range(8)])
                     conn.player = self.sm.players[-1]
                     conn.player.password = password
+                    conn.player.color = [random.randint(0, 255) for i in range(3)]
                     print "%s has been granted the name \"%s\" and password: %s." % (conn.peerAddress().toString(), name, password)
+                    print "%s has been assigned the color %s" % (name, conn.player.color)
                     self.sendTo(conn.id, Message.NameAccepted, [name, conn.player.password])
-                    self.sendExcept(conn.id, Message.PlayerJoined, [name])
+                    self.sendExcept(conn.id, Message.PlayerJoined, [name] + conn.player.color)
+
 
             elif msg == Message.Rejoin:
                 password = str(args[0])
