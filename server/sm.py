@@ -1,6 +1,7 @@
 from common.game import State, Action, Player
 from common.board import Board
 from random import randint
+from PyQt4.QtCore import pyqtSignal, QObject
 
 def rollDice(n):
     return sorted([randint(1, 6) for i in range(n)], reverse=True)
@@ -19,13 +20,26 @@ def debug(func):
             return False
     return printer
 
-class SM(object):
-    def __init__(self, board):
+class SM(QObject):
+    stateChanged = pyqtSignal(int)
+    turnChanged = pyqtSignal(Player)
+    territoryUpdated = pyqtSignal(str, str, int)
+
+    def __init__(self, board, parent = None):
+        super(SM, self).__init__(parent)
         self.board = board
         self.reset()
 
     def __str__(self):
         return "substate: %s, current: %s, first: %s, dice: %s, remaining: %s, source: %s, target: %s" % (self.substate, self.currentPlayer, self.firstPlayer, self.diceRolls, self.remainingTroops, self.source, self.target)
+
+    def __setattr__(self, name, value):
+        if value != None:
+            if name == "currentPlayer":
+                self.turnChanged.emit(value)
+            elif name == "substate":
+                self.stateChanged.emit(value)
+        super(SM, self).__setattr__(name, value)
 
     def reset(self):
         self.substate = State.Lobby
