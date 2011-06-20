@@ -18,7 +18,9 @@ class Message(object):
         ChangeColor,
 
         ReadyToPlay,
-    ) = range(14)
+        RollDice,
+        ClaimTerritory,
+    ) = range(16)
 
     (
         Ping,
@@ -48,7 +50,9 @@ class Message(object):
         GameStarted,
 
         TurnChanged,
-    ) = range (100, 125)
+        DiceRolled,
+        TerritoryUpdated,
+    ) = range (100, 127)
         
     validArgs = {
         Pong: (),
@@ -66,7 +70,8 @@ class Message(object):
         ChangeColor: (int, int, int),
 
         ReadyToPlay: (),
-
+        RollDice: (),
+        ClaimTerritory: (str,),
 
         Ping: (),
         CurrentState: (int,),
@@ -95,6 +100,8 @@ class Message(object):
         GameStarted: (),
 
         TurnChanged: (str,),
+        DiceRolled: (str, int, int),
+        TerritoryUpdated: (str, str, int,)
     }
 
     @staticmethod

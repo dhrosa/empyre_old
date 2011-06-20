@@ -24,6 +24,7 @@ class Server(QTcpServer):
        self.connections = []
        self.sm = SM(board)
        self.sm.stateChanged.connect(self.sendStateChange)
+       self.sm.diceRolled.connect(self.sendDiceRoll)
        self.sm.turnChanged.connect(self.sendTurnChange)
        self.sm.territoryUpdated.connect(self.sendTerritoryUpdate)
        self.chatHistory = []
@@ -170,6 +171,14 @@ class Server(QTcpServer):
                 print "%s changed their color to (%d, %d, %d)" % (player.name, color[0], color[1], color[2])
                 self.send(Message.ColorChanged, [player.name] + color)
 
+            elif msg == Message.RollDice:
+                if conn.player == self.sm.currentPlayer:
+                    self.sm.next(Action.RollDice)
+
+            elif msg == Message.ClaimTerritory:
+                name = str(args[0])
+                if conn.player == sm.currentPlayer:
+                    self.sm.next(Action.PlaceTroops, [name])
 
     def readStdin(self):
         line = sys.stdin.readline().strip()
@@ -185,6 +194,13 @@ class Server(QTcpServer):
 
     def sendStateChange(self, old, new):
         self.send(Message.StateChanged, [old, new])
+
+    def sendDiceRoll(self, playerName, rolls):
+        print rolls
+        encoded = 0
+        for (i, r) in enumerate(rolls):
+            encoded |= r << (8 * i)
+        self.send(Message.DiceRolled, [str(playerName), len(rolls), encoded])
 
     def sendTurnChange(self, player):
         self.send(Message.TurnChanged, [player.name])

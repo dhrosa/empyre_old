@@ -149,6 +149,7 @@ class Client(QObject):
             self.mainWindow.nameChanged.connect(self.sendNameChange)
             self.mainWindow.show()
             try:
+                _ = self.password
                 self.mainWindow.chat.addLine("Welcome to the game!")
                 self.mainWindow.chat.addLine("Your password is \"%s\"." % self.password)
                 self.mainWindow.chat.addLine("Use this password to rejoin the game once it has started.")
@@ -200,6 +201,15 @@ class Client(QObject):
                 self.mainWindow.chat.addLine("It is now your turn.")
             else:
                 self.mainWindow.chat.addLine("It is now %s's turn." % name)
+            if self.game.state == State.ChoosingOrder:
+                self.send(Message.RollDice)
+
+        elif msg == Message.DiceRolled:
+            (name, n, encoded) = args
+            values = []
+            for i in range(n):
+                values.append((encoded >> (8 * i)) & 0xff)
+            self.mainWindow.chat.addLine("%s rolled %s" % (name, values))
 
     def connectionFail(self):
         if QMessageBox.Retry == QMessageBox.critical(None,

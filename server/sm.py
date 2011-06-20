@@ -24,6 +24,7 @@ class SM(QObject):
     stateChanged = pyqtSignal(int, int)
     turnChanged = pyqtSignal(Player)
     territoryUpdated = pyqtSignal(str, str, int)
+    diceRolled = pyqtSignal(str, list)
 
     def __init__(self, board, parent = None):
         super(SM, self).__init__(parent)
@@ -163,7 +164,9 @@ class SM(QObject):
 
         elif s == State.ChoosingOrder:
             if action == Action.RollDice:
-                self.diceRolls.append(sum(rollDice(2)))
+                rolls = rollDice(2)
+                self.diceRolled.emit(self.currentPlayer.name, rolls)
+                self.diceRolls.append(sum(rolls))
                 if len(self.diceRolls) == self.tiedPlayerCount():
                     highest = max(self.diceRolls)
                     if self.diceRolls.count(highest) > 1:
