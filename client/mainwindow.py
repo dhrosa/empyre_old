@@ -1,10 +1,10 @@
-from PyQt4.QtCore import pyqtSignal
+from PyQt4.QtCore import pyqtSignal, Qt
 from PyQt4.QtGui import *
 
 from chat import Chat
 from boardwidget import BoardWidget
 
-class MainWindow(QWidget):
+class MainWindow(QMainWindow):
     colorChanged = pyqtSignal(list)
     nameChanged = pyqtSignal(str)
 
@@ -12,7 +12,7 @@ class MainWindow(QWidget):
         self.nameChanged.emit(self.nameEdit.text())
 
     def __init__(self, game, parent = None):
-        QWidget.__init__(self, parent)
+        super(MainWindow, self).__init__(parent)
         self.game = game
         self.boardWidget = BoardWidget(self.game)
         self.chat = Chat()
@@ -34,7 +34,21 @@ class MainWindow(QWidget):
         splitter.addWidget(self.boardWidget)
         splitter.addWidget(info)
         layout.addWidget(splitter)
-        self.setLayout(layout)
+
+        central = QWidget()
+        central.setLayout(layout)
+        self.setCentralWidget(central)
+        self.statusBar()
+        self.initMenuBar()
+
+    def initMenuBar(self):
+        menuBar = QMenuBar()
+        file = menuBar.addMenu("&File")
+        quit = file.addAction("&Quit", QApplication.instance().quit)
+        quit.setShortcutContext(Qt.ApplicationShortcut)
+        quit.setShortcut(QKeySequence.Quit)
+
+        self.setMenuBar(menuBar)
 
     def chooseColor(self):
         color = QColorDialog.getColor(
@@ -48,3 +62,6 @@ class MainWindow(QWidget):
 
     def changeName(self, newName):
         self.nameEdit.setText(newName)
+
+    def setStatus(self, text):
+        self.statusBar().showMessage(text)

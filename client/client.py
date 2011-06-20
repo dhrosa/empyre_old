@@ -242,6 +242,8 @@ class Client(QObject):
         if old == State.Lobby:
             self.mainWindow.chat.addLine("The game has started!")
             self.mainWindow.boardWidget.setEnabled(True)
+        if new == State.ChoosingOrder:
+            self.mainWindow.setStatus("Now choosing play order. The highest roller goes first.")
         self.game.state = new
 
     def sendJoinMessage(self):
