@@ -139,9 +139,10 @@ class Client(QObject):
                 self.connection.thread().quit()
                 sys.exit()
             self.game.board = board
-            self.game.clientPlayer = self.game.getPlayer(self.clientPlayerName)
+            self.game.clientPlayer = self.game.addPlayer(self.clientPlayerName)
             del self.clientPlayerName
             self.mainWindow = MainWindow(self.game)
+            self.game.changed.connect(self.mainWindow.boardWidget.update)
             self.mainWindow.setWindowTitle("Risk %s:%d" % (self.host, self.port))
             self.mainWindow.chat.lineEntered.connect(self.sendChat)
             self.mainWindow.colorChanged.connect(self.sendColorChange)
@@ -171,11 +172,9 @@ class Client(QObject):
         elif msg == Message.ColorChanged:
             name = str(args[0])
             color = args[1:]
+            self.game.setPlayerColor(name, color)
             if name == self.game.clientPlayer.name:
-                self.game.clientPlayer.color = color
                 self.mainWindow.changeColor(color)
-            else:
-                self.game.getPlayer(name).color = color
             self.mainWindow.chat.changePlayerColor(name, color)
             self.mainWindow.chat.addLine("%s has changed their color." % (name))
 
@@ -192,12 +191,9 @@ class Client(QObject):
         elif msg == Message.NameChanged:
             before = str(args[0])
             after = str(args[1])
-            player = self.game.getPlayer(before)
-            if player:
-                player.name = after
+            self.game.setPlayerName(before, after)
             self.mainWindow.chat.changePlayerName(before, after)
             self.mainWindow.chat.addLine("%s changed their name to %s" % (before, after))
-
 
         elif msg == Message.TurnChanged:
             name = str(args[0])
