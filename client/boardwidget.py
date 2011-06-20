@@ -11,14 +11,12 @@ class ColoredMaskCache(object):
         self.cache = {}
 
     def get(self, territory, color):
-        colorCode = color[0] + color[1] * 256 + color[2] * 256 * 256
-        hash = territory.name + str(colorCode)
+        hash = territory.name + str(color.rgba())
         if hash in self.cache:
             return self.cache[hash]
 
     def set(self, territory, color, mask):
-        colorCode = color[0] + color[1] * 256 + color[2] * 256 * 256
-        hash = territory.name + str(colorCode)
+        hash = territory.name + str(color.rgba())
         self.cache[hash] = mask
 
 class BoardWidget(QWidget):
@@ -96,7 +94,8 @@ class BoardWidget(QWidget):
             painter = QPainter()
             painter.begin(image)
             painter.setCompositionMode(QPainter.CompositionMode_Source)
-            painter.fillRect(rect, QColor(color[0], color[1], color[2], 225))
+            color.setAlpha(200)
+            painter.fillRect(rect, color)
             painter.setCompositionMode(QPainter.CompositionMode_DestinationIn)
             painter.drawImage(0, 0, mask)
             painter.end()
@@ -109,14 +108,14 @@ class BoardWidget(QWidget):
         painter.begin(self)
         painter.drawPixmap(0, 0, self.scaledPixmap)
         rect = self.scaledPixmap.rect()
-        painter.setPen(QColor(255, 255, 255))
-        painter.setBrush(QColor(0, 0, 0))
+        painter.setPen(Qt.white)
+        painter.setBrush(Qt.black)
         if self.isEnabled():
             if self.currentTerritory:
-                painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, (127, 127, 0)))
+                painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, QColor(170, 170, 0)))
             for t in self.game.board.iterTerritories():
                 if t.owner:
-                    painter.drawPixmap(0, 0, self.coloredMask(t, t.owner.color))
+                    painter.drawPixmap(0, 0, self.coloredMask(t, QColor(*t.owner.color)))
             #loop again so text is not drawn under territories
             for t in self.game.board.iterTerritories():
                 if t.owner:
@@ -132,7 +131,7 @@ class BoardWidget(QWidget):
             painter.drawText(rect, Qt.AlignCenter, "Waiting for the game to start.")
 
         #draw player info
-        painter.setPen(QColor(255, 255, 255))
+        painter.setPen(Qt.white)
         painter.setBrush(QColor(0, 0, 0, 200))
         playerCount = len(self.game.players)
         height = painter.fontMetrics().height() + 4
@@ -144,9 +143,9 @@ class BoardWidget(QWidget):
         painter.drawRect(playersRect)
         for (i, p) in enumerate(self.game.players):
             if p == self.game.currentPlayer:
-                painter.setBrush(QColor(0, 170, 0))
+                painter.setBrush(Qt.darkGreen)
                 painter.drawRect(left - 4, i * height + 4, width, height)
-            painter.setPen(QColor(255, 255, 255))
+            painter.setPen(Qt.white)
             painter.drawText(left, (i + 1) * height, p.name)
             x = left - height - 8
             y = i * height + 4
