@@ -146,6 +146,7 @@ class Client(QObject):
             del self.clientPlayerName
             self.mainWindow = MainWindow(self.game)
             self.game.changed.connect(self.mainWindow.boardWidget.update)
+            self.mainWindow.boardWidget.territoryClaimed.connect(self.sendClaimTerritory)
             self.mainWindow.setWindowTitle("Risk %s:%d" % (self.host, self.port))
             self.mainWindow.chat.lineEntered.connect(self.sendChat)
             self.mainWindow.colorChanged.connect(self.sendColorChange)
@@ -158,6 +159,7 @@ class Client(QObject):
                 self.mainWindow.chat.addLine("Use this password to rejoin the game once it has started.")
                 self.mainWindow.chat.addLine("Remember to change your color before the game starts.")
                 del self.password
+                self.send(Message.ReadyToPlay)
             except AttributeError:
                 self.mainWindow.chat.addLine("Welcome back to the game!")
                 self.mainWindow.boardWidget.setEnabled(True)
@@ -204,15 +206,28 @@ class Client(QObject):
                 self.mainWindow.chat.addLine("It is now your turn.")
             else:
                 self.mainWindow.chat.addLine("It is now %s's turn." % name)
+            self.game.currentPlayer = self.game.getPlayer(name)
+            self.game.changed.emit()
             if self.game.state == State.ChoosingOrder:
                 self.send(Message.RollDice)
 
         elif msg == Message.DiceRolled:
             (name, n, encoded) = args
+            name = str(name)
             values = []
             for i in range(n):
                 values.append((encoded >> (8 * i)) & 0xff)
             self.mainWindow.chat.addLine("%s rolled %s" % (name, values))
+
+        elif msg == Message.TerritoryUpdated:
+            (name, owner, count) = args
+            name = str(name)
+            owner = str(owner)
+            t = self.game.board.getTerritory(name)
+            if t:
+                t.owner = self.game.getPlayer(owner)
+                t.troopCount = count
+                self.game.changed.emit()
 
     def connectionFail(self):
         if QMessageBox.Retry == QMessageBox.critical(None,
@@ -228,6 +243,7 @@ class Client(QObject):
         if old == State.Lobby:
             self.mainWindow.chat.addLine("The game has started!")
             self.mainWindow.boardWidget.setEnabled(True)
+        self.game.state = new
 
     def sendJoinMessage(self):
         self.send(Message.Join)
@@ -251,6 +267,9 @@ class Client(QObject):
 
     def sendNameChange(self, name):
         self.send(Message.ChangeName, [str(name)])
+
+    def sendClaimTerritory(self, name):
+        self.send(Message.ClaimTerritory, [str(name)])
 
 debug = False
 clientName = ""

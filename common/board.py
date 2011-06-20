@@ -78,17 +78,32 @@ class Board(object):
         self.regions = regions
         self.image = image
         self.cards = []
-        units = []
-        for (i, t) in enumerate(territories):
-            units.append(i % 3)
-        shuffle(units)
-        for (t, u) in zip(territories, units):
-            self.cards.append(Card(t, u))
-        self.cards += [Card(None, Card.Wild)] * 2
-        shuffle(self.cards)
+        self.reset()
 
     def __str__(self):
         return self.name
+
+    def reset(self):
+        units = []
+        for (i, t) in enumerate(self.territories):
+            units.append(i % 3)
+        shuffle(units)
+        for (t, u) in zip(self.territories, units):
+            self.cards.append(Card(t, u))
+        self.cards += [Card(None, Card.Wild)] * 2
+        shuffle(self.cards)
+        for t in self.territoryNames():
+            self.territories[t].owner = None
+            self.territories[t].troopCount = None
+
+    def getTerritory(self, name):
+        try:
+            return self.territories[name]
+        except KeyError:
+            return
+
+    def territoryNames(self):
+        return self.territories.keys()
 
 def loadBoard(boardName, images = False):
     import sys

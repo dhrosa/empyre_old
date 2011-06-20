@@ -6,6 +6,7 @@ class GameState(QObject):
 
     def __init__(self):
         super(GameState, self).__init__(None)
+        self.board = None
         self.players = []
         self.clientPlayer = None
         self.currentPlayer = None

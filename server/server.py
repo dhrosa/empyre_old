@@ -108,7 +108,6 @@ class Server(QTcpServer):
                 else:
                     self.sendTo(conn.id, Message.IncorrectPassword)
 
-
         else:
             if msg == Message.SendChat:
                 text = str(args[0])
@@ -171,13 +170,20 @@ class Server(QTcpServer):
                 print "%s changed their color to (%d, %d, %d)" % (player.name, color[0], color[1], color[2])
                 self.send(Message.ColorChanged, [player.name] + color)
 
+                
+            elif msg == Message.ReadyToPlay:
+                conn.player.ready = True
+                if not False in [p.ready for p in self.sm.players] and self.sm.playerCount() > 1:
+                    print "Game automatically started."
+                    self.sm.next(Action.StartGame)
+
             elif msg == Message.RollDice:
                 if conn.player == self.sm.currentPlayer:
                     self.sm.next(Action.RollDice)
 
             elif msg == Message.ClaimTerritory:
                 name = str(args[0])
-                if conn.player == sm.currentPlayer:
+                if conn.player == self.sm.currentPlayer:
                     self.sm.next(Action.PlaceTroops, [name])
 
     def readStdin(self):
@@ -196,7 +202,7 @@ class Server(QTcpServer):
         self.send(Message.StateChanged, [old, new])
 
     def sendDiceRoll(self, playerName, rolls):
-        print rolls
+        print "%s rolled %s." % (playerName, rolls)
         encoded = 0
         for (i, r) in enumerate(rolls):
             encoded |= r << (8 * i)
@@ -206,6 +212,9 @@ class Server(QTcpServer):
         self.send(Message.TurnChanged, [player.name])
 
     def sendTerritoryUpdate(self, name, owner, troopCount):
+        name = str(name)
+        owner = str(owner)
+        print "%s owns %s with %d troops" % (owner, name, troopCount)
         self.send(Message.TerritoryUpdated, [name, owner, troopCount])
 
 if __name__ == "__main__":

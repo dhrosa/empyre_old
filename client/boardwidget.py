@@ -1,6 +1,8 @@
 from PyQt4.QtCore import pyqtSignal, Qt, QRect
 from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor
 
+from common.game import State
+
 class ColoredMaskCache(object):
     def __init__(self):
         self.cache = {}
@@ -20,6 +22,8 @@ class ColoredMaskCache(object):
         self.cache[hash] = mask
 
 class BoardWidget(QWidget):
+    territoryClaimed = pyqtSignal(str)
+
     def __init__(self, game, parent = None):
         QWidget.__init__(self, parent)
         self.game = game
@@ -78,8 +82,8 @@ class BoardWidget(QWidget):
         self.update()
 
     def mouseReleaseEvent(self, event):
-        if self.currentTerritory:
-            print "Clicked on %s." % (self.currentTerritory.name)
+        if self.currentTerritory and self.game.state == State.InitialPlacement:
+            self.territoryClaimed.emit(self.currentTerritory.name)
 
     def coloredMask(self, territory, color):
         pixmap = self.coloredMaskCache.get(territory, color)
@@ -110,7 +114,7 @@ class BoardWidget(QWidget):
                 painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, (127, 127, 0)))
             for t in self.game.board.territories.values():
                 if t.owner:
-                    painer.drawPixmap(0, 0, self.coloredMask(t, t.owner.color))
+                    painter.drawPixmap(0, 0, self.coloredMask(t, t.owner.color))
         else:
             painter.fillRect(rect, QColor(0, 0, 0, 200))
             painter.drawText(rect, Qt.AlignCenter, "Waiting for the game to start.")

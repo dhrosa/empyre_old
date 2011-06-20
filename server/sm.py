@@ -8,6 +8,7 @@ def rollDice(n):
 
 def debug(func):
     def printer(s, action, args=[]):
+        print "Passed in action: %d with args %s" % (action, args)
         if func(s, action, args):
             print "OK ",
             print s
@@ -57,6 +58,7 @@ class SM(QObject):
         self.target = None
         self.awardCard = False
         self.setsExchanged = 0
+        self.board.reset()
 
     def clear(self):
         self.diceRolls = []
@@ -136,9 +138,11 @@ class SM(QObject):
                 bonus += region.bonus
         return bonus
 
+    @debug
     def next(self, action, args=[]):
         s = self.substate
         if not Action.argMatch(action, args):
+            print "arg mismatch"
             return False
         if action == Action.RemovePlayer and self.substate != State.Lobby:
             return True
@@ -192,14 +196,14 @@ class SM(QObject):
         elif s == State.InitialPlacement:
             if action == Action.PlaceTroops:
                 t = args[0]
-                try:
-                    t = self.board.territories[t]
-                except:
+                t = self.board.getTerritory(t)
+                if not t:
                     return False
                 if t.owner:
                     return False
                 t.owner = self.currentPlayer
                 t.troopCount = 1
+                self.territoryUpdated.emit(t.name, self.currentPlayer.name, 1)
                 self.currentPlayer = self.nextPlayer()
                 if self.freeTerritoryCount() == 0:
                     self.substate = State.InitialDraft
