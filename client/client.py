@@ -66,6 +66,9 @@ class Client(QObject):
 
         elif msg == Message.JoinSuccess:
             name = ""
+            if debug:
+                global clientName
+                name = clientName
             while not name:
                 (name, ok) = QInputDialog.getText(None, "Username", "Name")
                 if not ok:
@@ -249,10 +252,18 @@ class Client(QObject):
     def sendNameChange(self, name):
         self.send(Message.ChangeName, [str(name)])
 
+debug = False
+clientName = ""
+
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        clientName = sys.argv[1]
+        debug = True
     app = QApplication(sys.argv)
-    dialog = ConnectDialog()
-    if dialog.exec_():
-        client = Client(dialog.hostEdit.text(), dialog.portEdit.value())
-        sys.exit(app.exec_())
-    sys.exit()
+    if not debug:
+        dialog = ConnectDialog()
+        if dialog.exec_():
+            client = Client(dialog.hostEdit.text(), dialog.portEdit.value())
+    else:
+        client = Client("127.0.0.1", 9002)
+    sys.exit(app.exec_())
