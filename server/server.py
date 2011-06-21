@@ -11,7 +11,7 @@ from common.network import Message, Connection
 from common.board import loadBoard
 
 from PyQt4.QtNetwork import QTcpServer, QTcpSocket
-from PyQt4.QtCore import QCoreApplication, pyqtSignal, QThread, QSocketNotifier, QTime
+from PyQt4.QtCore import QCoreApplication, pyqtSignal, QSocketNotifier, QTime
 
 class Server(QTcpServer):
     sendReady = pyqtSignal(int, list)
