@@ -53,7 +53,8 @@ class Server(QTcpServer):
         self.resetting.connect(c.abort)
         
     def handleError(self, err):
-        print err
+        print self.sender().errorString()
+        self.sender().abort()
 
     def handleDisconnect(self):
         conn = self.sender()

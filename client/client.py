@@ -24,6 +24,7 @@ class Client(QObject):
         self.port = port
         self.connection = Connection()
         self.connection.messageReceived.connect(self.handleMessage)
+        self.connection.error.connect(self.handleError)
         self.sendReady.connect(self.connection.sendMessage)
         self.connection.connectToHost(self.host, self.port)
         while not self.connection.waitForConnected(10000):
@@ -33,6 +34,10 @@ class Client(QObject):
 
     def send(self, msg, args = []):
         self.sendReady.emit(msg, args)
+
+    def handleError(self, err):
+        QMessageBox.critical(None, "Network Error", self.connection.errorString())
+        QApplication.quit()
 
     def handleMessage(self, msg, args):
         if msg == Message.Ping:
