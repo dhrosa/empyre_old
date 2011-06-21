@@ -134,7 +134,6 @@ class Connection(QTcpSocket):
 
     def done(self):
         self.abort()
-        self.moveToThread(QCoreApplication.instance().thread())
         self.closed.emit(self)
 
     def __init__(self, id = None, parent = None):
@@ -195,7 +194,6 @@ class Connection(QTcpSocket):
                     args.append(stream.readInt32())
                     bytesRead += 4
             return (msg, args, bytesRead)
-                
 
     def sendMessage(self, msg, args, id = None):
         if id:

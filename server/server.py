@@ -45,17 +45,12 @@ class Server(QTcpServer):
         c = Connection(socketDescriptor)
         c.socketError.connect(self.socketErrorHandler)
         self.connections.append(c)
-        thread = QThread(self)
-        c.moveToThread(thread)
-        QCoreApplication.instance().aboutToQuit.connect(thread.quit)
-        c.closed.connect(thread.quit)
         c.closed.connect(self.handleDisconnect)
-        thread.finished.connect(thread.deleteLater)
+        c.destroyed.connect(self.removeConnection)
         c.messageReceived.connect(self.handleMessage)
         self.sendReady.connect(c.sendMessage)
         self.sendReadySpecific.connect(c.sendMessage)
         self.resetting.connect(c.done)
-        thread.start()
         
     def socketErrorHandler(self, socketError):
         print socketError
@@ -70,7 +65,9 @@ class Server(QTcpServer):
                 self.send(Message.PlayerLeftDuringGame, [conn.player.name])
         else:
             print "Anonymous client disconnected."
-        self.connections = [c for c in self.connections if c.id != conn.id]
+
+    def removeConnection(self):
+        self.connections = [c for c in self.connections if c.id != self.sender().id]
 
     def handleMessage(self, msg, args):
         conn = self.sender()
