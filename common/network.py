@@ -120,17 +120,8 @@ class Message(object):
         return True
 
 class Connection(QTcpSocket):
-    socketError = pyqtSignal(int)
-    closed = pyqtSignal(QObject)
-    connectionFailed = pyqtSignal()
     messageSent = pyqtSignal(int, list)
     messageReceived = pyqtSignal(int, list)
-
-    def __emitError(self, err):
-        if err == self.RemoteHostClosedError:
-            self.done()
-            return
-        self.socketError.emit(int(err))
 
     def done(self):
         self.abort()
@@ -147,14 +138,7 @@ class Connection(QTcpSocket):
         self.player = None
         self.buffer = QBuffer()
         self.buffer.open(QBuffer.ReadWrite)
-        self.error.connect(self.__emitError, Qt.DirectConnection)
         self.readyRead.connect(self.readIncomingData)        
-
-    def tryConnectToHost(self):
-        self.abort()
-        self.connectToHost(self.host, self.port)
-        if not self.waitForConnected(10000):
-            self.connectionFailed.emit()
 
     def readIncomingData(self):
         bytesWritten = self.buffer.write(self.readAll())

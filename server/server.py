@@ -43,19 +43,20 @@ class Server(QTcpServer):
 
     def incomingConnection(self, socketDescriptor):
         c = Connection(socketDescriptor)
-        c.socketError.connect(self.socketErrorHandler)
+        c.error.connect(self.handleError)
         self.connections.append(c)
-        c.closed.connect(self.handleDisconnect)
-        c.destroyed.connect(self.removeConnection)
         c.messageReceived.connect(self.handleMessage)
+        c.disconnected.connect(self.handleDisconnect)
+        c.destroyed.connect(self.removeConnection)
         self.sendReady.connect(c.sendMessage)
         self.sendReadySpecific.connect(c.sendMessage)
-        self.resetting.connect(c.done)
+        self.resetting.connect(c.abort)
         
-    def socketErrorHandler(self, socketError):
-        print socketError
+    def handleError(self, err):
+        print err
 
-    def handleDisconnect(self, conn):
+    def handleDisconnect(self):
+        conn = self.sender()
         if conn.player:
             print "%s has disconnected." % (conn.player)
             self.sm.next(Action.RemovePlayer, [conn.player.name])
