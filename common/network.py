@@ -53,7 +53,8 @@ class Message(object):
         TurnChanged,
         DiceRolled,
         TerritoryUpdated,
-    ) = range (100, 127)
+        RemainingTroopsChanged,
+    ) = range (100, 128)
         
     validArgs = {
         Pong: (),
@@ -104,6 +105,7 @@ class Message(object):
         TurnChanged: (str,),
         DiceRolled: (str, int, int),
         TerritoryUpdated: (str, str, int,),
+        RemainingTroopsChanged: (int,)
     }
 
     @staticmethod

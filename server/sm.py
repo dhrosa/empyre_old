@@ -27,6 +27,7 @@ class SM(QObject):
     turnChanged = pyqtSignal(Player)
     territoryUpdated = pyqtSignal(str, str, int)
     diceRolled = pyqtSignal(str, list)
+    remainingTroopsChanged = pyqtSignal(int)
 
     def __init__(self, board, parent = None):
         super(SM, self).__init__(parent)
@@ -45,6 +46,8 @@ class SM(QObject):
                     self.stateChanged.emit(self.substate, value)
                 except AttributeError:
                     pass
+            elif name == "remainingTroops":
+                self.remainingTroopsChanged.emit(value)
         super(SM, self).__setattr__(name, value)
 
     def reset(self):
@@ -105,7 +108,7 @@ class SM(QObject):
             return False
         t.troopCount += n
         self.territoryUpdated.emit(t.name, self.currentPlayer.name, t.troopCount)
-        return True
+        return n
 
     def nextPlayer(self, selection = None):
         if not selection:
@@ -211,16 +214,17 @@ class SM(QObject):
         elif s == State.InitialDraft:
             if action == Action.PlaceTroops:
                 (t, n) = args
-                if n < 1 or n > self.remainingTroops:
+                if n < 1:
                     return False
-                if not self.placeTroops(t, n):
+                n = self.placeTroops(t, n)
+                if not n:
                     return False
-                self.remainingTroops -= n
-                if self.remainingTroops <= 0:
+                if n == self.remainingTroops:
                     self.currentPlayer = self.nextPlayer()
                     self.remainingTroops = self.draftCount(self.currentPlayer)
                     if self.currentPlayer == self.firstPlayer:
                         self.substate = State.Draft
+                self.remainingTroops = self.remainingTroops - n
                 return True
 
         elif s == State.Draft:

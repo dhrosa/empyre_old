@@ -27,6 +27,7 @@ class Server(QTcpServer):
        self.sm.diceRolled.connect(self.sendDiceRoll)
        self.sm.turnChanged.connect(self.sendTurnChange)
        self.sm.territoryUpdated.connect(self.sendTerritoryUpdate)
+       self.sm.remainingTroopsChanged.connect(self.sendRemainingTroopsChange)
        self.chatHistory = []
 
     def send(self, msg, args = []):
@@ -225,6 +226,10 @@ class Server(QTcpServer):
         owner = str(owner)
         print "%s owns %s with %d troops" % (owner, name, troopCount)
         self.send(Message.TerritoryUpdated, [name, owner, troopCount])
+
+    def sendRemainingTroopsChange(self, n):
+        print "%s has %d troops remaining." % (self.sm.currentPlayer.name, n)
+        self.send(Message.RemainingTroopsChanged, [n])
 
 if __name__ == "__main__":
     app = QCoreApplication(sys.argv)

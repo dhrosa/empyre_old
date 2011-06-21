@@ -201,7 +201,8 @@ class Client(QObject):
 
         elif msg == Message.TurnChanged:
             name = str(args[0])
-            if name == self.game.clientPlayer.name:
+            self.game.setCurrentPlayer(name)
+            if self.game.yourTurn():
                 self.mainWindow.chat.addLine("It is now your turn.")
                 self.mainWindow.activateWindow()
                 if self.game.state == State.ChoosingOrder:
@@ -229,6 +230,10 @@ class Client(QObject):
                 t.owner = self.game.getPlayer(owner)
                 t.troopCount = count
                 self.game.changed.emit()
+
+        elif msg == Message.RemainingTroopsChanged:
+            troops = args[0]
+            self.game.remainingTroops = troops
 
     def connectionFail(self):
         if QMessageBox.Retry == QMessageBox.critical(None,

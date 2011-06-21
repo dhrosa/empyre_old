@@ -11,13 +11,21 @@ class GameState(QObject):
         self.clientPlayer = None
         self.currentPlayer = None
         self.state = None
+        self.remainingTroops = 0
 
     def __setattr__(self, name, value):
         super(GameState, self).__setattr__(name, value)
         self.changed.emit()
 
+    def yourTurn(self):
+        return self.clientPlayer == self.currentPlayer
+
     def playerNames(self):
         return [p.name for p in self.players]
+
+    def setCurrentPlayer(self, name):
+        self.currentPlayer = self.getPlayer(name)
+        self.changed.emit()
 
     def addPlayer(self, name):
         self.players.append(Player(name))

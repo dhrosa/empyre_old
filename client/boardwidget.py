@@ -162,4 +162,15 @@ class BoardWidget(QWidget):
             y = i * height + 4
             painter.setBrush(QColor(*p.color))
             painter.drawRect(x, y, height, height)
+
+        #remaining troops
+        if self.game.yourTurn() and self.game.remainingTroops:
+            troopText = "Remaining troops: %d" % self.game.remainingTroops
+            troopRect = QRect(0, 0, painter.fontMetrics().width(troopText) + 8, height + 8)
+            troopRect.moveBottomLeft(rect.bottomLeft())
+            painter.setPen(Qt.white)
+            painter.setBrush(QColor(0, 0, 0, 200))
+            painter.drawRect(troopRect)
+            painter.drawText(troopRect, Qt.AlignCenter, troopText)
+
         painter.end()
