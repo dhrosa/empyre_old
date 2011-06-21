@@ -47,7 +47,8 @@ class SM(QObject):
                 except AttributeError:
                     pass
             elif name == "remainingTroops":
-                self.remainingTroopsChanged.emit(value)
+                if value != 0:
+                    self.remainingTroopsChanged.emit(value)
         super(SM, self).__setattr__(name, value)
 
     def reset(self):
