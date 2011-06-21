@@ -9,7 +9,7 @@ def rollDice(n):
 
 def debug(func):
     def printer(s, action, args=[]):
-        print "Passed in action: %d with args %s" % (action, args)
+        print "Passed in action: %s with args %s" % (Action.toString(action), args)
         if func(s, action, args):
             print "OK ",
             print s
@@ -35,7 +35,7 @@ class SM(QObject):
         self.reset()
 
     def __str__(self):
-        return "substate: %s, current: %s, first: %s, dice: %s, remaining: %s, source: %s, target: %s" % (self.substate, self.currentPlayer, self.firstPlayer, self.diceRolls, self.remainingTroops, self.source, self.target)
+        return "substate: %s, current: %s, first: %s, source: %s, target: %s" % (State.toString(self.substate), self.currentPlayer, self.firstPlayer, self.source, self.target)
 
     def __setattr__(self, name, value):
         if value != None:
@@ -224,6 +224,7 @@ class SM(QObject):
                     self.remainingTroops = self.draftCount(self.currentPlayer)
                     if self.currentPlayer == self.firstPlayer:
                         self.substate = State.Draft
+                    return True
                 self.remainingTroops = self.remainingTroops - n
                 return True
 

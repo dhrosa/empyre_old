@@ -1,3 +1,5 @@
+import inspect
+
 class Player(object):
     def __init__(self, name):
         self.name = name
@@ -27,6 +29,12 @@ class State(object):
         Fortify,
         GameOver,
     ) = range(11)
+
+    @staticmethod
+    def toString(state):
+        return stateToString[state]
+
+stateToString = dict([(m[1], m[0]) for m in inspect.getmembers(State) if m[0][0].isupper()])
 
 class Action(object):
     (
@@ -67,3 +75,9 @@ class Action(object):
         except:
             return False
         return True
+
+    @staticmethod
+    def toString(action):
+        return actionToString[action]
+
+actionToString = dict([(m[1], m[0]) for m in inspect.getmembers(Action) if m[0][0].isupper()])
