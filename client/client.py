@@ -234,19 +234,6 @@ class Client(QObject):
         if old == State.Lobby:
             self.mainWindow.chat.addLine("The game has started!")
             self.mainWindow.boardWidget.setEnabled(True)
-        s = ""
-        if new == State.ChoosingOrder:
-            s = "Now choosing play order. The highest roller goes first."
-        elif self.game.yourTurn():
-            if new == State.InitialPlacement:
-                s = "Choose your starting territories."
-            elif new == State.InitialDraft:
-                s = "Place your starting armies."
-            elif new == State.Draft:
-                s = "Place your armies."
-            elif new == State.Attack:
-                s = "Choose a neighboring territory to attack."
-        self.mainWindow.setStatus(s)
         self.game.state = new
 
     def sendChat(self, text):
