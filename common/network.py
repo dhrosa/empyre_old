@@ -1,4 +1,4 @@
-from PyQt4.QtCore import pyqtSignal, Qt, QObject, QByteArray, QDataStream, QCoreApplication
+from PyQt4.QtCore import pyqtSignal, Qt, QObject, QByteArray, QDataStream, QCoreApplication, QBuffer
 from PyQt4.QtNetwork import QTcpSocket
 
 class Message(object):
@@ -146,20 +146,56 @@ class Connection(QTcpSocket):
                 return
             self.id = id
         self.player = None
-        self.setSocketOption(self.LowDelayOption, True)
+        self.buffer = QBuffer()
+        self.buffer.open(QBuffer.ReadWrite)
         self.error.connect(self.__emitError, Qt.DirectConnection)
-        self.readyRead.connect(self.receiveMessage, Qt.DirectConnection)
-        
+        self.readyRead.connect(self.readIncomingData)        
+
     def tryConnectToHost(self):
         self.abort()
         self.connectToHost(self.host, self.port)
         if not self.waitForConnected(10000):
             self.connectionFailed.emit()
 
-    def waitForBytes(self, n):
-        while self.bytesAvailable() < n:
-            if not self.waitForReadyRead(10000):
-                self.done()
+    def readIncomingData(self):
+        bytesWritten = self.buffer.write(self.readAll())
+        self.buffer.seek(0)
+        result = self.parse()
+        bytesRead = 0
+        while result:
+            bytesRead += result[2]
+            self.messageReceived.emit(*result[:2])
+            result = self.parse()
+        #remove the successfully parsed data
+        size = self.buffer.size()
+        self.buffer.close()
+        data = self.buffer.data()
+        self.buffer.setData(data.right(size - bytesRead))
+        self.buffer.open(QBuffer.ReadWrite)
+        self.buffer.seek(self.buffer.size())
+
+    def parse(self):
+        if self.buffer.bytesAvailable() >= 4:
+            stream = QDataStream(self.buffer)
+            msg = stream.readInt32()
+            args = []
+            bytesRead = 4
+            for aType in Message.validArgs[msg]:
+                if aType == str:
+                    if self.buffer.bytesAvailable() < 4:
+                        return
+                    length = stream.readInt32()
+                    if self.buffer.bytesAvailable() < length:
+                        return
+                    args.append(stream.readRawData(length))
+                    bytesRead += 4 + length
+                elif aType == int:
+                    if self.buffer.bytesAvailable() < 4:
+                        return
+                    args.append(stream.readInt32())
+                    bytesRead += 4
+            return (msg, args, bytesRead)
+                
 
     def sendMessage(self, msg, args, id = None):
         if id:
@@ -179,23 +215,4 @@ class Connection(QTcpSocket):
                 stream.writeInt32(arg)
         self.write(data)
         self.messageSent.emit(msg, args)
-
-    def receiveMessage(self):
-        stream = QDataStream(self)
-        self.waitForBytes(4)
-        msg = stream.readInt32()
-        argTypes = Message.validArgs[msg]
-        args = []
-        for aType in argTypes:
-            if aType == str:
-                self.waitForBytes(4)
-                length = stream.readInt32()
-                self.waitForBytes(length)
-                args.append(stream.readRawData(length))
-            elif aType == int:
-                self.waitForBytes(4)
-                args.append(stream.readInt32())        
-        self.messageReceived.emit(msg, args)
-        if self.bytesAvailable() > 0:
-            self.readyRead.emit()
 
