@@ -40,6 +40,7 @@ class Client(QObject):
         QApplication.quit()
 
     def handleMessage(self, msg, args):
+        print Message.toString(msg), args
         if msg == Message.Ping:
             self.send(Message.Pong)
 
@@ -236,14 +237,15 @@ class Client(QObject):
         s = ""
         if new == State.ChoosingOrder:
             s = "Now choosing play order. The highest roller goes first."
-        elif new == State.InitialPlacement:
-            s = "Choose your starting territories."
-        elif new == State.InitialDraft:
-            s = "Place your starting armies."
-        elif new == State.Draft:
-            s = "Place your armies."
-        elif new == State.Attack:
-            s = "Choose a neighboring territory to attack."
+        elif self.game.yourTurn():
+            if new == State.InitialPlacement:
+                s = "Choose your starting territories."
+            elif new == State.InitialDraft:
+                s = "Place your starting armies."
+            elif new == State.Draft:
+                s = "Place your armies."
+            elif new == State.Attack:
+                s = "Choose a neighboring territory to attack."
         self.mainWindow.setStatus(s)
         self.game.state = new
 

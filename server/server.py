@@ -37,17 +37,18 @@ class Server(QTcpServer):
         self.sendReadySpecific.emit(msg, args, id)
 
     def sendExcept(self, id, msg, args = []):
+        print "# conn", len(self.connections)
         for c in self.connections:
-            if c and c.valid and c.id != id:
+            if c and c.id != id:
                 self.sendTo(c.id, msg, args)
 
     def incomingConnection(self, socketDescriptor):
         c = Connection(socketDescriptor)
+        c.setObjectName(str(socketDescriptor))
         c.error.connect(self.handleError)
         self.connections.append(c)
         c.messageReceived.connect(self.handleMessage)
         c.disconnected.connect(self.handleDisconnect)
-        c.destroyed.connect(self.removeConnection)
         self.sendReady.connect(c.sendMessage)
         self.sendReadySpecific.connect(c.sendMessage)
         self.resetting.connect(c.abort)
@@ -67,9 +68,8 @@ class Server(QTcpServer):
                 self.send(Message.PlayerLeftDuringGame, [conn.player.name])
         else:
             print "Anonymous client disconnected."
-
-    def removeConnection(self):
-        self.connections = [c for c in self.connections if c.id != self.sender().id]
+        self.connections.remove(conn)
+        conn.deleteLater()
 
     def handleMessage(self, msg, args):
         conn = self.sender()

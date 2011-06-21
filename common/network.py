@@ -1,5 +1,6 @@
 from PyQt4.QtCore import pyqtSignal, Qt, QObject, QByteArray, QDataStream, QCoreApplication, QBuffer
 from PyQt4.QtNetwork import QTcpSocket
+import inspect
 
 class Message(object):
     (
@@ -118,6 +119,13 @@ class Message(object):
         except:
             return False
         return True
+
+    @staticmethod
+    def toString(message):
+        return messageToString[message]
+
+messageToString = dict([(m[1], m[0]) for m in inspect.getmembers(Message) if m[0][0].isupper()])
+
 
 class Connection(QTcpSocket):
     messageSent = pyqtSignal(int, list)
