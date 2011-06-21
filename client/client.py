@@ -71,8 +71,7 @@ class Client(QObject):
             while not name:
                 (name, ok) = QInputDialog.getText(None, "Username", "Name")
                 if not ok:
-                    self.connection.thread().quit()
-                    sys.exit()
+                    QApplication.quit()
             self.send(Message.RequestName, [str(name)])
         
         elif msg == Message.NameTaken:
@@ -80,8 +79,7 @@ class Client(QObject):
             while not name:
                 (name, ok) = QInputDialog.getText(None, "Name Taken", "New name")
                 if not ok:
-                    self.connection.thread().quit()
-                    sys.exit()
+                    QApplication.quit()
             self.send(Message.RequestName, [str(name)])
         
         elif msg == Message.NameAccepted:
@@ -100,8 +98,7 @@ class Client(QObject):
             while not password:
                 (password, ok) = QInputDialog.getText(None, "Game Already Inprogress", "Password")
                 if not ok:
-                    self.connection.thread().quit()
-                    sys.exit()
+                    QApplication.quit()
             self.send(Message.Rejoin, [str(password)])
 
         elif msg == Message.IncorrectPassword:
@@ -109,8 +106,7 @@ class Client(QObject):
             while not password:
                 (password, ok) = QInputDialog.getText(None, "Incorrect Password", "Password")
                 if not ok:
-                    self.connection.thread().quit()
-                    sys.exit()
+                    QApplication.quit()
             self.send(Message.Rejoin, [str(password)])
 
         elif msg == Message.RejoinSuccess:
@@ -139,8 +135,7 @@ class Client(QObject):
             board = loadBoard(boardName, images=True)
             if not board:
                 QMessageBox.critical(None, "Board Missing", "You do not have the board \"%s\" required for this game." % (boardName), QMessageBox.Close)
-                self.connection.thread().quit()
-                sys.exit()
+                QApplication.quit()
             self.game.board = board
             self.game.clientPlayer = self.game.getPlayer(self.clientPlayerName)
             del self.clientPlayerName
