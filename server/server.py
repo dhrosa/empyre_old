@@ -11,7 +11,7 @@ from common.network import Message, Connection
 from common.board import loadBoard
 
 from PyQt4.QtNetwork import QTcpServer, QTcpSocket
-from PyQt4.QtCore import QCoreApplication, pyqtSignal, QSocketNotifier, QTime
+from PyQt4.QtCore import QCoreApplication, pyqtSignal, QSocketNotifier, QTime, QTimer
 
 class Server(QTcpServer):
     sendReady = pyqtSignal(int, list)
@@ -39,6 +39,10 @@ class Server(QTcpServer):
        self.sm.remainingTroopsChanged.connect(self.sendRemainingTroopsChange)
        self.chatHistory = []
        self.colors = self.predefinedColors
+       timer = QTimer(self)
+       timer.setInterval(3000)
+       timer.timeout.connect(self.sendPing)
+       timer.start()
 
     def send(self, msg, args = []):
         self.sendReady.emit(msg, args)
@@ -53,7 +57,6 @@ class Server(QTcpServer):
 
     def incomingConnection(self, socketDescriptor):
         c = Connection(socketDescriptor)
-        c.setObjectName(str(socketDescriptor))
         c.error.connect(self.handleError)
         self.connections.append(c)
         c.messageReceived.connect(self.handleMessage)
@@ -61,7 +64,19 @@ class Server(QTcpServer):
         self.sendReady.connect(c.sendMessage)
         self.sendReadySpecific.connect(c.sendMessage)
         self.resetting.connect(c.abort)
-        
+
+        timer = QTimer(c)
+        timer.setInterval(10000)
+        timer.timeout.connect(self.handleTimeout)
+        c.messageReceived2.connect(timer.start)
+        timer.start() 
+
+    def handleTimeout(self):
+        conn = self.sender().parent()
+        if conn.player:
+            print "%s has timed out." % conn.player.name
+        conn.abort()
+
     def handleError(self, err):
         print self.sender().errorString()
         self.sender().abort()
@@ -220,6 +235,9 @@ class Server(QTcpServer):
             if not self.sm.next(Action.StartGame):
                 print "Need more players to start."
 
+    def sendPing(self):
+        self.send(Message.Ping)
+                
     def sendStateChange(self, old, new):
         self.send(Message.StateChanged, [old, new])
 

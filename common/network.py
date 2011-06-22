@@ -130,10 +130,7 @@ messageToString = dict([(m[1], m[0]) for m in inspect.getmembers(Message) if m[0
 class Connection(QTcpSocket):
     messageSent = pyqtSignal(int, list)
     messageReceived = pyqtSignal(int, list)
-
-    def done(self):
-        self.abort()
-        self.closed.emit(self)
+    messageReceived2 = pyqtSignal()
 
     def __init__(self, id = None, parent = None):
         QTcpSocket.__init__(self, parent)
@@ -156,6 +153,7 @@ class Connection(QTcpSocket):
         while result:
             bytesRead += result[2]
             self.messageReceived.emit(*result[:2])
+            self.messageReceived2.emit()
             result = self.parse()
         #remove the successfully parsed data
         size = self.buffer.size()
