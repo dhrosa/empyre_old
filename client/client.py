@@ -1,6 +1,8 @@
 #! /usr/bin/python
 import sys
 sys.path.append(sys.path[0] + "/../")
+import sip
+sip.setapi('QString', 2)
 
 from PyQt4.QtCore import pyqtSignal, QObject, Qt
 from PyQt4.QtGui import QApplication, QInputDialog, QMessageBox
@@ -20,7 +22,7 @@ class Client(QObject):
     def __init__(self, host, port, parent = None):
         QObject.__init__(self, parent)
         self.game = GameState()
-        self.host = str(host)
+        self.host = host
         self.port = port
         self.connection = Connection()
         self.connection.messageReceived.connect(self.handleMessage)
@@ -74,7 +76,7 @@ class Client(QObject):
                 if not ok:
                     QApplication.quit()
                     break
-            self.send(Message.RequestName, [str(name)])
+            self.send(Message.RequestName, [name])
         
         elif msg == Message.NameTaken:
             name = ""
@@ -83,15 +85,14 @@ class Client(QObject):
                 if not ok:
                     QApplication.quit()
                     break
-            self.send(Message.RequestName, [str(name)])
+            self.send(Message.RequestName, [name])
         
         elif msg == Message.NameAccepted:
-            self.clientPlayerName = str(args[0])
-            self.password = str(args[1])
+            (self.clientPlayerName, self.password) = args
             self.send(Message.RequestPlayerList)
 
         elif msg == Message.PlayerJoined:
-            name = str(args[0])
+            name = args[0]
             player = self.game.addPlayer(name)
             player.color = args[1:]
             self.mainWindow.chat.addLine(Line(Line.PlayerJoined, target=name))
@@ -115,19 +116,19 @@ class Client(QObject):
             self.send(Message.Rejoin, [str(password)])
 
         elif msg == Message.RejoinSuccess:
-            name = str(args[0])
+            name = args[0]
             self.clientPlayerName = name
             self.send(Message.RequestPlayerList)
 
         elif msg == Message.PlayerRejoined:
-            name = str(args[0])
+            name = args[0]
             self.mainWindow.chat.addLine(Line(Line.PlayerRejoined, target=name))
 
         elif msg == Message.BeginPlayerList:
             pass
 
         elif msg == Message.PlayerInfo:
-            name = str(args[0])
+            name = args[0]
             color = args[1:]
             player = self.game.addPlayer(name)
             player.color = color
@@ -136,7 +137,7 @@ class Client(QObject):
             self.send(Message.RequestBoardName)
 
         elif msg == Message.LoadBoard:
-            boardName = str(args[0])
+            boardName = args[0]
             board = loadBoard(boardName, images=True)
             if not board:
                 QMessageBox.critical(None, "Board Missing", "You do not have the board \"%s\" required for this game." % (boardName), QMessageBox.Close)
@@ -167,16 +168,16 @@ class Client(QObject):
             self.send(Message.RequestChatHistory)
             
         elif msg == Message.PlayerLeft:
-            name = str(args[0])
+            name = args[0]
             self.game.removePlayer(name)
             self.mainWindow.chat.addLine(Line(Line.PlayerLeft, target=name))
 
         elif msg == Message.PlayerLeftDuringGame:
-            name = str(args[0])
+            name = args[0]
             self.mainWindow.chat.addLine(Line(Line.PlayerLeft, target=name))
 
         elif msg == Message.ColorChanged:
-            name = str(args[0])
+            name = args[0]
             color = args[1:]
             self.game.setPlayerColor(name, color)
             self.mainWindow.chat.changePlayerColor(name, color)
@@ -187,19 +188,19 @@ class Client(QObject):
             self.mainWindow.chat.addLine("That name is already taken.")
 
         elif msg == Message.NameChangeSuccess:
-            name = str(args[0])
+            name = args[0]
             self.mainWindow.nameEdit.setText(name)
             self.game.setPlayerName(self.game.clientPlayer.name, name)
 
         elif msg == Message.NameChanged:
-            before = str(args[0])
-            after = str(args[1])
+            before = args[0]
+            after = args[1]
             self.game.setPlayerName(before, after)
             self.mainWindow.chat.changePlayerName(before, after)
             self.mainWindow.chat.addLine("%s changed their name to %s" % (before, after))
 
         elif msg == Message.TurnChanged:
-            name = str(args[0])
+            name = args[0]
             self.game.setCurrentPlayer(name)
             if self.game.yourTurn():
                 self.mainWindow.chat.addLine("It is now your turn.")
@@ -214,7 +215,6 @@ class Client(QObject):
 
         elif msg == Message.DiceRolled:
             (name, n, encoded) = args
-            name = str(name)
             values = []
             for i in range(n):
                 values.append((encoded >> (8 * i)) & 0xff)
@@ -222,8 +222,6 @@ class Client(QObject):
 
         elif msg == Message.TerritoryUpdated:
             (name, owner, count) = args
-            name = str(name)
-            owner = str(owner)
             t = self.game.board.getTerritory(name)
             if t:
                 t.owner = self.game.getPlayer(owner)
@@ -241,9 +239,9 @@ class Client(QObject):
         self.game.state = new
 
     def sendChat(self, text):
-        if not str(text):
+        if not text:
             return
-        parts = str(text).split(" ")
+        parts = text.split(" ")
         if parts[0] == "/to":
             if len(parts) < 3:
                 self.mainWindow.chat.addLine("Invalid command.")
@@ -252,19 +250,19 @@ class Client(QObject):
             text = " ".join(parts[2:])
             self.send(Message.SendWhisper, [target, text])
         else:
-            self.send(Message.SendChat, [str(text)])
+            self.send(Message.SendChat, [text])
 
     def sendColorChange(self, color):
         self.send(Message.ChangeColor, color)
 
     def sendNameChange(self, name):
-        self.send(Message.ChangeName, [str(name)])
+        self.send(Message.ChangeName, [name])
 
     def sendClaimTerritory(self, name):
-        self.send(Message.ClaimTerritory, [str(name)])
+        self.send(Message.ClaimTerritory, [name])
 
     def sendDraft(self, name, count):
-        self.send(Message.Draft, [str(name), count])
+        self.send(Message.Draft, [name, count])
 
 debug = False
 clientName = ""

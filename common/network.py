@@ -116,6 +116,9 @@ class Message(object):
         try:
             valid = Message.validArgs[msg]
             for i, a in enumerate(args):
+                if type(a) == unicode and valid[i] == str:
+                    args[i] = str(args[i])
+                    continue
                 if not type(a) == valid[i]:
                     return False
         except:

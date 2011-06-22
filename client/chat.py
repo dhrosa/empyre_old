@@ -23,7 +23,7 @@ class Chat(QWidget):
     lineEntered = pyqtSignal(str)
 
     def __emitLineEntered(self):
-        self.lineEntered.emit(str(self.input.text()))
+        self.lineEntered.emit(self.input.text())
         self.input.setText("")
 
     def __init__(self, parent = None):
@@ -93,7 +93,7 @@ class Chat(QWidget):
         self.history.verticalScrollBar().setValue(self.history.verticalScrollBar().maximum())
 
     def addLine(self, line):
-        if type(line) == str:
+        if type(line) == str or type(line) == unicode:
             self.lines.append(Line(Line.Info, text=line))
         else:
             self.lines.append(line)

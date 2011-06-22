@@ -1,6 +1,8 @@
 #! /usr/bin/python
 import sys
 sys.path.append(sys.path[0] + "/../")
+import sip
+sip.setapi('QString', 2)
 
 import random
 import string
@@ -106,7 +108,7 @@ class Server(QTcpServer):
                     self.sendTo(conn.id, Message.JoinSuccess)
 
             elif msg == Message.RequestName:
-                name = str(args[0])
+                name = args[0]
                 print "%s requested the name \"%s\"." % (conn.peerAddress().toString(), name)
                 if not self.sm.next(Action.AddPlayer, [name]):
                     print "Name taken."
@@ -126,7 +128,7 @@ class Server(QTcpServer):
 
 
             elif msg == Message.Rejoin:
-                password = str(args[0])
+                password = args[0]
                 for i in range(len(self.sm.players)):
                     if self.sm.players[i].password == password:
                         conn.player = self.sm.players[i]
@@ -140,15 +142,14 @@ class Server(QTcpServer):
 
         else:
             if msg == Message.SendChat:
-                text = str(args[0])
+                text = args[0]
                 print "%s: %s" % (conn.player.name, text)
                 timestamp = QDateTime.currentMSecsSinceEpoch()
                 self.chatHistory.append([conn.player, text, timestamp])
                 self.send(Message.ReceiveChat, [conn.player.name, text, timestamp])
 
             elif msg == Message.SendWhisper:
-                target = str(args[0])
-                text = str(args[1])
+                (target, text) = args
                 targetPlayer = self.sm.getPlayer(target)
                 if not targetPlayer:
                     self.sendTo(conn.id, Message.WhisperError)
@@ -177,7 +178,7 @@ class Server(QTcpServer):
 
             elif msg == Message.ChangeName:
                 before = conn.player.name
-                after = str(args[0])
+                after = args[0]
                 if before == after:
                     return
                 for player in self.sm.players:
@@ -211,13 +212,12 @@ class Server(QTcpServer):
 
             elif msg == Message.ClaimTerritory:
                 if conn.player == self.sm.currentPlayer:
-                    name = str(args[0])
+                    name = args[0]
                     self.sm.next(Action.PlaceTroops, [name])
 
             elif msg == Message.Draft:
                 if conn.player == self.sm.currentPlayer:
-                    name = str(args[0])
-                    count = args[1]
+                    (name, count) = args
                     self.sm.next(Action.PlaceTroops, [name, count])
 
     def readStdin(self):
