@@ -47,8 +47,7 @@ class SM(QObject):
                 except AttributeError:
                     pass
             elif name == "remainingTroops":
-                if value != 0:
-                    self.remainingTroopsChanged.emit(value)
+                self.remainingTroopsChanged.emit(value)
         super(SM, self).__setattr__(name, value)
 
     def reset(self):
@@ -220,13 +219,14 @@ class SM(QObject):
                 n = self.placeTroops(t, n)
                 if not n:
                     return False
-                if n == self.remainingTroops:
+                self.remainingTroops = self.remainingTroops - n
+                if self.remainingTroops == 0:
                     self.currentPlayer = self.nextPlayer()
                     self.remainingTroops = self.draftCount(self.currentPlayer)
                     if self.currentPlayer == self.firstPlayer:
                         self.substate = State.Draft
                     return True
-                self.remainingTroops = self.remainingTroops - n
+
                 return True
 
         elif s == State.Draft:
@@ -242,10 +242,11 @@ class SM(QObject):
                     return False
                 if n < 1:
                     return False
-                if not self.placeTroops(t, n):
+                n = self.placeTroops(t, n)
+                if not n:
                     return False
-                self.remainingTroops -= n
-                if self.remainingTroops < 0:
+                self.remainingTroops = self.remainingTroops - n
+                if self.remainingTroops == 0:
                     self.substate = State.Attack
                 return True
 

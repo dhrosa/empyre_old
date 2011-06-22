@@ -1,6 +1,7 @@
 from PyQt4.QtCore import pyqtSignal, Qt, QRect
 from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor
 
+from animations import LineAnimation
 from common.game import State
 
 class ColoredMaskCache(object):
@@ -31,6 +32,7 @@ class BoardWidget(QWidget):
         self.setMouseTracking(True)
         self.setEnabled(False)
         self.loadImages()
+        self.animations = []
 
     def loadImages(self):
         self.game.board.image = QImage(self.game.board.image)
