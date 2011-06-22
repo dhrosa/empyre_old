@@ -18,6 +18,15 @@ class Server(QTcpServer):
     sendReadySpecific = pyqtSignal(int, list, int)
     resetting = pyqtSignal()
 
+    predefinedColors = [
+        [255, 0, 0],
+        [0, 255, 0],
+        [0, 0, 255],
+        [255, 255, 0],
+        [0, 255, 255],
+        [255, 0, 255],
+    ]
+
     def __init__(self, boardName, board, parent = None):
        QTcpServer.__init__(self, parent)
        self.boardName = boardName
@@ -29,6 +38,7 @@ class Server(QTcpServer):
        self.sm.territoryUpdated.connect(self.sendTerritoryUpdate)
        self.sm.remainingTroopsChanged.connect(self.sendRemainingTroopsChange)
        self.chatHistory = []
+       self.colors = self.predefinedColors
 
     def send(self, msg, args = []):
         self.sendReady.emit(msg, args)
@@ -90,7 +100,10 @@ class Server(QTcpServer):
                     password = "".join([random.choice(string.ascii_lowercase) for i in range(8)])
                     conn.player = self.sm.players[-1]
                     conn.player.password = password
-                    conn.player.color = [random.randint(0, 255) for i in range(3)]
+                    if not self.colors:
+                        conn.player.color = [random.randint(0, 255) for i in range(3)]
+                    else:
+                        conn.player.color = self.colors.pop(random.randint(0, len(self.colors) - 1))
                     print "%s has been granted the name \"%s\" and password: %s." % (conn.peerAddress().toString(), name, password)
                     print "%s has been assigned the color %s" % (name, conn.player.color)
                     self.sendTo(conn.id, Message.NameAccepted, [name, conn.player.password])
@@ -200,6 +213,7 @@ class Server(QTcpServer):
             QCoreApplication.quit()
         elif line.lower() == "reset":
             print "Resetting server."
+            self.colors = self.predefinedColors
             self.resetting.emit()
             self.sm.reset()
         elif line.lower() == "start":
