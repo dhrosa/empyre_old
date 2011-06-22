@@ -11,11 +11,13 @@ def debug(func):
     def printer(s, action, args=[]):
         print "Passed in action: %s with args %s" % (Action.toString(action), args)
         if func(s, action, args):
+            print "=" * 80
             print "OK ",
             print s
             print "=" * 80
             return True
         else:
+            print "=" * 80
             print "FAIL ",
             print s
             print "=" * 80

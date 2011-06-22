@@ -37,7 +37,6 @@ class Server(QTcpServer):
         self.sendReadySpecific.emit(msg, args, id)
 
     def sendExcept(self, id, msg, args = []):
-        print "# conn", len(self.connections)
         for c in self.connections:
             if c and c.id != id:
                 self.sendTo(c.id, msg, args)
