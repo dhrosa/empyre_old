@@ -1,6 +1,6 @@
-from PyQt4.QtCore import pyqtSignal, Qt, pyqtProperty, QObject, QPropertyAnimation, QRectF, QPointF, QLineF
+from PyQt4.QtCore import pyqtSignal, Qt, pyqtProperty, QObject, QTimer, QPropertyAnimation, QRectF, QPointF, QLineF
 
-from PyQt4.QtGui import QPen
+from PyQt4.QtGui import QPen, QPainter, QPixmap, QColor
 
 class Animation(QObject):
     updated = pyqtSignal()
@@ -63,35 +63,26 @@ class LineAnimation(Animation):
         painter.drawLine(l2)
 
 class BlinkingAnimation(Animation):
-    def __init__(self, pixmap, minOpacity, maxOpacity, period, parent = None):
+    def __init__(self, pixmap, period, parent = None):
         super(BlinkingAnimation, self).__init__(parent)
         self.pixmap = pixmap
-        self.__opacity = minOpacity
-        self.anim = QPropertyAnimation(self, "opacity")
-        self.anim.setStartValue(minOpacity)
-        self.anim.setEndValue(maxOpacity)
-        self.anim.setDuration(period)
-        self.anim.finished.connect(self.reverseDirection)
-        self.anim.valueChanged.connect(self.updated)
+        self.timer = QTimer()
+        self.timer.setInterval(period / 2)
+        self.timer.timeout.connect(self.toggle)
+        self.on = False
 
-    def reverseDirection(self):
-        self.anim.setDirection(1 - self.anim.direction())
-        self.anim.start()
-
-    def getOpacity(self):
-        return self.__opacity
-
-    def setOpacity(self, o):
-        self.__opacity = o
-        
-    opacity = pyqtProperty(float, getOpacity, setOpacity)
+    def toggle(self):
+        self.on = not self.on
+        self.updated.emit()
 
     def start(self):
-        self.anim.start()
+        self.timer.start()
 
     def stop(self):
-        self.anim.stop()
+        self.timer.stop()
 
     def paint(self, painter):
-        painter.setOpacity(self.opacity)
-        painter.drawPixmap(0, 0, self.pixmap)
+        if self.on:
+            painter.drawPixmap(0, 0, self.pixmap)
+        
+

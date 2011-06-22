@@ -1,7 +1,7 @@
 from PyQt4.QtCore import pyqtSignal, Qt, QRect
 from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor
 
-from animations import LineAnimation
+from animations import LineAnimation, BlinkingAnimation
 from common.game import State
 
 class ColoredMaskCache(object):
@@ -29,10 +29,11 @@ class BoardWidget(QWidget):
         self.game = game
         self.currentTerritory = None
         self.coloredMaskCache = ColoredMaskCache()
+        self.animations = []
+        self.source = None
         self.setMouseTracking(True)
         self.setEnabled(False)
         self.loadImages()
-        self.animations = []
 
     def loadImages(self):
         self.game.board.image = QImage(self.game.board.image)
@@ -95,6 +96,14 @@ class BoardWidget(QWidget):
                 else:
                     count = 1
                 self.drafted.emit(self.currentTerritory.name, count)
+            elif self.game.state == State.Attack:
+                if not self.source:
+                    self.source = self.currentTerritory
+                    mask = self.coloredMask(self.currentTerritory, QColor(170, 170, 0, 200))
+                    self.sourceAnimation = BlinkingAnimation(mask, 1000)
+                    self.sourceAnimation.updated.connect(self.update)
+                    self.animations.append(self.sourceAnimation)
+                    self.sourceAnimation.start()
 
     def coloredMask(self, territory, color):
         pixmap = self.coloredMaskCache.get(territory, color)
@@ -129,7 +138,11 @@ class BoardWidget(QWidget):
             for t in self.game.board.iterTerritories():
                 if t.owner:
                     painter.drawPixmap(0, 0, self.coloredMask(t, QColor(*t.owner.color)))
-            #loop again so text is not drawn under territories
+            for a in self.animations:
+                painter.save()
+                a.paint(painter)
+                painter.restore()
+            #draw territory troop counts
             for t in self.game.board.iterTerritories():
                 if t.owner:
                     x = t.center[0] * self.scaleFactor - 12

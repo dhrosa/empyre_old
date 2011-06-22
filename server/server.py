@@ -227,8 +227,9 @@ class Server(QTcpServer):
         self.send(Message.TerritoryUpdated, [name, owner, troopCount])
 
     def sendRemainingTroopsChange(self, n):
-        print "%s has %d troops remaining." % (self.sm.currentPlayer.name, n)
-        self.send(Message.RemainingTroopsChanged, [n])
+        if self.sm.currentPlayer:
+            print "%s has %d troops remaining." % (self.sm.currentPlayer.name, n)
+            self.send(Message.RemainingTroopsChanged, [n])
 
 if __name__ == "__main__":
     app = QCoreApplication(sys.argv)
