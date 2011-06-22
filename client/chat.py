@@ -1,4 +1,4 @@
-from PyQt4.QtCore import pyqtSignal, Qt, QSize
+from PyQt4.QtCore import pyqtSignal, Qt, QSize, QDateTime
 from PyQt4.QtGui import QWidget, QVBoxLayout, QTextEdit, QLineEdit
 
 class Line(object):
@@ -66,16 +66,13 @@ class Chat(QWidget):
                 (r, g, b) = line.playerColor
                 sender = line.sender
                 text = line.text
-                t = line.timestamp
-                (s, m, h) = (t % 60, (t / 60) % 60, t / 3600)
-                h %= 12
-                if h == 0:
-                    h = 12
+                dateTime = QDateTime.fromMSecsSinceEpoch(line.timestamp)
+                time = dateTime.toString("hh:mm:ss AP")
                 if line.type == Line.Whisper:
                     target = line.target
-                    lines.append("<p><strong style=\"color: rgb(%d, %d, %d)\">[%d:%d:%d] %s >> %s</strong>: %s</p>" % (r, g, b, h, m, s, sender, target, text))
+                    lines.append("<p><strong style=\"color: rgb(%d, %d, %d)\">[%s] %s >> %s</strong>: %s</p>" % (r, g, b, time, sender, target, text))
                 else:
-                    lines.append("<p><strong style=\"color: rgb(%d, %d, %d)\">[%d:%d:%d] %s</strong>: %s</p>" % (r, g, b, h, m, s, sender, text))
+                    lines.append("<p><strong style=\"color: rgb(%d, %d, %d)\">[%s] %s</strong>: %s</p>" % (r, g, b, time, sender, text))
             else:
                 if line.type == Line.Info:
                     (r, g, b) = (0, 0, 170)

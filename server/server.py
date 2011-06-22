@@ -11,7 +11,7 @@ from common.network import Message, Connection
 from common.board import loadBoard
 
 from PyQt4.QtNetwork import QTcpServer, QTcpSocket
-from PyQt4.QtCore import QCoreApplication, pyqtSignal, QSocketNotifier, QTime, QTimer
+from PyQt4.QtCore import QCoreApplication, pyqtSignal, QSocketNotifier, QDateTime, QTimer
 
 class Server(QTcpServer):
     sendReady = pyqtSignal(int, list)
@@ -142,8 +142,7 @@ class Server(QTcpServer):
             if msg == Message.SendChat:
                 text = str(args[0])
                 print "%s: %s" % (conn.player.name, text)
-                time = QTime.currentTime()
-                timestamp = time.second() + time.minute() * 60 + (time.hour() * 60 * 60)
+                timestamp = QDateTime.currentMSecsSinceEpoch()
                 self.chatHistory.append([conn.player, text, timestamp])
                 self.send(Message.ReceiveChat, [conn.player.name, text, timestamp])
 
@@ -154,8 +153,7 @@ class Server(QTcpServer):
                 if not targetPlayer:
                     self.sendTo(conn.id, Message.WhisperError)
                 else:
-                    time = QTime.currentTime()
-                    timestamp = time.second() + time.minute() * 60 + (time.hour() * 60 * 60)
+                    timestamp = QDateTime.currentMSecsSinceEpoch()
                     for c in self.connections:
                         if c.player == targetPlayer:
                             self.sendTo(c.id, Message.ReceiveWhisper, [conn.player.name, c.player.name, text, timestamp])
