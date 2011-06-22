@@ -50,3 +50,32 @@ class LineAnimation(Animation):
         l2.translate(self.pos)
         painter.drawLine(l1)
         painter.drawLine(l2)
+
+class BlinkingAnimation(Animation):
+    def __init__(self, pixmap, minOpacity, maxOpacity, period, parent = None):
+        super(BlinkingAnimation, self).__init__(parent)
+        self.pixmap = pixmap
+        self.__opacity = minOpacity
+        self.anim = QPropertyAnimation(self, "opacity")
+        self.anim.setStartValue(minOpacity)
+        self.anim.setEndValue(maxOpacity)
+        self.anim.setDuration(period)
+        self.anim.finished.connect(self.reverseDirection)
+        self.anim.valueChanged.connect(self.updated)
+        self.anim.start()
+
+    def reverseDirection(self):
+        self.anim.setDirection(1 - self.anim.direction())
+        self.anim.start()
+
+    def getOpacity(self):
+        return self.__opacity
+
+    def setOpacity(self, o):
+        self.__opacity = o
+        
+    opacity = pyqtProperty(float, getOpacity, setOpacity)
+
+    def paint(self, painter):
+        painter.setOpacity(self.opacity)
+        painter.drawPixmap(0, 0, self.pixmap)
