@@ -9,6 +9,12 @@ class Animation(QObject):
     def __init__(self, parent = None):
         super(Animation, self).__init__(parent)
 
+    def start(self):
+        raise NotImplementedError()
+
+    def stop(Self):
+        raise NotImplementedError()
+    
     def paint(self, painter):
         raise NotImplementedError()
 
@@ -20,13 +26,12 @@ class LineAnimation(Animation):
         self.end = QPointF(x2, y2)
         self.__pos = self.start
         self.color = color
-        anim = QPropertyAnimation(self, "pos", self)
-        anim.setStartValue(self.start)
-        anim.setEndValue(self.end)
-        anim.setDuration(duration)
-        anim.valueChanged.connect(self.updated)
-        anim.finished.connect(self.finished)
-        anim.start()
+        self.anim = QPropertyAnimation(self, "pos", self)
+        self.anim.setStartValue(self.start)
+        self.anim.setEndValue(self.end)
+        self.anim.setDuration(duration)
+        self.anim.valueChanged.connect(self.updated)
+        self.anim.finished.connect(self.finished)
 
     def getPos(self):
         return self.__pos
@@ -35,6 +40,12 @@ class LineAnimation(Animation):
         self.__pos = pos
 
     pos = pyqtProperty("QPointF", getPos, setPos)
+
+    def start(self):
+        self.anim.start()
+
+    def stop(self):
+        self.anim.stop()
 
     def paint(self, painter):
         pen = QPen(self.color)
@@ -62,7 +73,6 @@ class BlinkingAnimation(Animation):
         self.anim.setDuration(period)
         self.anim.finished.connect(self.reverseDirection)
         self.anim.valueChanged.connect(self.updated)
-        self.anim.start()
 
     def reverseDirection(self):
         self.anim.setDirection(1 - self.anim.direction())
@@ -75,6 +85,12 @@ class BlinkingAnimation(Animation):
         self.__opacity = o
         
     opacity = pyqtProperty(float, getOpacity, setOpacity)
+
+    def start(self):
+        self.anim.start()
+
+    def stop(self):
+        self.anim.stop()
 
     def paint(self, painter):
         painter.setOpacity(self.opacity)
