@@ -73,6 +73,7 @@ class Client(QObject):
                 (name, ok) = QInputDialog.getText(None, "Username", "Name")
                 if not ok:
                     QApplication.quit()
+                    break
             self.send(Message.RequestName, [str(name)])
         
         elif msg == Message.NameTaken:
@@ -81,6 +82,7 @@ class Client(QObject):
                 (name, ok) = QInputDialog.getText(None, "Name Taken", "New name")
                 if not ok:
                     QApplication.quit()
+                    break
             self.send(Message.RequestName, [str(name)])
         
         elif msg == Message.NameAccepted:
@@ -100,6 +102,7 @@ class Client(QObject):
                 (password, ok) = QInputDialog.getText(None, "Game Already Inprogress", "Password")
                 if not ok:
                     QApplication.quit()
+                    break
             self.send(Message.Rejoin, [str(password)])
 
         elif msg == Message.IncorrectPassword:
@@ -108,6 +111,7 @@ class Client(QObject):
                 (password, ok) = QInputDialog.getText(None, "Incorrect Password", "Password")
                 if not ok:
                     QApplication.quit()
+                    break
             self.send(Message.Rejoin, [str(password)])
 
         elif msg == Message.RejoinSuccess:
