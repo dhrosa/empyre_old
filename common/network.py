@@ -22,7 +22,8 @@ class Message(object):
         RollDice,
         ClaimTerritory,
         Draft,
-    ) = range(17)
+        Attack,
+    ) = range(18)
 
     (
         Ping,
@@ -76,6 +77,7 @@ class Message(object):
         RollDice: (),
         ClaimTerritory: (str,),
         Draft: (str, int),
+        Attack: (str, str, int),
 
         Ping: (),
         CurrentState: (int,),
@@ -183,6 +185,11 @@ class Connection(QTcpSocket):
                         return
                     args.append(stream.readInt32())
                     bytesRead += 4
+                elif aType == long:
+                    if self.buffer.bytesAvailable() < 8:
+                        return
+                    args.append(stream.readInt64())
+                    bytesRead += 8
             return (msg, args, bytesRead)
 
     def sendMessage(self, msg, args, id = None):
@@ -201,6 +208,8 @@ class Connection(QTcpSocket):
                 stream.writeRawData(arg)
             elif type(arg) == int:
                 stream.writeInt32(arg)
+            elif type(arg) == long:
+                stream.writeInt64(arg)
         self.write(data)
         self.messageSent.emit(msg, args)
 
