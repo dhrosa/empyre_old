@@ -67,16 +67,16 @@ class BoardWidget(QWidget):
 
     def updateTerritories(self):
         size = self.imageSize()
-        pixmap = QPixmap(size)
-        pixmap.fill(Qt.black)
+        image = QImage(size, QImage.Format_ARGB32_Premultiplied)
+        image.fill(0)
         painter = QPainter()
-        painter.begin(pixmap)
+        painter.begin(image)
         painter.drawImage(0, 0, self.game.board.image.scaled(size))
         for t in self.game.board.iterTerritories():
             if t.owner:
                 painter.drawPixmap(0, 0, self.coloredMask(t, QColor(*t.owner.color)))
         painter.end()
-        self.cachedMap = pixmap
+        self.cachedMap = QPixmap.fromImage(image)
 
     def territoryAt(self, x, y):
         for t in self.game.board.iterTerritories():
@@ -104,7 +104,7 @@ class BoardWidget(QWidget):
     def resizeEvent(self, event):
         size = self.minimumSizeHint()
         size.scale(event.size(), Qt.KeepAspectRatio)
-        self.scaleFactor = self.minimumSizeHint().width() / size.width()
+        self.scaleFactor = float(self.minimumSizeHint().width()) / size.width()
         self.recreateMasks()
         self.coloredMaskCache.clear()
 
@@ -190,8 +190,8 @@ class BoardWidget(QWidget):
             #draw territory troop counts
             for t in self.game.board.iterTerritories():
                 if t.owner:
-                    x = t.center[0] * self.scaleFactor - 12
-                    y = t.center[1] * self.scaleFactor - 12
+                    x = (t.center[0] - 12) / self.scaleFactor
+                    y = (t.center[1] - 12) / self.scaleFactor
                     width = 25
                     height = 25
                     painter.drawEllipse(x, y, width, height)
