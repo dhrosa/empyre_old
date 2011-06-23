@@ -31,10 +31,19 @@ class BoardWidget(QWidget):
         self.currentTerritory = None
         self.coloredMaskCache = ColoredMaskCache()
         self.animations = []
+        self.cachedMap = None
         self.source = None
+        self.scaleFactor = 1.0
         self.setMouseTracking(True)
         self.setEnabled(False)
         self.loadImages()
+        self.updateTerritories()
+
+    def imageRect(self):
+        return QRect(QPoint(0, 0), self.imageSize())
+
+    def imageSize(self):
+        return self.game.board.image.size() / self.scaleFactor
 
     def loadImages(self):
         self.game.board.image = QImage(self.game.board.image)
@@ -51,11 +60,23 @@ class BoardWidget(QWidget):
     def recreateMasks(self):
         self.masks = {}
         self.selectionImages = {}
-        size = self.scaledPixmap.size()
-        rect = self.scaledPixmap.rect()
         for t in self.game.board.iterTerritories():
-            self.masks[t] = t.image.scaled(size)
+            self.masks[t] = t.image.scaled(self.imageSize())
         self.coloredMaskCache.clear()
+        self.updateTerritories()
+
+    def updateTerritories(self):
+        size = self.imageSize()
+        pixmap = QPixmap(size)
+        pixmap.fill(Qt.black)
+        painter = QPainter()
+        painter.begin(pixmap)
+        painter.drawImage(0, 0, self.game.board.image.scaled(size))
+        for t in self.game.board.iterTerritories():
+            if t.owner:
+                painter.drawPixmap(0, 0, self.coloredMask(t, QColor(*t.owner.color)))
+        painter.end()
+        self.cachedMap = pixmap
 
     def territoryAt(self, x, y):
         for t in self.game.board.iterTerritories():
@@ -81,13 +102,15 @@ class BoardWidget(QWidget):
         return self.game.board.image.size()
 
     def resizeEvent(self, event):
-        self.scaledPixmap = QPixmap.fromImage(self.game.board.image).scaled(event.size(), Qt.KeepAspectRatio)
-        self.scaleFactor = float(self.game.board.image.width()) / self.scaledPixmap.width()
+        size = self.minimumSizeHint()
+        size.scale(event.size(), Qt.KeepAspectRatio)
+        self.scaleFactor = self.minimumSizeHint().width() / size.width()
         self.recreateMasks()
         self.coloredMaskCache.clear()
 
     def mouseMoveEvent(self, event):
-        if self.scaledPixmap.rect().contains(event.pos()):
+        oldTerritory = self.currentTerritory
+        if self.imageRect().contains(event.pos()):
             x = event.pos().x() * self.scaleFactor
             y = event.pos().y() * self.scaleFactor
             self.currentTerritory = self.territoryAt(x, y)
@@ -97,7 +120,8 @@ class BoardWidget(QWidget):
             self.setToolTip(self.currentTerritory.name)
         else:
             self.setToolTip("")
-        self.update()
+        if oldTerritory != self.currentTerritory:
+            self.update()
 
     def mouseReleaseEvent(self, e):
         if self.currentTerritory:
@@ -133,8 +157,8 @@ class BoardWidget(QWidget):
         pixmap = self.coloredMaskCache.get(territory, color)
         if not pixmap:
             mask = self.masks[territory]
-            size = mask.size()
-            rect = self.scaledPixmap.rect()
+            size = self.imageSize()
+            rect = self.imageRect()
             image = QImage(size, QImage.Format_ARGB32_Premultiplied)
             image.fill(0)
             painter = QPainter()
@@ -152,16 +176,13 @@ class BoardWidget(QWidget):
     def paintEvent(self, event):
         painter = QPainter()
         painter.begin(self)
-        painter.drawPixmap(0, 0, self.scaledPixmap)
-        rect = self.scaledPixmap.rect()
+        painter.drawPixmap(0, 0, self.cachedMap)
+        rect = self.imageRect()
         painter.setPen(Qt.white)
         painter.setBrush(Qt.black)
         if self.isEnabled():
             if self.currentTerritory:
                 painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, QColor(*self.game.clientPlayer.color)))
-            for t in self.game.board.iterTerritories():
-                if t.owner:
-                    painter.drawPixmap(0, 0, self.coloredMask(t, QColor(*t.owner.color)))
             for a in self.animations:
                 painter.save()
                 a.paint(painter)
@@ -175,7 +196,6 @@ class BoardWidget(QWidget):
                     height = 25
                     painter.drawEllipse(x, y, width, height)
                     painter.drawText(x, y, width, height, Qt.AlignCenter, str(t.troopCount))
-
         else:
             painter.fillRect(rect, QColor(0, 0, 0, 200))
             painter.drawText(rect, Qt.AlignCenter, "Waiting for the game to start.")
