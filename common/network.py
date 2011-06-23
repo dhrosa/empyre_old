@@ -19,11 +19,10 @@ class Message(object):
         ChangeColor,
 
         ReadyToPlay,
-        RollDice,
         ClaimTerritory,
         Draft,
         Attack,
-    ) = range(18)
+    ) = range(17)
 
     (
         Ping,
@@ -75,7 +74,6 @@ class Message(object):
         ChangeColor: (int, int, int),
 
         ReadyToPlay: (),
-        RollDice: (),
         ClaimTerritory: (str,),
         Draft: (str, int),
         Attack: (str, str, int),

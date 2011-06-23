@@ -19,14 +19,13 @@ class State(object):
     (
         OutOfSync,
         Lobby,
-        ChoosingOrder,
         InitialPlacement,
         InitialDraft,
         Draft,
         Attack,
         Fortify,
         GameOver,
-    ) = range(9)
+    ) = range(8)
 
     @staticmethod
     def toString(state):
@@ -39,25 +38,21 @@ class Action(object):
         AddPlayer,
         RemovePlayer,
         StartGame,
-        RollDice,
         ExchangeCards,
         PlaceTroops,
         Attack,
-        Retreat,
         EndAttack,
         Fortify,
         EndTurn,
-     ) = range(11)
+     ) = range(9)
 
     validArgs = {
         AddPlayer: (str,),
         RemovePlayer: (str,),
         StartGame: (),
-        RollDice: (),
         ExchangeCards: (int, int, int),
         PlaceTroops: (str, int),
         Attack: (str, str, int),
-        Retreat: (),
         EndAttack: (),
         Fortify: (str, str, int),
         EndTurn: (),

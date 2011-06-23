@@ -206,10 +206,6 @@ class Server(QTcpServer):
                     print "Game automatically started."
                     self.sm.next(Action.StartGame)
 
-            elif msg == Message.RollDice:
-                if conn.player == self.sm.currentPlayer:
-                    self.sm.next(Action.RollDice)
-
             elif msg == Message.ClaimTerritory:
                 if conn.player == self.sm.currentPlayer:
                     name = args[0]
@@ -251,8 +247,8 @@ class Server(QTcpServer):
             encoded |= r << (8 * i)
         self.send(Message.DiceRolled, [str(playerName), len(rolls), encoded])
 
-    def sendTurnChange(self, player):
-        self.send(Message.TurnChanged, [player.name])
+    def sendTurnChange(self, name):
+        self.send(Message.TurnChanged, [name])
 
     def sendTerritoryUpdate(self, name, owner, troopCount):
         name = str(name)

@@ -206,8 +206,6 @@ class Client(QObject):
             if self.game.yourTurn():
                 self.mainWindow.chat.addLine("It is now your turn.")
                 self.mainWindow.activateWindow()
-                if self.game.state == State.ChoosingOrder:
-                    self.send(Message.RollDice)
             else:
                 self.mainWindow.chat.addLine("It is now %s's turn." % name)
             self.game.currentPlayer = self.game.getPlayer(name)

@@ -26,9 +26,10 @@ def debug(func):
 
 class SM(QObject):
     stateChanged = pyqtSignal(int, int)
-    turnChanged = pyqtSignal(Player)
+    turnChanged = pyqtSignal(str)
     territoryUpdated = pyqtSignal(str, str, int)
     diceRolled = pyqtSignal(str, list)
+    playersTied = pyqtSignal(list)
     remainingTroopsChanged = pyqtSignal(int)
     attacked = pyqtSignal(str, str, str)
 
@@ -43,7 +44,7 @@ class SM(QObject):
     def __setattr__(self, name, value):
         if value != None:
             if name == "currentPlayer":
-                self.turnChanged.emit(value)
+                self.turnChanged.emit(value.name)
             elif name == "substate":
                 try:
                     self.stateChanged.emit(self.substate, value)
@@ -58,8 +59,6 @@ class SM(QObject):
         self.players = []
         self.currentPlayer = None
         self.firstPlayer = None
-        self.tiedPlayers = []
-        self.diceRolls = []
         self.remainingTroops = 0
         self.awardCard = False
         self.setsExchanged = 0
@@ -157,37 +156,30 @@ class SM(QObject):
             elif action == Action.StartGame:
                 if len(self.players) < 2:
                     return False
-                self.substate = State.ChoosingOrder
-                self.currentPlayer = self.players[0]
-                self.tiedPlayers = self.players
-                return True
-
-        elif s == State.ChoosingOrder:
-            if action == Action.RollDice:
-                rolls = rollDice(2)
-                self.diceRolled.emit(self.currentPlayer.name, rolls)
-                self.diceRolls.append(sum(rolls))
-                if len(self.diceRolls) == self.tiedPlayerCount():
-                    highest = max(self.diceRolls)
-                    if self.diceRolls.count(highest) > 1:
-                        self.tiedPlayers = []
-                        for i, p in enumerate(self.players):
-                            if self.diceRolls[i] == highest:
-                                self.tiedPlayers.append(p)
-                        self.diceRolls = []
-                        self.currentPlayer = self.nextPlayer(self.tiedPlayers)
-                        return True
+                tiedPlayers = self.players
+                while tiedPlayers:
+                    rolls = []
+                    for p in self.players:
+                        r = rollDice(2)
+                        self.diceRolled.emit(p.name, r)
+                        rolls.append(sum(r))
+                    highest = max(rolls)
+                    #tie condition
+                    if rolls.count(highest) > 1:
+                        newTiedPlayers = []
+                        for i, p in enumerate(tiedPlayers):
+                            if rolls[i] == highest:
+                                newTiedPlayers.append(p)
+                        tiedPlayers = newTiedPlayers
+                        self.playersTied.emit([p.name for p in tiedPlayers])
                     else:
-                        index = self.diceRolls.index(highest)
+                        i = rolls.index(highest)
+                        name = tiedPlayers[i].name
                         self.substate = State.InitialPlacement
-                        self.currentPlayer = self.tiedPlayers[self.diceRolls.index(highest)]
-                        self.firstPlayer = self.currentPlayer
-                        self.tiedPlayers = []
-                        self.remainingTroops = 0
-                        return True
-                else:
-                    self.currentPlayer = self.nextPlayer(self.tiedPlayers)
-                    return True
+                        self.firstPlayer = self.getPlayer(name)
+                        self.currentPlayer = self.firstPlayer
+                        break
+                return True
                 
         elif s == State.InitialPlacement:
             if action == Action.PlaceTroops:
