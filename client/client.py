@@ -149,6 +149,7 @@ class Client(QObject):
             self.game.changed.connect(self.mainWindow.boardWidget.update)
             self.mainWindow.boardWidget.territoryClaimed.connect(self.sendClaimTerritory)
             self.mainWindow.boardWidget.drafted.connect(self.sendDraft)
+            self.mainWindow.boardWidget.attacked.connect(self.sendAttack)
             self.mainWindow.setWindowTitle("Risk %s:%d" % (self.host, self.port))
             self.mainWindow.chat.lineEntered.connect(self.sendChat)
             self.mainWindow.colorChanged.connect(self.sendColorChange)
@@ -232,6 +233,10 @@ class Client(QObject):
             troops = args[0]
             self.game.remainingTroops = troops
 
+        elif msg == Message.Attacked:
+            (attacker, source, target) = args
+            self.mainWindow.boardWidget.attack(*args)
+
     def handleStateChange(self, old, new):
         if old == State.Lobby:
             self.mainWindow.chat.addLine("The game has started!")
@@ -263,6 +268,9 @@ class Client(QObject):
 
     def sendDraft(self, name, count):
         self.send(Message.Draft, [name, count])
+
+    def sendAttack(self, source, target, n):
+        self.send(Message.Attack, [source, target, n])
 
 debug = False
 clientName = ""

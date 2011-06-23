@@ -20,19 +20,6 @@ class Animation(QObject):
 
 
 class LineAnimation(Animation):
-    def __init__(self, x1, y1, x2, y2, color, duration, parent = None):
-        super(LineAnimation, self).__init__(parent)
-        self.start = QPointF(x1, y1)
-        self.end = QPointF(x2, y2)
-        self.__pos = self.start
-        self.color = color
-        self.anim = QPropertyAnimation(self, "pos", self)
-        self.anim.setStartValue(self.start)
-        self.anim.setEndValue(self.end)
-        self.anim.setDuration(duration)
-        self.anim.valueChanged.connect(self.updated)
-        self.anim.finished.connect(self.finished)
-
     def getPos(self):
         return self.__pos
 
@@ -41,6 +28,19 @@ class LineAnimation(Animation):
 
     pos = pyqtProperty("QPointF", getPos, setPos)
 
+    def __init__(self, p1, p2, color, duration, parent = None):
+        super(LineAnimation, self).__init__(parent)
+        self.startPoint = QPointF(p1[0], p1[1])
+        self.endPoint = QPointF(p2[0], p2[1])
+        self.__pos = self.startPoint
+        self.color = color
+        self.anim = QPropertyAnimation(self, "pos", self)
+        self.anim.setStartValue(self.startPoint)
+        self.anim.setEndValue(self.endPoint)
+        self.anim.setDuration(duration)
+        self.anim.valueChanged.connect(self.updated)
+        self.anim.finished.connect(self.finished)
+
     def start(self):
         self.anim.start()
 
@@ -48,19 +48,20 @@ class LineAnimation(Animation):
         self.anim.stop()
 
     def paint(self, painter):
-        pen = QPen(self.color)
+        pen = QPen(Qt.black)
         pen.setWidthF(2.5)
         painter.setPen(pen)
-        line = QLineF(self.start, self.pos)
+        line = QLineF(self.startPoint, self.pos)
         painter.drawLine(line)
-        #draw arrowhead
-        a = line.angle()
-        l1 = QLineF.fromPolar(25, a - 155)
-        l1.translate(self.pos)
-        l2 = QLineF.fromPolar(25, a + 155)
-        l2.translate(self.pos)
-        painter.drawLine(l1)
-        painter.drawLine(l2)
+        if self.pos != self.startPoint:
+            #draw arrowhead
+            a = line.angle()
+            l1 = QLineF.fromPolar(25, a - 155)
+            l1.translate(self.pos)
+            l2 = QLineF.fromPolar(25, a + 155)
+            l2.translate(self.pos)
+            painter.drawLine(l1)
+            painter.drawLine(l2)
 
 class BlinkingAnimation(Animation):
     def __init__(self, pixmap, period, parent = None):

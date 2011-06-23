@@ -39,6 +39,7 @@ class Server(QTcpServer):
        self.sm.turnChanged.connect(self.sendTurnChange)
        self.sm.territoryUpdated.connect(self.sendTerritoryUpdate)
        self.sm.remainingTroopsChanged.connect(self.sendRemainingTroopsChange)
+       self.sm.attacked.connect(self.sendAttack)
        self.chatHistory = []
        self.colors = self.predefinedColors
        timer = QTimer(self)
@@ -199,7 +200,6 @@ class Server(QTcpServer):
                 print "%s changed their color to (%d, %d, %d)" % (player.name, color[0], color[1], color[2])
                 self.send(Message.ColorChanged, [player.name] + color)
 
-                
             elif msg == Message.ReadyToPlay:
                 conn.player.ready = True
                 if not False in [p.ready for p in self.sm.players] and self.sm.playerCount() > 1:
@@ -219,6 +219,11 @@ class Server(QTcpServer):
                 if conn.player == self.sm.currentPlayer:
                     (name, count) = args
                     self.sm.next(Action.PlaceTroops, [name, count])
+
+            elif msg == Message.Attack:
+                if conn.player == self.sm.currentPlayer:
+                    (source, target, count) = args
+                    self.sm.next(Action.Attack, [source, target, count])
 
     def readStdin(self):
         line = sys.stdin.readline().strip()
@@ -259,6 +264,9 @@ class Server(QTcpServer):
         if self.sm.currentPlayer:
             print "%s has %d troops remaining." % (self.sm.currentPlayer.name, n)
             self.send(Message.RemainingTroopsChanged, [n])
+
+    def sendAttack(self, attacker, source, target):
+        self.send(Message.Attacked, [attacker, source, target])
 
 if __name__ == "__main__":
     app = QCoreApplication(sys.argv)

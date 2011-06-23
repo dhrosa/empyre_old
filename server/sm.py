@@ -30,6 +30,7 @@ class SM(QObject):
     territoryUpdated = pyqtSignal(str, str, int)
     diceRolled = pyqtSignal(str, list)
     remainingTroopsChanged = pyqtSignal(int)
+    attacked = pyqtSignal(str, str, str)
 
     def __init__(self, board, parent = None):
         super(SM, self).__init__(parent)
@@ -254,11 +255,9 @@ class SM(QObject):
 
         elif s == State.Attack:
             if action == Action.Attack:
-                if self.currentPlayer.cardCount() > 4:
-                    return False
                 (source, target, n) = args
                 source = self.board.getTerritory(source)
-                target = self.board.territories(target)
+                target = self.board.getTerritory(target)
                 if not source or not target:
                     return False
                 if source.owner != self.currentPlayer or target.owner == self.currentPlayer:
@@ -269,6 +268,7 @@ class SM(QObject):
                 self.target = target
                 self.substate = State.AttackerRoll
                 self.remainingTroops = n
+                self.attacked.emit(self.currentPlayer.name, source.name, target.name)
                 return True
             elif action == Action.EndAttack:
                 if self.awardCard and self.board.cards:

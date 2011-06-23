@@ -23,6 +23,7 @@ class ColoredMaskCache(object):
 class BoardWidget(QWidget):
     territoryClaimed = pyqtSignal(str)
     drafted = pyqtSignal(str, int)
+    attacked = pyqtSignal(str, str, int)
 
     def __init__(self, game, parent = None):
         QWidget.__init__(self, parent)
@@ -60,6 +61,21 @@ class BoardWidget(QWidget):
         for t in self.game.board.iterTerritories():
             if t.image.pixel(x, y):
                 return t
+
+    def removeAnimation(self):
+        anim = self.sender()
+        self.animations.remove(anim)
+        anim.deleteLater()
+
+    def attack(self, attacker, source, target):
+        source = self.game.board.getTerritory(source)
+        target = self.game.board.getTerritory(target)
+        attacker = self.game.getPlayer(attacker)
+        anim = LineAnimation(source.center, target.center, QColor(*attacker.color), 2000)
+        anim.finished.connect(self.removeAnimation)
+        anim.updated.connect(self.update)
+        self.animations.append(anim)
+        anim.start()
 
     def minimumSizeHint(self):
         return self.game.board.image.size()
@@ -104,6 +120,14 @@ class BoardWidget(QWidget):
                     self.sourceAnimation.updated.connect(self.update)
                     self.animations.append(self.sourceAnimation)
                     self.sourceAnimation.start()
+                else:
+                    target = self.currentTerritory
+                    n = 1
+                    self.attacked.emit(self.source.name, target.name, n)
+                    self.animations.remove(self.sourceAnimation)
+                    self.sourceAnimation = None
+                    self.source = None
+                    
 
     def coloredMask(self, territory, color):
         pixmap = self.coloredMaskCache.get(territory, color)

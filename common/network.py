@@ -56,7 +56,8 @@ class Message(object):
         DiceRolled,
         TerritoryUpdated,
         RemainingTroopsChanged,
-    ) = range (100, 128)
+        Attacked,
+    ) = range (100, 129)
         
     validArgs = {
         Pong: (),
@@ -108,7 +109,8 @@ class Message(object):
         TurnChanged: (str,),
         DiceRolled: (str, int, int),
         TerritoryUpdated: (str, str, int,),
-        RemainingTroopsChanged: (int,)
+        RemainingTroopsChanged: (int,),
+        Attacked: (str, str, str),
     }
 
     @staticmethod
