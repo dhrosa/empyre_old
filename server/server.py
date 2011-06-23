@@ -207,20 +207,25 @@ class Server(QTcpServer):
                     print "Game automatically started."
                     self.sm.next(Action.StartGame)
 
-            elif msg == Message.ClaimTerritory:
-                if conn.player == self.sm.currentPlayer:
+            elif conn.player == self.sm.currentPlayer:
+                if msg == Message.ClaimTerritory:
                     name = args[0]
                     self.sm.next(Action.PlaceTroops, [name])
 
-            elif msg == Message.Draft:
-                if conn.player == self.sm.currentPlayer:
+                elif msg == Message.Draft:
                     (name, count) = args
                     self.sm.next(Action.PlaceTroops, [name, count])
 
-            elif msg == Message.Attack:
-                if conn.player == self.sm.currentPlayer:
+                elif msg == Message.Attack:
                     (source, target, count) = args
                     self.sm.next(Action.Attack, [source, target, count])
+
+                elif msg == Message.EndAttack:
+                    self.sm.next(Action.EndAttack)
+                
+                elif msg == Message.EndTurn:
+                    self.sm.next(Action.EndTurn)
+
 
     def readStdin(self):
         line = sys.stdin.readline().strip()

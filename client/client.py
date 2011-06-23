@@ -154,6 +154,8 @@ class Client(QObject):
             self.mainWindow.chat.lineEntered.connect(self.sendChat)
             self.mainWindow.colorChanged.connect(self.sendColorChange)
             self.mainWindow.nameChanged.connect(self.sendNameChange)
+            self.mainWindow.endAttackReleased.connect(self.sendEndAttack)
+            self.mainWindow.endTurnReleased.connect(self.sendEndTurn)
             self.mainWindow.show()
             try:
                 _ = self.password
@@ -260,6 +262,7 @@ class Client(QObject):
                 self.mainWindow.endTurn.setEnabled(True)
             elif new == State.Fortify:
                 self.mainWindow.endTurn.setEnabled(True)
+        self.mainWindow.boardWidget.stateChange(old, new)
         self.game.state = new
 
     def sendChat(self, text):
@@ -290,6 +293,12 @@ class Client(QObject):
 
     def sendAttack(self, source, target, n):
         self.send(Message.Attack, [source, target, n])
+
+    def sendEndAttack(self):
+        self.send(Message.EndAttack)
+
+    def sendEndTurn(self):
+        self.send(Message.EndTurn)
 
 debug = False
 clientName = ""

@@ -22,7 +22,9 @@ class Message(object):
         ClaimTerritory,
         Draft,
         Attack,
-    ) = range(17)
+        EndAttack,
+        EndTurn,
+    ) = range(19)
 
     (
         Ping,
@@ -80,6 +82,8 @@ class Message(object):
         ClaimTerritory: (str,),
         Draft: (str, int),
         Attack: (str, str, int),
+        EndAttack: (),
+        EndTurn: (),
 
         Ping: (),
         CurrentState: (int,),

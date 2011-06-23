@@ -245,6 +245,7 @@ class SM(QObject):
                     return False
                 if source.owner != self.currentPlayer or target.owner == self.currentPlayer:
                     return False
+                n = min(source.troopCount - 1, n)
                 if n < 1 or n >= source.troopCount:
                     return False
                 targetPlayer = target.owner
@@ -282,9 +283,6 @@ class SM(QObject):
                 return True
                 
             elif action == Action.EndAttack:
-                if self.awardCard and self.board.cards:
-                    self.currentPlayer.cards.append(self.board.cards.pop())
-                    self.awardCard = False
                 self.substate = State.Fortify
                 return True
             
@@ -307,6 +305,7 @@ class SM(QObject):
                     self.currentPlayer.cards.append(self.board.cards.pop())
                     self.awardCard = False
                 self.currentPlayer = self.nextPlayer()
+                self.remainingTroops = self.draftCount(self.currentPlayer)
                 self.substate = State.Draft
                 return True
 

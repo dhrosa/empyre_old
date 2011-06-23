@@ -33,6 +33,7 @@ class BoardWidget(QWidget):
         self.animations = []
         self.cachedMap = None
         self.source = None
+        self.sourceAnimation = None
         self.scaleFactor = 1.0
         self.setMouseTracking(True)
         self.setEnabled(False)
@@ -98,6 +99,12 @@ class BoardWidget(QWidget):
         self.animations.append(anim)
         anim.start()
 
+    def stateChange(self, old, new):
+        if self.source:
+            self.source = None
+            self.sourceAnimation.finished.emit()
+            self.sourceAnimation = None
+
     def minimumSizeHint(self):
         return self.game.board.image.size()
 
@@ -127,31 +134,34 @@ class BoardWidget(QWidget):
         if self.currentTerritory:
             if self.game.state == State.InitialPlacement:
                 self.territoryClaimed.emit(self.currentTerritory.name)
-            elif self.game.state in (State.InitialDraft, State.Draft):
-                m = e.modifiers()
-                if m & Qt.ShiftModifier:
-                    count = 5
-                elif m & Qt.AltModifier:
-                    count = 10
-                else:
-                    count = 1
-                self.drafted.emit(self.currentTerritory.name, count)
-            elif self.game.state == State.Attack:
-                if not self.source:
+                return
+            m = e.modifiers()
+            if m & Qt.ShiftModifier:
+                n = 5
+            elif m & Qt.AltModifier:
+                n = 10
+            else:
+                n = 1
+            if self.game.state in (State.InitialDraft, State.Draft):
+                if e.button() == Qt.RightButton:
+                    n = self.game.remainingTroops
+                self.drafted.emit(self.currentTerritory.name, n)
+            elif self.game.state == State.Attack and self.game.yourTurn():
+                if self.currentTerritory.owner == self.game.clientPlayer:
                     self.source = self.currentTerritory
+                    if self.sourceAnimation:
+                        self.sourceAnimation.finished.emit()
                     mask = self.coloredMask(self.currentTerritory, QColor(170, 170, 0, 200))
                     self.sourceAnimation = BlinkingAnimation(mask, 1000)
                     self.sourceAnimation.updated.connect(self.update)
+                    self.sourceAnimation.finished.connect(self.removeAnimation)
                     self.animations.append(self.sourceAnimation)
                     self.sourceAnimation.start()
-                else:
+                elif self.source:
                     target = self.currentTerritory
-                    n = 1
+                    if e.button() == Qt.RightButton:
+                        n = self.source.troopCount - 1
                     self.attacked.emit(self.source.name, target.name, n)
-                    self.animations.remove(self.sourceAnimation)
-                    self.sourceAnimation = None
-                    self.source = None
-                    
 
     def coloredMask(self, territory, color):
         pixmap = self.coloredMaskCache.get(territory, color)
