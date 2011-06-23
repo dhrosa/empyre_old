@@ -7,6 +7,9 @@ from boardwidget import BoardWidget
 class MainWindow(QMainWindow):
     colorChanged = pyqtSignal(list)
     nameChanged = pyqtSignal(str)
+    cashCardsReleased = pyqtSignal()
+    endAttackReleased = pyqtSignal()
+    endTurnReleased = pyqtSignal()
 
     def __emitNameChanged(self):
         self.nameChanged.emit(self.nameEdit.text())
@@ -16,11 +19,8 @@ class MainWindow(QMainWindow):
         self.game = game
         self.boardWidget = BoardWidget(self.game)
         self.chat = Chat()
-        self.nameEdit = QLineEdit()
-        self.nameEdit.setText(self.game.clientPlayer.name)
-        self.nameEdit.returnPressed.connect(self.__emitNameChanged)
-        changeColor = QPushButton("Change color")
-        changeColor.released.connect(self.chooseColor)
+        self.nameEdit = QLineEdit(text=self.game.clientPlayer.name, returnPressed=self.__emitNameChanged)
+        changeColor = QPushButton("Change color", released=self.chooseColor)
 
         infoLayout = QVBoxLayout()
         infoLayout.addWidget(self.nameEdit)
@@ -29,15 +29,25 @@ class MainWindow(QMainWindow):
         info = QWidget()
         info.setLayout(infoLayout)
 
-        layout = QHBoxLayout()
-        splitter = QSplitter()
-        splitter.addWidget(self.boardWidget)
-        splitter.addWidget(info)
-        layout.addWidget(splitter)
+        buttonLayout = QHBoxLayout()
+        self.cashCards = QPushButton("Cash in Cards", enabled=False, released=self.cashCardsReleased)
+        self.endAttack = QPushButton("End Attack", enabled=False, released=self.endAttackReleased)
+        self.endTurn = QPushButton("End Turn", enabled=False, released=self.endTurnReleased)
+        buttonLayout.addWidget(self.cashCards)
+        buttonLayout.addWidget(self.endAttack)
+        buttonLayout.addWidget(self.endTurn)
 
-        central = QWidget()
-        central.setLayout(layout)
-        self.setCentralWidget(central)
+        boardLayout = QVBoxLayout()
+        boardLayout.addWidget(self.boardWidget)
+        boardLayout.addLayout(buttonLayout)
+        tempWidget = QWidget()
+        tempWidget.setLayout(boardLayout)
+
+        splitter = QSplitter()
+        splitter.addWidget(tempWidget)
+        splitter.addWidget(info)
+
+        self.setCentralWidget(splitter)
         self.statusBar()
         self.initMenuBar()
 
