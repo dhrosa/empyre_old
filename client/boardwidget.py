@@ -1,5 +1,5 @@
 from PyQt4.QtCore import pyqtSignal, Qt, QRect, QPoint
-from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor
+from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor, QInputDialog
 
 from animations import LineAnimation, BlinkingAnimation, ExplodingAnimation
 from common.game import State
@@ -24,6 +24,7 @@ class BoardWidget(QWidget):
     territoryClaimed = pyqtSignal(str)
     drafted = pyqtSignal(str, int)
     attacked = pyqtSignal(str, str, int)
+    fortified = pyqtSignal(str, str, int)
 
     def __init__(self, game, parent = None):
         QWidget.__init__(self, parent)
@@ -36,6 +37,7 @@ class BoardWidget(QWidget):
         self.sourceAnimation = None
         self.scaleFactor = 1.0
         self.setMouseTracking(True)
+        self.setFocusPolicy(Qt.StrongFocus)
         self.setEnabled(False)
         self.loadImages()
         self.updateTerritories()
@@ -137,7 +139,7 @@ class BoardWidget(QWidget):
                 return
             m = e.modifiers()
             if m & Qt.ShiftModifier:
-                n = 5
+                n = 3
             elif m & Qt.AltModifier:
                 n = 10
             else:
@@ -146,8 +148,8 @@ class BoardWidget(QWidget):
                 if e.button() == Qt.RightButton:
                     n = self.game.remainingTroops
                 self.drafted.emit(self.currentTerritory.name, n)
-            elif self.game.state == State.Attack and self.game.yourTurn():
-                if self.currentTerritory.owner == self.game.clientPlayer:
+            elif self.game.state in (State.Attack, State.Fortify) and self.game.yourTurn():
+                if not self.source and self.currentTerritory.owner == self.game.clientPlayer:
                     self.source = self.currentTerritory
                     if self.sourceAnimation:
                         self.sourceAnimation.finished.emit()
@@ -159,9 +161,25 @@ class BoardWidget(QWidget):
                     self.sourceAnimation.start()
                 elif self.source:
                     target = self.currentTerritory
-                    if e.button() == Qt.RightButton:
-                        n = self.source.troopCount - 1
-                    self.attacked.emit(self.source.name, target.name, n)
+                    if self.game.state == State.Attack and target.owner != self.source.owner:
+                        if e.button() == Qt.RightButton:
+                            n = self.source.troopCount - 1
+                        self.attacked.emit(self.source.name, target.name, n)
+                    elif self.game.state == State.Fortify and target.owner == self.source.owner:
+                        if e.button() == Qt.RightButton:
+                            n = self.source.troopCount - 1
+                        else:
+                            (n, ok) = QInputDialog.getInt(self, "Fortify", "Number of troops to move", 1, 1, self.source.troopCount - 1)
+                            if not ok:
+                                return
+                        self.fortified.emit(self.source.name, target.name, n)
+
+    def keyReleaseEvent(self, e):
+        if e.key() == Qt.Key_Escape:
+            self.source = None
+            if self.sourceAnimation:
+                self.sourceAnimation.finished.emit()
+                self.sourceAnimation = None
 
     def coloredMask(self, territory, color):
         pixmap = self.coloredMaskCache.get(territory, color)

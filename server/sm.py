@@ -285,6 +285,11 @@ class SM(QObject):
             elif action == Action.EndAttack:
                 self.substate = State.Fortify
                 return True
+
+            elif action == Action.EndTurn:
+                self.next(Action.EndAttack)
+                self.next(Action.EndTurn)
+                return True
             
         elif s == State.Fortify:
             if action == Action.Fortify:
@@ -299,6 +304,9 @@ class SM(QObject):
                     return False
                 source.troopCount -= n
                 target.troopCount += n
+                self.territoryUpdated.emit(source.name, source.owner.name, source.troopCount)
+                self.territoryUpdated.emit(target.name, target.owner.name, target.troopCount)
+                self.next(Action.EndTurn)
                 return True
             elif action == Action.EndTurn:
                 if self.awardCard and self.board.cards:

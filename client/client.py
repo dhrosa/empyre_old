@@ -150,6 +150,7 @@ class Client(QObject):
             self.mainWindow.boardWidget.territoryClaimed.connect(self.sendClaimTerritory)
             self.mainWindow.boardWidget.drafted.connect(self.sendDraft)
             self.mainWindow.boardWidget.attacked.connect(self.sendAttack)
+            self.mainWindow.boardWidget.fortified.connect(self.sendFortify)
             self.mainWindow.setWindowTitle("Risk %s:%d" % (self.host, self.port))
             self.mainWindow.chat.lineEntered.connect(self.sendChat)
             self.mainWindow.colorChanged.connect(self.sendColorChange)
@@ -296,6 +297,9 @@ class Client(QObject):
 
     def sendEndAttack(self):
         self.send(Message.EndAttack)
+
+    def sendFortify(self, source, target, n):
+        self.send(Message.Fortify, [source, target, n])
 
     def sendEndTurn(self):
         self.send(Message.EndTurn)

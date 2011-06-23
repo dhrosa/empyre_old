@@ -23,8 +23,9 @@ class Message(object):
         Draft,
         Attack,
         EndAttack,
+        Fortify,
         EndTurn,
-    ) = range(19)
+    ) = range(20)
 
     (
         Ping,
@@ -83,6 +84,7 @@ class Message(object):
         Draft: (str, int),
         Attack: (str, str, int),
         EndAttack: (),
+        Fortify: (str, str, int),
         EndTurn: (),
 
         Ping: (),

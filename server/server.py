@@ -223,6 +223,10 @@ class Server(QTcpServer):
                 elif msg == Message.EndAttack:
                     self.sm.next(Action.EndAttack)
                 
+                elif msg == Message.Fortify:
+                    (source, target, count) = args
+                    self.sm.next(Action.Fortify, [source, target, count])
+
                 elif msg == Message.EndTurn:
                     self.sm.next(Action.EndTurn)
 
