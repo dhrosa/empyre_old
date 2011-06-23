@@ -38,7 +38,7 @@ class SM(QObject):
         self.reset()
 
     def __str__(self):
-        return "substate: %s, current: %s, first: %s, source: %s, target: %s" % (State.toString(self.substate), self.currentPlayer, self.firstPlayer, self.source, self.target)
+        return "substate: %s, current: %s, first: %s" % (State.toString(self.substate), self.currentPlayer, self.firstPlayer)
 
     def __setattr__(self, name, value):
         if value != None:
@@ -61,17 +61,9 @@ class SM(QObject):
         self.tiedPlayers = []
         self.diceRolls = []
         self.remainingTroops = 0
-        self.source = None
-        self.target = None
         self.awardCard = False
         self.setsExchanged = 0
         self.board.reset()
-
-    def clear(self):
-        self.diceRolls = []
-        self.remainingTroops = 0
-        self.source = None
-        self.target = None
 
     def getPlayer(self, name):
         for i in range(len(self.players)):
@@ -191,7 +183,7 @@ class SM(QObject):
                         self.currentPlayer = self.tiedPlayers[self.diceRolls.index(highest)]
                         self.firstPlayer = self.currentPlayer
                         self.tiedPlayers = []
-                        self.clear()
+                        self.remainingTroops = 0
                         return True
                 else:
                     self.currentPlayer = self.nextPlayer(self.tiedPlayers)
@@ -264,61 +256,44 @@ class SM(QObject):
                     return False
                 if n < 1 or n >= source.troopCount:
                     return False
-                self.source = source
-                self.target = target
-                self.substate = State.AttackerRoll
+                targetPlayer = target.owner
                 self.remainingTroops = n
-                self.attacked.emit(self.currentPlayer.name, source.name, target.name)
+                attackRoll = rollDice(min(self.remainingTroops, 3))
+                defenceRoll = rollDice(min(target.troopCount, 2))
+                self.diceRolled.emit(self.currentPlayer.name, attackRoll)
+                self.diceRolled.emit(targetPlayer.name, defenceRoll)
+                attackerLoss = 0
+                defenderLoss = 0
+                for (a, d) in zip(attackRoll, defenceRoll):
+                    if a > d:
+                        attackerLoss += 1
+                    else:
+                        defenderLoss += 1
+                self.remainingTroops -= attackerLoss
+                source.troopCount -= attackerLoss
+                target.troopCount -= defenderLoss
+                if target.troopCount == 0:
+                    self.awardCard = True
+                    if self.territoryCount(targetPlayer) == 1:
+                        self.currentPlayer.cards += targetPlayer.cards
+                        targetPlayer.cards = []
+                        targetPlayer.isPlaying = False
+                        if self.livePlayerCount() == 1:
+                            self.substate = State.GameOver
+                            return True
+                    target.owner = self.currentPlayer
+                    target.troopCount = self.remainingTroops
+                    source.troopCount -= self.remainingTroops
+                    self.remainingTroops = 0
+                self.territoryUpdated.emit(source.name, source.owner, source.troopCount)
+                self.territoryUpdated.emit(target.name, target.owner, target.troopCount)
                 return True
+                
             elif action == Action.EndAttack:
                 if self.awardCard and self.board.cards:
                     self.currentPlayer.cards.append(self.board.cards.pop())
                     self.awardCard = False
                 self.substate = State.Fortify
-                return True
-
-        elif s == State.AttackerRoll:
-            if action == Action.RollDice:
-                self.diceRolls = rollDice(min(self.remainingTroops, 3))
-                self.substate = State.DefenderRoll
-                return True
-            if action == Action.Retreat:
-                self.clear()
-                self.substate = State.Attack
-                return True
-    
-        elif s == State.DefenderRoll:
-            if action == Action.RollDice:
-                defenceRolls = rollDice(min(self.target.troopCount, 2))
-                count = min(len(self.diceRolls), len(defenceRolls))
-                attackerLoss = 0
-                defenderLoss = 0
-                for i in range(count):
-                    if defenceRolls[i] >= self.diceRolls[i]:
-                        attackerLoss += 1
-                    else:
-                        defenderLoss += 1
-                self.remainingTroops -= attackerLoss
-                self.source.troopCount -= attackerLoss
-                self.target.troopCount -= defenderLoss
-                if self.target.troopCount == 0:
-                    self.awardCard = True
-                    if self.territoryCount(self.target.owner) == 1:
-                        self.currentPlayer.cards += self.target.owner.cards
-                        self.target.owner.cards = []
-                        self.target.owner.isPlaying = False
-                        if self.livePlayerCount == 1:
-                            self.substate = State.GameOver
-                            return True
-                    self.target.owner = self.currentPlayer
-                    self.target.troopCount = self.remainingTroops
-                    self.source.troopCount -= self.remainingTroops
-                    self.clear()
-                    self.substate = State.Attack
-                    return True
-                elif self.remainingTroops == 0:
-                    self.clear()
-                    self.substate = State.Attack
                 return True
             
         elif s == State.Fortify:

@@ -24,11 +24,9 @@ class State(object):
         InitialDraft,
         Draft,
         Attack,
-        AttackerRoll,
-        DefenderRoll,
         Fortify,
         GameOver,
-    ) = range(11)
+    ) = range(9)
 
     @staticmethod
     def toString(state):
