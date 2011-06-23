@@ -12,13 +12,13 @@ def debug(func):
         print "Passed in action: %s with args %s" % (Action.toString(action), args)
         if func(s, action, args):
             print "=" * 80
-            print "OK ",
+            print "OK",
             print s
             print "=" * 80
             return True
         else:
             print "=" * 80
-            print "FAIL ",
+            print "FAIL",
             print s
             print "=" * 80
             return False
@@ -256,11 +256,11 @@ class SM(QObject):
                 self.diceRolled.emit(targetPlayer.name, defenceRoll)
                 attackerLoss = 0
                 defenderLoss = 0
-                for (a, d) in zip(attackRoll, defenceRoll):
+                for a, d in zip(attackRoll, defenceRoll):
                     if a > d:
-                        attackerLoss += 1
-                    else:
                         defenderLoss += 1
+                    else:
+                        attackerLoss += 1
                 self.remainingTroops -= attackerLoss
                 source.troopCount -= attackerLoss
                 target.troopCount -= defenderLoss
@@ -277,8 +277,8 @@ class SM(QObject):
                     target.troopCount = self.remainingTroops
                     source.troopCount -= self.remainingTroops
                     self.remainingTroops = 0
-                self.territoryUpdated.emit(source.name, source.owner, source.troopCount)
-                self.territoryUpdated.emit(target.name, target.owner, target.troopCount)
+                self.territoryUpdated.emit(source.name, source.owner.name, source.troopCount)
+                self.territoryUpdated.emit(target.name, target.owner.name, target.troopCount)
                 return True
                 
             elif action == Action.EndAttack:

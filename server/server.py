@@ -243,8 +243,7 @@ class Server(QTcpServer):
 
     def sendDiceRoll(self, playerName, rolls):
         print "%s rolled %s." % (playerName, rolls)
-        rolls += [0] * (3 - len(rolls))
-        self.send(Message.DiceRolled, [playerName] + rolls)
+        self.send(Message.DiceRolled, [playerName] + rolls + [0] * (3 - len(rolls)))
 
     def sendTiedPlayers(self, names):
         self.send(Message.BeginTiedPlayerList)
