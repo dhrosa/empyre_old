@@ -175,9 +175,9 @@ class SM(QObject):
                     else:
                         i = rolls.index(highest)
                         name = tiedPlayers[i].name
-                        self.substate = State.InitialPlacement
                         self.firstPlayer = self.getPlayer(name)
                         self.currentPlayer = self.firstPlayer
+                        self.substate = State.InitialPlacement
                         break
                 return True
                 

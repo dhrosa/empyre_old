@@ -246,9 +246,20 @@ class Client(QObject):
             self.mainWindow.boardWidget.attack(*args)
 
     def handleStateChange(self, old, new):
+        self.mainWindow.cashCards.setEnabled(False)
+        self.mainWindow.endAttack.setEnabled(False)
+        self.mainWindow.endTurn.setEnabled(False)
         if old == State.Lobby:
             self.mainWindow.chat.addLine("The game has started!")
             self.mainWindow.boardWidget.setEnabled(True)
+        elif self.game.yourTurn():
+            if new == State.Draft:
+                self.mainWindow.cashCards.setEnabled(True)
+            elif new == State.Attack:
+                self.mainWindow.endAttack.setEnabled(True)
+                self.mainWindow.endTurn.setEnabled(True)
+            elif new == State.Fortify:
+                self.mainWindow.endTurn.setEnabled(True)
         self.game.state = new
 
     def sendChat(self, text):
