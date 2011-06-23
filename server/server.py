@@ -35,6 +35,7 @@ class Server(QTcpServer):
        self.connections = []
        self.sm = SM(board)
        self.sm.stateChanged.connect(self.sendStateChange)
+       self.sm.playersTied.connect(self.sendTiedPlayers)
        self.sm.diceRolled.connect(self.sendDiceRoll)
        self.sm.turnChanged.connect(self.sendTurnChange)
        self.sm.territoryUpdated.connect(self.sendTerritoryUpdate)
@@ -244,6 +245,12 @@ class Server(QTcpServer):
         print "%s rolled %s." % (playerName, rolls)
         rolls += [0] * (3 - len(rolls))
         self.send(Message.DiceRolled, [playerName] + rolls)
+
+    def sendTiedPlayers(self, names):
+        self.send(Message.BeginTiedPlayerList)
+        for n in names:
+            self.send(Message.TiedPlayer, [n])
+        self.send(Message.EndTiedPlayerList)
 
     def sendTurnChange(self, name):
         self.send(Message.TurnChanged, [name])

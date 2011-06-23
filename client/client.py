@@ -211,6 +211,17 @@ class Client(QObject):
             self.game.currentPlayer = self.game.getPlayer(name)
             self.game.changed.emit()
 
+        elif msg == Message.BeginTiedPlayerList:
+            self.tiedPlayers = []
+
+        elif msg == Message.TiedPlayer:
+            self.tiedPlayers.append(args[0])
+
+        elif msg == Message.EndTiedPlayerList:
+            names = ",".join(self.tiedPlayers[:-1])
+            last = self.tiedPlayers[-1]
+            self.mainWindow.chat.addLine("%s and %s have tied!" % (names, last))
+
         elif msg == Message.DiceRolled:
             (name, r1, r2, r3) = args
             roll = [r1, r2, r3]

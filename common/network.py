@@ -50,13 +50,16 @@ class Message(object):
         NameChangeSuccess,
         NameChanged,
         GameStarted,
-
+        
+        BeginTiedPlayerList,
+        TiedPlayer,
+        EndTiedPlayerList,
         TurnChanged,
         DiceRolled,
         TerritoryUpdated,
         RemainingTroopsChanged,
         Attacked,
-    ) = range (100, 129)
+    ) = range (100, 132)
         
     validArgs = {
         Pong: (),
@@ -104,6 +107,9 @@ class Message(object):
         NameChanged: (str, str),
         GameStarted: (),
 
+        BeginTiedPlayerList: (),
+        TiedPlayer: (str,),
+        EndTiedPlayerList: (),
         TurnChanged: (str,),
         DiceRolled: (str, int, int, int),
         TerritoryUpdated: (str, str, int,),
