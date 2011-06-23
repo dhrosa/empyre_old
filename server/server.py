@@ -242,10 +242,8 @@ class Server(QTcpServer):
 
     def sendDiceRoll(self, playerName, rolls):
         print "%s rolled %s." % (playerName, rolls)
-        encoded = 0
-        for (i, r) in enumerate(rolls):
-            encoded |= r << (8 * i)
-        self.send(Message.DiceRolled, [str(playerName), len(rolls), encoded])
+        rolls += [0] * (3 - len(rolls))
+        self.send(Message.DiceRolled, [playerName] + rolls)
 
     def sendTurnChange(self, name):
         self.send(Message.TurnChanged, [name])

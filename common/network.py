@@ -105,7 +105,7 @@ class Message(object):
         GameStarted: (),
 
         TurnChanged: (str,),
-        DiceRolled: (str, int, int),
+        DiceRolled: (str, int, int, int),
         TerritoryUpdated: (str, str, int,),
         RemainingTroopsChanged: (int,),
         Attacked: (str, str, str),

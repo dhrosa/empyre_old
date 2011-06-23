@@ -211,13 +211,10 @@ class Client(QObject):
             self.game.currentPlayer = self.game.getPlayer(name)
             self.game.changed.emit()
 
-
         elif msg == Message.DiceRolled:
-            (name, n, encoded) = args
-            values = []
-            for i in range(n):
-                values.append((encoded >> (8 * i)) & 0xff)
-            self.mainWindow.chat.addLine("%s rolled %s" % (name, values))
+            (name, r1, r2, r3) = args
+            roll = [r1, r2, r3]
+            self.mainWindow.chat.addLine("%s rolled %s" % (name, [r for r in roll if r]))
 
         elif msg == Message.TerritoryUpdated:
             (name, owner, count) = args
