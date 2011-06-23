@@ -1,4 +1,4 @@
-from PyQt4.QtCore import pyqtSignal, Qt, pyqtProperty, QObject, QTimer, QPropertyAnimation, QRectF, QPointF, QLineF
+from PyQt4.QtCore import pyqtSignal, Qt, pyqtProperty, QObject, QTimer, QPropertyAnimation, QRectF, QPointF, QLineF, QEasingCurve, QRect
 
 from PyQt4.QtGui import QPen, QPainter, QPixmap, QColor
 
@@ -87,3 +87,40 @@ class BlinkingAnimation(Animation):
             painter.drawPixmap(0, 0, self.pixmap)
         
 
+class ExplodingAnimation(Animation):
+    def __init__(self, center, duration, parent = None):
+        super(ExplodingAnimation, self).__init__(parent)
+        self.center = center
+        self.__radius = 1.0
+        self.anim = QPropertyAnimation(self, "radius")
+        self.anim.setStartValue(1.0)
+        self.anim.setEndValue(100.0)
+        self.anim.setDuration(duration)
+        self.anim.setEasingCurve(QEasingCurve.OutExpo)
+        self.anim.valueChanged.connect(self.updated)
+        self.anim.finished.connect(self.finished)
+
+    def start(self):
+        self.anim.start()
+
+    def stop(self):
+        self.anim.stop()
+
+    def getRadius(self):
+        return self.__radius
+
+    def setRadius(self, r):
+        self.__radius = r
+
+    radius = pyqtProperty("qreal", getRadius, setRadius)
+
+    def paint(self, painter):
+        opacity = 1.0 - float(self.anim.currentTime()) / self.anim.duration()
+        pen = QPen(QColor(255, 0, 0, opacity * 255))
+        pen.setWidth(3)
+        painter.setPen(pen)
+        painter.setBrush(Qt.transparent)
+        rect = QRect(0, 0, self.radius * 2, self.radius * 2)
+        rect.moveCenter(self.center)
+        painter.drawEllipse(rect)
+        

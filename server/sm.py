@@ -213,7 +213,6 @@ class SM(QObject):
                     if self.currentPlayer == self.firstPlayer:
                         self.substate = State.Draft
                     return True
-
                 return True
 
         elif s == State.Draft:
@@ -279,6 +278,7 @@ class SM(QObject):
                     self.remainingTroops = 0
                 self.territoryUpdated.emit(source.name, source.owner.name, source.troopCount)
                 self.territoryUpdated.emit(target.name, target.owner.name, target.troopCount)
+                self.attacked.emit(source.owner.name, source.name, target.name)
                 return True
                 
             elif action == Action.EndAttack:

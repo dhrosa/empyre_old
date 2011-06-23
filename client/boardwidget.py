@@ -1,7 +1,7 @@
-from PyQt4.QtCore import pyqtSignal, Qt, QRect
+from PyQt4.QtCore import pyqtSignal, Qt, QRect, QPoint
 from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor
 
-from animations import LineAnimation, BlinkingAnimation
+from animations import LineAnimation, BlinkingAnimation, ExplodingAnimation
 from common.game import State
 
 class ColoredMaskCache(object):
@@ -71,9 +71,9 @@ class BoardWidget(QWidget):
         source = self.game.board.getTerritory(source)
         target = self.game.board.getTerritory(target)
         attacker = self.game.getPlayer(attacker)
-        anim = LineAnimation(source.center, target.center, QColor(*attacker.color), 2000)
+        anim = ExplodingAnimation(QPoint(*target.center), 1000)
         anim.finished.connect(self.removeAnimation)
-        anim.updated.connect(self.update)
+        anim.updated.connect(self.repaint)
         self.animations.append(anim)
         anim.start()
 
