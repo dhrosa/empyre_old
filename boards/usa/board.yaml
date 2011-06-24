@@ -605,7 +605,7 @@ regions:
     
   - name: South Atlantic
     bonus: 6
-    territories: [FL, GA, SC, NC, VA]
+    territories: [FL, GA, SC, NC]
     
   - name: Mid-Atlantic
     bonus: 8
