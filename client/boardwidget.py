@@ -34,7 +34,6 @@ class BoardWidget(QWidget):
         self.currentTerritory = None
         self.coloredMaskCache = ColoredMaskCache()
         self.animations = []
-        self.cachedMap = None
         self.source = None
         self.sourceAnimation = None
         self.scaleFactor = 1.0
@@ -66,6 +65,7 @@ class BoardWidget(QWidget):
         regionMap.fill(0)
         painter = QPainter()
         painter.begin(regionMap)
+        labels = []
         for r in self.game.board.regions:
             regionMask = QImage(self.imageSize(), QImage.Format_ARGB32_Premultiplied)
             regionMask.fill(0)
@@ -88,6 +88,10 @@ class BoardWidget(QWidget):
             p.end()
             painter.drawImage(0, 0, regionImage)
             text = "%s: %d" % (r.name, r.bonus)
+            labels.append((center, text))
+
+        for l in labels:
+            (center, text) = l
             height = painter.fontMetrics().height() + 8
             width = painter.fontMetrics().width(text) + 8
             painter.setPen(Qt.white)
