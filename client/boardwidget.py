@@ -1,3 +1,5 @@
+from random import randint
+
 from PyQt4.QtCore import pyqtSignal, Qt, QRect, QPoint
 from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor, QInputDialog
 
@@ -36,6 +38,7 @@ class BoardWidget(QWidget):
         self.source = None
         self.sourceAnimation = None
         self.scaleFactor = 1.0
+        self.showRegionMap = False
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.StrongFocus)
         self.setEnabled(False)
@@ -58,11 +61,47 @@ class BoardWidget(QWidget):
             progress.setValue(i)
             t = self.game.board.getTerritory(name)
             t.image = QImage(t.image)
-        self.resize(self.minimumSizeHint())
+        #generate region map
+        regionMap = QImage(self.imageSize(), QImage.Format_ARGB32_Premultiplied)
+        regionMap.fill(0)
+        painter = QPainter()
+        painter.begin(regionMap)
+        for r in self.game.board.regions:
+            regionMask = QImage(self.imageSize(), QImage.Format_ARGB32_Premultiplied)
+            regionMask.fill(0)
+            p = QPainter()
+            p.begin(regionMask)
+            center = QPoint(0, 0)
+            for t in r.territories:
+                p.drawImage(0, 0, t.image)
+                center += QPoint(*t.center)
+            center /= len(r.territories)
+            p.end()
+            regionImage = QImage(self.imageSize(), QImage.Format_ARGB32_Premultiplied)
+            regionImage.fill(0)
+            p.begin(regionImage)
+            p.setCompositionMode(QPainter.CompositionMode_Source)
+            color = [randint(0, 255) for i in range(3)] + [200]
+            p.fillRect(regionImage.rect(), QColor(*color))
+            p.setCompositionMode(QPainter.CompositionMode_DestinationIn)
+            p.drawImage(0, 0, regionMask)
+            p.end()
+            painter.drawImage(0, 0, regionImage)
+            text = "%s: %d" % (r.name, r.bonus)
+            height = painter.fontMetrics().height() + 8
+            width = painter.fontMetrics().width(text) + 8
+            painter.setPen(Qt.white)
+            painter.setBrush(QColor(0, 0, 0, 200))
+            textRect = QRect(0, 0, width, height)
+            textRect.moveCenter(center)
+            painter.drawRect(textRect)
+            painter.drawText(textRect, Qt.AlignCenter, text)
+        painter.end()
+        self.regionMap = QPixmap.fromImage(regionMap)
+        self.scaledRegionMap = self.regionMap
 
     def recreateMasks(self):
         self.masks = {}
-        self.selectionImages = {}
         for t in self.game.board.iterTerritories():
             self.masks[t] = t.image.scaled(self.imageSize())
         self.coloredMaskCache.clear()
@@ -115,6 +154,7 @@ class BoardWidget(QWidget):
         size.scale(event.size(), Qt.KeepAspectRatio)
         self.scaleFactor = float(self.minimumSizeHint().width()) / size.width()
         self.recreateMasks()
+        self.scaledRegionMap = self.regionMap.scaled(size)
         self.coloredMaskCache.clear()
 
     def mouseMoveEvent(self, event):
@@ -175,7 +215,10 @@ class BoardWidget(QWidget):
                         self.fortified.emit(self.source.name, target.name, n)
 
     def keyReleaseEvent(self, e):
-        if e.key() == Qt.Key_Escape:
+        if e.key() == Qt.Key_B:
+            self.showRegionMap = not self.showRegionMap
+            self.update()
+        elif e.key() == Qt.Key_Escape:
             self.source = None
             if self.sourceAnimation:
                 self.sourceAnimation.finished.emit()
@@ -209,21 +252,24 @@ class BoardWidget(QWidget):
         painter.setPen(Qt.white)
         painter.setBrush(Qt.black)
         if self.isEnabled():
-            if self.currentTerritory:
-                painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, QColor(*self.game.clientPlayer.color)))
-            for a in self.animations:
-                painter.save()
-                a.paint(painter)
-                painter.restore()
-            #draw territory troop counts
-            for t in self.game.board.iterTerritories():
-                if t.owner:
-                    x = (t.center[0] - 12) / self.scaleFactor
-                    y = (t.center[1] - 12) / self.scaleFactor
-                    width = 25
-                    height = 25
-                    painter.drawEllipse(x, y, width, height)
-                    painter.drawText(x, y, width, height, Qt.AlignCenter, str(t.troopCount))
+            if self.showRegionMap:
+                painter.drawPixmap(0, 0, self.scaledRegionMap)
+            else:
+                if self.currentTerritory:
+                    painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, QColor(*self.game.clientPlayer.color)))
+                for a in self.animations:
+                    painter.save()
+                    a.paint(painter)
+                    painter.restore()
+                #draw territory troop counts
+                for t in self.game.board.iterTerritories():
+                    if t.owner:
+                        x = (t.center[0] - 12) / self.scaleFactor
+                        y = (t.center[1] - 12) / self.scaleFactor
+                        width = 25
+                        height = 25
+                        painter.drawEllipse(x, y, width, height)
+                        painter.drawText(x, y, width, height, Qt.AlignCenter, str(t.troopCount))
         else:
             painter.fillRect(rect, QColor(0, 0, 0, 200))
             painter.drawText(rect, Qt.AlignCenter, "Waiting for the game to start.")
@@ -261,3 +307,4 @@ class BoardWidget(QWidget):
             painter.drawText(troopRect, Qt.AlignCenter, troopText)
 
         painter.end()
+

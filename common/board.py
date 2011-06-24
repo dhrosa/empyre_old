@@ -40,6 +40,9 @@ class Region(object):
                 return False
         return True
 
+    def __hash__(self):
+        return hash(self.name)
+
     def __str__(self):
         return "%s: %d" % (self.name, self.bonus)
 
