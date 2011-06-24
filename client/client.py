@@ -33,6 +33,7 @@ class Client(QObject):
             if not QMessageBox.Retry == QMessageBox.critical(None, "Connection Failed", "Failed to connect to %s on port %d" % (self.host, self.port), QMessageBox.Retry | QMessageBox.Cancel):
                 sys.exit()
         self.send(Message.Join)
+        QApplication.setQuitOnLastWindowClosed(False)
 
     def send(self, msg, args = []):
         self.sendReady.emit(msg, args)
@@ -316,6 +317,8 @@ if __name__ == "__main__":
         dialog = ConnectDialog()
         if dialog.exec_():
             client = Client(dialog.hostEdit.text(), dialog.portEdit.value())
+        else:
+            sys.exit()
     else:
         client = Client("127.0.0.1", 9002)
     sys.exit(app.exec_())
