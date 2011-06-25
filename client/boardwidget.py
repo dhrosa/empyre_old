@@ -60,10 +60,10 @@ class BoardWidget(QWidget):
             t = self.game.board.getTerritory(name)
             t.image = QImage(t.image)
         #generate region map
-        regionMap = QImage(self.imageSize(), QImage.Format_ARGB32_Premultiplied)
-        regionMap.fill(0)
+        regionOverlay = QImage(self.imageSize(), QImage.Format_ARGB32_Premultiplied)
+        regionOverlay.fill(0)
         painter = QPainter()
-        painter.begin(regionMap)
+        painter.begin(regionOverlay)
         labels = []
         for r in self.game.board.regions:
             regionMask = QImage(self.imageSize(), QImage.Format_ARGB32_Premultiplied)
@@ -99,6 +99,10 @@ class BoardWidget(QWidget):
             textRect.moveCenter(center)
             painter.drawRect(textRect)
             painter.drawText(textRect, Qt.AlignCenter, text)
+        painter.end()
+        regionMap = self.game.board.image.copy()
+        painter.begin(regionMap)
+        painter.drawImage(0, 0, regionOverlay)
         painter.end()
         self.regionMap = QPixmap.fromImage(regionMap)
         self.scaledRegionMap = self.regionMap
@@ -264,7 +268,8 @@ class BoardWidget(QWidget):
     def paintEvent(self, event):
         painter = QPainter()
         painter.begin(self)
-        painter.drawPixmap(0, 0, self.ownershipMap)
+        if not self.showRegionMap:
+            painter.drawPixmap(0, 0, self.ownershipMap)
         rect = self.imageRect()
         painter.setPen(Qt.white)
         painter.setBrush(Qt.black)
