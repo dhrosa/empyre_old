@@ -119,6 +119,10 @@ class BoardWidget(QWidget):
         self.scaledRegionMap = self.regionMap
         self.ownershipMap = QPixmap.fromImage(self.game.board.image)
         self.scaledOwnershipMap = self.ownershipMap
+        troopCountMap = QImage(self.game.board.image.size(), QImage.Format_ARGB32_Premultiplied)
+        troopCountMap.fill(0)
+        self.troopCountMap = QPixmap.fromImage(troopCountMap)
+        self.scaledTroopCountMap = self.troopCountMap
 
     def recreateMasks(self):
         self.masks = {}
@@ -150,6 +154,22 @@ class BoardWidget(QWidget):
         p.drawImage(0, 0, coloredTerritoryImage)
         p.end()
         self.scaledOwnershipMap = self.ownershipMap.scaled(self.imageSize())
+        self.update()
+
+    def updateTerritoryTroopCount(self, name, count):
+        t = self.game.board.getTerritory(name)
+        x = t.center[0] - 12
+        y = t.center[1] - 12
+        width = 25
+        height = 25
+        painter = QPainter()
+        painter.begin(self.troopCountMap)
+        painter.setPen(Qt.white)
+        painter.setBrush(Qt.black)
+        painter.drawEllipse(x, y, width, height)
+        painter.drawText(x, y, width, height, Qt.AlignCenter, str(t.troopCount))
+        painter.end()
+        self.scaledTroopCountMap = self.troopCountMap.scaled(self.imageSize())
         self.update()
 
     def toggleShowRegionMap(self):
@@ -196,6 +216,7 @@ class BoardWidget(QWidget):
         self.recreateMasks()
         self.scaledRegionMap = self.regionMap.scaled(size)
         self.scaledOwnershipMap = self.ownershipMap.scaled(size)
+        self.scaledTroopCountMap = self.troopCountMap.scaled(size)
         self.coloredMaskCache.clear()
         self.update()
 
@@ -291,29 +312,20 @@ class BoardWidget(QWidget):
         painter = QPainter()
         painter.begin(self)
         if not self.showRegionMap:
-            painter.drawPixmap(0, 0, self.ownershipMap)
+            painter.drawPixmap(0, 0, self.scaledOwnershipMap)
         rect = self.imageRect()
-        painter.setPen(Qt.white)
-        painter.setBrush(Qt.black)
         if self.isEnabled():
             if self.showRegionMap:
                 painter.drawPixmap(0, 0, self.scaledRegionMap)
             else:
                 if self.currentTerritory:
                     painter.drawPixmap(0, 0, self.coloredMask(self.currentTerritory, QColor(*self.game.clientPlayer.color)))
+                #draw active animations
                 for a in self.animations:
                     painter.save()
                     a.paint(painter)
                     painter.restore()
-                #draw territory troop counts
-                for t in self.game.board.iterTerritories():
-                    if t.owner:
-                        x = (t.center[0] - 12) / self.scaleFactor
-                        y = (t.center[1] - 12) / self.scaleFactor
-                        width = 25
-                        height = 25
-                        painter.drawEllipse(x, y, width, height)
-                        painter.drawText(x, y, width, height, Qt.AlignCenter, str(t.troopCount))
+                painter.drawPixmap(0, 0, self.scaledTroopCountMap)
         else:
             painter.fillRect(rect, QColor(0, 0, 0, 200))
             painter.drawText(rect, Qt.AlignCenter, "Waiting for the game to start.")

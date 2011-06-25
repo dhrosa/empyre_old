@@ -235,10 +235,13 @@ class Client(QObject):
             (name, owner, count) = args
             t = self.game.board.getTerritory(name)
             previousOwner = t.owner
+            previousTroopCount = t.troopCount
             t.owner = self.game.getPlayer(owner)
             t.troopCount = count
             if t.owner != previousOwner:
                 self.mainWindow.boardWidget.updateTerritoryOwner(name, owner)
+            if t.troopCount != previousTroopCount:
+                self.mainWindow.boardWidget.updateTerritoryTroopCount(name, count)
             self.game.changed.emit()
 
         elif msg == Message.RemainingTroopsChanged:
