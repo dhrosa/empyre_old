@@ -312,10 +312,12 @@ debug = False
 clientName = ""
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        clientName = sys.argv[1]
-        debug = True
+    if "opengl" in sys.argv and "-graphicssystem" in sys.argv:
+        import OpenGL.GL
     app = QApplication(sys.argv)
+    if len(app.arguments()) > 1:
+        clientName = app.arguments()[1]
+        debug = True
     if not debug:
         dialog = ConnectDialog()
         if dialog.exec_():
