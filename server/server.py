@@ -238,8 +238,8 @@ class Server(QTcpServer):
         elif line.lower() == "reset":
             print "Resetting server."
             self.colors = self.predefinedColors
-            self.resetting.emit()
             self.sm.reset()
+            self.resetting.emit()
         elif line.lower() == "start":
             if not self.sm.next(Action.StartGame):
                 print "Need more players to start."
