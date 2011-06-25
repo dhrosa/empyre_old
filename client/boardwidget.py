@@ -42,7 +42,6 @@ class BoardWidget(QWidget):
         self.setFocusPolicy(Qt.StrongFocus)
         self.setEnabled(False)
         self.loadImages()
-        self.updateTerritories()
 
     def imageRect(self):
         return QRect(QPoint(0, 0), self.imageSize())
@@ -103,26 +102,38 @@ class BoardWidget(QWidget):
         painter.end()
         self.regionMap = QPixmap.fromImage(regionMap)
         self.scaledRegionMap = self.regionMap
+        self.ownershipMap = QPixmap.fromImage(self.game.board.image)
+        self.scaledOwnershipMap = self.ownershipMap
 
     def recreateMasks(self):
         self.masks = {}
         for t in self.game.board.iterTerritories():
             self.masks[t] = t.image.scaled(self.imageSize())
         self.coloredMaskCache.clear()
-        self.updateTerritories()
 
-    def updateTerritories(self):
-        size = self.imageSize()
-        image = QImage(size, QImage.Format_ARGB32_Premultiplied)
-        image.fill(0)
-        painter = QPainter()
-        painter.begin(image)
-        painter.drawImage(0, 0, self.game.board.image.scaled(size))
-        for t in self.game.board.iterTerritories():
-            if t.owner:
-                painter.drawPixmap(0, 0, self.coloredMask(t, QColor(*t.owner.color)))
-        painter.end()
-        self.cachedMap = QPixmap.fromImage(image)
+    def updateTerritoryOwner(self, name, owner):
+        t = self.game.board.getTerritory(name)
+        p = self.game.getPlayer(owner)
+        color = QColor(*p.color)
+        color.setAlpha(200)
+        territoryImage = self.ownershipMap.toImage()
+        p = QPainter()
+        p.begin(territoryImage)
+        p.setCompositionMode(QPainter.CompositionMode_DestinationIn)
+        p.drawImage(0, 0, t.image)
+        p.end()
+        coloredTerritoryImage = QImage(territoryImage.size(), QImage.Format_ARGB32_Premultiplied)
+        coloredTerritoryImage.fill(0)
+        p.begin(coloredTerritoryImage)
+        p.fillRect(territoryImage.rect(), color)
+        p.setCompositionMode(QPainter.CompositionMode_DestinationIn)
+        p.drawImage(0, 0, territoryImage)
+        p.end()
+        p.begin(self.ownershipMap)
+        p.drawImage(0, 0, coloredTerritoryImage)
+        p.end()
+        self.scaledOwnershipMap = self.ownershipMap.scaled(self.imageSize())
+        self.update()
 
     def territoryAt(self, x, y):
         for t in self.game.board.iterTerritories():
@@ -159,7 +170,9 @@ class BoardWidget(QWidget):
         self.scaleFactor = float(self.minimumSizeHint().width()) / size.width()
         self.recreateMasks()
         self.scaledRegionMap = self.regionMap.scaled(size)
+        self.scaledOwnershipMap = self.ownershipMap.scaled(size)
         self.coloredMaskCache.clear()
+        self.update()
 
     def mouseMoveEvent(self, event):
         oldTerritory = self.currentTerritory
@@ -239,7 +252,7 @@ class BoardWidget(QWidget):
             painter = QPainter()
             painter.begin(image)
             painter.setCompositionMode(QPainter.CompositionMode_Source)
-            color.setAlpha(200)
+            color.setAlpha(100)
             painter.fillRect(rect, color)
             painter.setCompositionMode(QPainter.CompositionMode_DestinationIn)
             painter.drawImage(0, 0, mask)
@@ -251,7 +264,7 @@ class BoardWidget(QWidget):
     def paintEvent(self, event):
         painter = QPainter()
         painter.begin(self)
-        painter.drawPixmap(0, 0, self.cachedMap)
+        painter.drawPixmap(0, 0, self.ownershipMap)
         rect = self.imageRect()
         painter.setPen(Qt.white)
         painter.setBrush(Qt.black)
