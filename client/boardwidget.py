@@ -45,9 +45,14 @@ class BoardWidget(QWidget):
 
         toggleRegionMap = QAction(self,
                                   shortcutContext=Qt.ApplicationShortcut,
-                                  shortcut="b",
+                                  shortcut=Qt.Key_B,
                                   triggered=self.toggleShowRegionMap)
+        cancelSelection = QAction(self,
+                                  shortcutContext=Qt.ApplicationShortcut,
+                                  shortcut=Qt.Key_Escape,
+                                  triggered=self.cancelSelection)
         self.addAction(toggleRegionMap)
+        self.addAction(cancelSelection)
 
     def imageRect(self):
         return QRect(QPoint(0, 0), self.imageSize())
@@ -149,6 +154,13 @@ class BoardWidget(QWidget):
         self.showRegionMap = not self.showRegionMap
         self.update()
 
+    def cancelSelection(self):
+        self.source = None
+        if self.sourceAnimation:
+            self.sourceAnimation.finished.emit()
+            self.sourceAnimation = None
+            self.update()
+
     def territoryAt(self, x, y):
         for t in self.game.board.iterTerritories():
             if t.image.pixel(x, y):
@@ -170,10 +182,7 @@ class BoardWidget(QWidget):
         anim.start()
 
     def stateChange(self, old, new):
-        if self.source:
-            self.source = None
-            self.sourceAnimation.finished.emit()
-            self.sourceAnimation = None
+        self.cancelSelection()
 
     def minimumSizeHint(self):
         return self.game.board.image.size()
@@ -221,9 +230,8 @@ class BoardWidget(QWidget):
                 self.drafted.emit(self.currentTerritory.name, n)
             elif self.game.state in (State.Attack, State.Fortify) and self.game.yourTurn():
                 if not self.source and self.currentTerritory.owner == self.game.clientPlayer:
+                    self.cancelSelection()
                     self.source = self.currentTerritory
-                    if self.sourceAnimation:
-                        self.sourceAnimation.finished.emit()
                     mask = self.coloredMask(self.currentTerritory, QColor(170, 170, 0, 200))
                     self.sourceAnimation = BlinkingAnimation(mask, 1000)
                     self.sourceAnimation.updated.connect(self.update)
@@ -244,6 +252,18 @@ class BoardWidget(QWidget):
                             if not ok:
                                 return
                         self.fortified.emit(self.source.name, target.name, n)
+                    elif target.owner == self.source.owner:
+                        self.cancelSelection()
+                        self.source = self.currentTerritory
+                        mask = self.coloredMask(self.currentTerritory, QColor(170, 170, 0, 200))
+                        self.sourceAnimation = BlinkingAnimation(mask, 1000)
+                        self.sourceAnimation.updated.connect(self.update)
+                        self.sourceAnimation.finished.connect(self.removeAnimation)
+                        self.animations.append(self.sourceAnimation)
+                        self.sourceAnimation.start()
+        else:
+            self.cancelSelection()
+                        
 
     def coloredMask(self, territory, color):
         pixmap = self.coloredMaskCache.get(territory, color)
