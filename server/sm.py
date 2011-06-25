@@ -224,8 +224,8 @@ class SM(QObject):
 
             elif action == Action.PlaceTroops:
                 (t, n) = args
-                if self.currentPlayer.cardCount() > 4:
-                    return False
+#                if self.currentPlayer.cardCount() > 4:
+#                    return False
                 if n < 1:
                     return False
                 n = self.placeTroops(t, n)
