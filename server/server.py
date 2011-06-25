@@ -146,7 +146,7 @@ class Server(QTcpServer):
             if msg == Message.SendChat:
                 text = args[0]
                 print "%s: %s" % (conn.player.name, text)
-                timestamp = QDateTime.currentMSecsSinceEpoch()
+                timestamp = QDateTime.currentDateTime().toTime_t()
                 self.chatHistory.append([conn.player, text, timestamp])
                 self.send(Message.ReceiveChat, [conn.player.name, text, timestamp])
 

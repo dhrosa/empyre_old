@@ -162,6 +162,9 @@ class Connection(QTcpSocket):
         self.buffer.open(QBuffer.ReadWrite)
         self.readyRead.connect(self.readIncomingData)        
 
+    def abort(self):
+        super(Connection, self).abort()
+
     def readIncomingData(self):
         bytesWritten = self.buffer.write(self.readAll())
         self.buffer.seek(0)
