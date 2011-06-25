@@ -128,7 +128,7 @@ class SM(QObject):
 
     def draftCount(self, player):
         myTerritories = self.ownedTerritories(player)
-        bonus = max(3, floor(len(myTerritories) / 3))
+        bonus = max(3, int(floor(len(myTerritories) / 3)))
         for region in self.board.regions:
             if region.hasBonus(myTerritories):
                 bonus += region.bonus
@@ -250,7 +250,7 @@ class SM(QObject):
                     return False
                 targetPlayer = target.owner
                 self.remainingTroops = n
-                attackRoll = rollDice(min(self.remainingTroops, 3))
+                attackRoll = rollDice( min(self.remainingTroops, 3))
                 defenceRoll = rollDice(min(target.troopCount, 2))
                 self.diceRolled.emit(self.currentPlayer.name, attackRoll)
                 self.diceRolled.emit(targetPlayer.name, defenceRoll)
