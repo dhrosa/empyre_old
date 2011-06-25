@@ -1,7 +1,7 @@
 from random import randint
 
 from PyQt4.QtCore import pyqtSignal, Qt, QRect, QPoint
-from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor, QInputDialog
+from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor, QInputDialog, QAction, QKeySequence
 
 from animations import LineAnimation, BlinkingAnimation, ExplodingAnimation
 from common.game import State
@@ -42,6 +42,12 @@ class BoardWidget(QWidget):
         self.setFocusPolicy(Qt.StrongFocus)
         self.setEnabled(False)
         self.loadImages()
+
+        toggleRegionMap = QAction(self,
+                                  shortcutContext=Qt.ApplicationShortcut,
+                                  shortcut="b",
+                                  triggered=self.toggleShowRegionMap)
+        self.addAction(toggleRegionMap)
 
     def imageRect(self):
         return QRect(QPoint(0, 0), self.imageSize())
@@ -139,6 +145,10 @@ class BoardWidget(QWidget):
         self.scaledOwnershipMap = self.ownershipMap.scaled(self.imageSize())
         self.update()
 
+    def toggleShowRegionMap(self):
+        self.showRegionMap = not self.showRegionMap
+        self.update()
+
     def territoryAt(self, x, y):
         for t in self.game.board.iterTerritories():
             if t.image.pixel(x, y):
@@ -234,16 +244,6 @@ class BoardWidget(QWidget):
                             if not ok:
                                 return
                         self.fortified.emit(self.source.name, target.name, n)
-
-    def keyReleaseEvent(self, e):
-        if e.key() == Qt.Key_B:
-            self.showRegionMap = not self.showRegionMap
-            self.update()
-        elif e.key() == Qt.Key_Escape:
-            self.source = None
-            if self.sourceAnimation:
-                self.sourceAnimation.finished.emit()
-                self.sourceAnimation = None
 
     def coloredMask(self, territory, color):
         pixmap = self.coloredMaskCache.get(territory, color)
