@@ -1,6 +1,9 @@
 #! /usr/bin/python
 import sys
-sys.path.append(sys.path[0] + "/../")
+import os.path
+__current = os.path.dirname(os.path.abspath(__file__))
+__parent = os.path.join(__current, "..")
+sys.path.append(os.path.abspath(__parent))
 import sip
 sip.setapi('QString', 2)
 
