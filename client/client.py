@@ -315,6 +315,8 @@ debug = False
 clientName = ""
 
 if __name__ == "__main__":
+    from PyQt4.QtCore import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
     if "opengl" in sys.argv and "-graphicssystem" in sys.argv:
         import OpenGL.GL
     app = QApplication(sys.argv)

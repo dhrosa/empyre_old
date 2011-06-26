@@ -2,7 +2,7 @@
 import sys
 import os.path
 __current = os.path.dirname(os.path.abspath(__file__))
-__parent = os.path.join(__current, "..")
+__parent = os.path.abspath(os.path.join(__current, ".."))
 sys.path.append(os.path.abspath(__parent))
 import sip
 sip.setapi('QString', 2)
@@ -281,6 +281,8 @@ class Server(QTcpServer):
         self.send(Message.Attacked, [attacker, source, target])
 
 if __name__ == "__main__":
+    from PyQt4.QtCore import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
     app = QCoreApplication(sys.argv)
     try:
         boardName = sys.argv[1]
