@@ -120,7 +120,9 @@ def loadBoard(boardName, images = False):
     import sys
     import os.path
     import yaml
-    base = "../boards/%s/" % (boardName)
+    current = os.path.dirname(os.path.abspath(__file__))
+    parent = os.path.join(current, "..")
+    base = os.path.join(parent, "boards/%s/" % boardName)
     if not os.path.exists(base):
         print "Board does not exist."
         print base
