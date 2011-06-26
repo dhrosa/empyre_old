@@ -245,12 +245,14 @@ class SM(QObject):
                     return False
                 if source.owner != self.currentPlayer or target.owner == self.currentPlayer:
                     return False
+                if not self.board.territoriesBorder(source, target):
+                    return False
                 n = min(source.troopCount - 1, n)
                 if n < 1 or n >= source.troopCount:
                     return False
                 targetPlayer = target.owner
                 self.remainingTroops = n
-                attackRoll = rollDice( min(self.remainingTroops, 3))
+                attackRoll = rollDice(min(self.remainingTroops, 3))
                 defenceRoll = rollDice(min(target.troopCount, 2))
                 self.diceRolled.emit(self.currentPlayer.name, attackRoll)
                 self.diceRolled.emit(targetPlayer.name, defenceRoll)
@@ -299,6 +301,8 @@ class SM(QObject):
                 if not source or not target:
                     return False
                 if not (source.owner == target.owner and source.owner == self.currentPlayer):
+                    return False
+                if not self.board.territoriesBorder(source, target):
                     return False
                 if n < 1 or n >= source.troopCount:
                     return False

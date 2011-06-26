@@ -115,6 +115,8 @@ class Board(object):
     def territoryNames(self):
         return self.__territories.keys()
 
+    def territoriesBorder(self, t1, t2):
+        return Border(t1, t2) in self.borders
 
 def loadBoard(boardName, images = False):
     import sys
