@@ -192,12 +192,10 @@ class Client(QObject):
             self.mainWindow.chat.addLine("%s has changed their color." % (name))
 
         elif msg == Message.NameChangeTaken:
-            self.mainWindow.nameEdit.setText(self.game.clientPlayer.name)
             self.mainWindow.chat.addLine("That name is already taken.")
 
         elif msg == Message.NameChangeSuccess:
             name = args[0]
-            self.mainWindow.nameEdit.setText(name)
             self.game.setPlayerName(self.game.clientPlayer.name, name)
 
         elif msg == Message.NameChanged:
@@ -274,6 +272,8 @@ class Client(QObject):
         if old == State.Lobby:
             self.mainWindow.chat.addLine("The game has started!")
             self.mainWindow.boardWidget.setEnabled(True)
+            self.mainWindow.changeName.setEnabled(False)
+            self.mainWindow.changeColor.setEnabled(False)
         elif self.game.yourTurn():
             if new == State.Draft:
                 self.mainWindow.cashCards.setEnabled(True)

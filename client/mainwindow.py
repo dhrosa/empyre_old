@@ -11,32 +11,25 @@ class MainWindow(QMainWindow):
     endAttackReleased = pyqtSignal()
     endTurnReleased = pyqtSignal()
 
-    def __emitNameChanged(self):
-        self.nameChanged.emit(self.nameEdit.text())
-
     def __init__(self, game, parent = None):
         super(MainWindow, self).__init__(parent)
         self.game = game
         self.boardWidget = BoardWidget(self.game)
         self.chat = Chat()
-        self.nameEdit = QLineEdit(text=self.game.clientPlayer.name, returnPressed=self.__emitNameChanged)
-        changeColor = QPushButton("Change color", released=self.chooseColor)
 
-        chatLayout = QVBoxLayout()
-        chatLayout.addWidget(self.nameEdit)
-        chatLayout.addWidget(changeColor)
-        chatLayout.addWidget(self.chat)
-        chatWidget = QWidget()
-        chatWidget.setLayout(chatLayout)
         chatDock = QDockWidget("Chat")
-        chatDock.setWidget(chatWidget)
+        chatDock.setWidget(self.chat)
         chatDock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
         self.addDockWidget(Qt.RightDockWidgetArea, chatDock)
 
         toolBar = QToolBar()
+        self.changeName = QPushButton("Change Name", released=self.__changeName)
+        self.changeColor = QPushButton("Change Color", released=self.__changeColor)
         self.cashCards = QAction("Cash in Cards", self, enabled=False, triggered=self.cashCardsReleased)
         self.endAttack = QAction("End Attack", self, enabled=False, triggered=self.endAttackReleased)
         self.endTurn = QAction("End Turn", self, enabled=False, triggered=self.endTurnReleased)
+        toolBar.addWidget(self.changeName)
+        toolBar.addWidget(self.changeColor)
         toolBar.addAction(self.cashCards)
         toolBar.addAction(self.endAttack)
         toolBar.addAction(self.endTurn)
@@ -55,7 +48,12 @@ class MainWindow(QMainWindow):
 
         self.setMenuBar(menuBar)
 
-    def chooseColor(self):
+    def __changeName(self):
+        (name, ok) = QInputDialog.getText(self, "Choose New Name", "Name" , QLineEdit.Normal, self.game.clientPlayer.name)
+        if ok and name and name != self.game.clientPlayer.name:
+            self.nameChanged.emit(name)
+
+    def __changeColor(self):
         color = QColorDialog.getColor(
             QColor.fromRgb(*self.game.clientPlayer.color),
             self,
@@ -64,9 +62,6 @@ class MainWindow(QMainWindow):
         if color.isValid():
             color = color.getRgb()
             self.colorChanged.emit(list(color[:-1]))
-
-    def changeName(self, newName):
-        self.nameEdit.setText(newName)
 
     def setStatus(self, text):
         self.statusBar().showMessage(text)
