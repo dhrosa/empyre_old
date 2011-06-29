@@ -3,6 +3,7 @@ from PyQt4.QtGui import QApplication, QMainWindow, QDockWidget, QToolBar, QPushB
 
 from chat import Chat
 from boardwidget import BoardWidget
+from playerinfo import PlayerInfo
 
 class MainWindow(QMainWindow):
     colorChanged = pyqtSignal(list)
@@ -16,11 +17,7 @@ class MainWindow(QMainWindow):
         self.game = game
         self.boardWidget = BoardWidget(self.game)
         self.chat = Chat()
-
-        chatDock = QDockWidget("Chat")
-        chatDock.setWidget(self.chat)
-        chatDock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
-        self.addDockWidget(Qt.RightDockWidgetArea, chatDock)
+        self.playerInfo = PlayerInfo()
 
         toolBar = QToolBar()
         self.changeName = QPushButton("Change Name", released=self.__changeName)
@@ -34,6 +31,16 @@ class MainWindow(QMainWindow):
         toolBar.addWidget(self.endAttack)
         toolBar.addWidget(self.endTurn)
         self.addToolBar(toolBar)
+
+        chatDock = QDockWidget("Chat")
+        chatDock.setWidget(self.chat)
+        chatDock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
+        self.addDockWidget(Qt.RightDockWidgetArea, chatDock)
+
+        playerDock = QDockWidget("Players")
+        playerDock.setWidget(self.playerInfo)
+        playerDock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
+        self.addDockWidget(Qt.BottomDockWidgetArea, playerDock)
 
         self.setCentralWidget(self.boardWidget)
         self.statusBar()

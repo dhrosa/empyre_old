@@ -25,11 +25,9 @@ class GameState(QObject):
 
     def setCurrentPlayer(self, name):
         self.currentPlayer = self.getPlayer(name)
-        self.changed.emit()
 
     def addPlayer(self, name):
         self.players.append(Player(name))
-        self.changed.emit()
         return self.players[-1]
 
     def getPlayer(self, name):
@@ -47,10 +45,8 @@ class GameState(QObject):
         p = self.getPlayer(old)
         if p:
             p.name = new
-            self.changed.emit()
 
     def setPlayerColor(self, name, color):
         p = self.getPlayer(name)
         if p:
             p.color = color
-            self.changed.emit()

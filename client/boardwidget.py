@@ -330,28 +330,6 @@ class BoardWidget(QWidget):
             painter.fillRect(rect, QColor(0, 0, 0, 200))
             painter.drawText(rect, Qt.AlignCenter, "Waiting for the game to start.")
 
-        #draw player info
-        painter.setPen(Qt.white)
-        painter.setBrush(QColor(0, 0, 0, 200))
-        playerCount = len(self.game.players)
-        height = painter.fontMetrics().height() + 4
-        width = max([painter.fontMetrics().width(name) for name in self.game.playerNames()]) + 8
-        playersRect = QRect(0, 0, width, height * playerCount + 8)
-        playersRect.moveRight(rect.right())
-        playersRect.moveTop(0)
-        left = playersRect.left() + 4
-        painter.drawRect(playersRect)
-        for (i, p) in enumerate(self.game.players):
-            if p == self.game.currentPlayer:
-                painter.setBrush(Qt.darkGreen)
-                painter.drawRect(left - 4, i * height + 4, width, height)
-            painter.setPen(Qt.white)
-            painter.drawText(left, (i + 1) * height, p.name)
-            x = left - height - 8
-            y = i * height + 4
-            painter.setBrush(QColor(*p.color))
-            painter.drawRect(x, y, height, height)
-
         #remaining troops
         if self.game.yourTurn() and self.game.remainingTroops:
             troopText = "Remaining troops: %d" % self.game.remainingTroops

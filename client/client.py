@@ -97,9 +97,11 @@ class Client(QObject):
 
         elif msg == Message.PlayerJoined:
             name = args[0]
+            color = args[1:]
             player = self.game.addPlayer(name)
-            player.color = args[1:]
+            player.color = color
             self.mainWindow.chat.addLine(Line(Line.PlayerJoined, target=name))
+            self.mainWindow.playerInfo.addPlayer(name, color)
 
         elif msg == Message.GameInProgress:
             password = ""
@@ -161,6 +163,8 @@ class Client(QObject):
             self.mainWindow.nameChanged.connect(self.sendNameChange)
             self.mainWindow.endAttackReleased.connect(self.sendEndAttack)
             self.mainWindow.endTurnReleased.connect(self.sendEndTurn)
+            for p in self.game.players:
+                self.mainWindow.playerInfo.addPlayer(p.name, p.color)
             self.mainWindow.show()
             try:
                 _ = self.password
@@ -179,6 +183,7 @@ class Client(QObject):
             name = args[0]
             self.game.removePlayer(name)
             self.mainWindow.chat.addLine(Line(Line.PlayerLeft, target=name))
+            self.mainWindow.playerInfo.removePlayer(name)
 
         elif msg == Message.PlayerLeftDuringGame:
             name = args[0]
@@ -190,6 +195,7 @@ class Client(QObject):
             self.game.setPlayerColor(name, color)
             self.mainWindow.chat.changePlayerColor(name, color)
             self.mainWindow.chat.addLine("%s has changed their color." % (name))
+            self.mainWindow.playerInfo.changePlayerColor(name, color)
 
         elif msg == Message.NameChangeTaken:
             self.mainWindow.chat.addLine("That name is already taken.")
@@ -204,6 +210,7 @@ class Client(QObject):
             self.game.setPlayerName(before, after)
             self.mainWindow.chat.changePlayerName(before, after)
             self.mainWindow.chat.addLine("%s changed their name to %s" % (before, after))
+            self.mainWindow.playerInfo.changePlayerName(before, after)
 
         elif msg == Message.TurnChanged:
             name = args[0]
@@ -213,8 +220,7 @@ class Client(QObject):
                 self.mainWindow.activateWindow()
             else:
                 self.mainWindow.chat.addLine("It is now %s's turn." % name)
-            self.game.currentPlayer = self.game.getPlayer(name)
-            self.game.changed.emit()
+            self.mainWindow.playerInfo.changeCurrentPlayer(name)
 
         elif msg == Message.BeginTiedPlayerList:
             self.tiedPlayers = []
