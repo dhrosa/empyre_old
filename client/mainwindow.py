@@ -1,5 +1,5 @@
 from PyQt4.QtCore import pyqtSignal, Qt
-from PyQt4.QtGui import *
+from PyQt4.QtGui import QApplication, QMainWindow, QDockWidget, QToolBar, QPushButton, QMenuBar, QAction, QKeySequence, QInputDialog, QLineEdit, QColorDialog, QColor
 
 from chat import Chat
 from boardwidget import BoardWidget
