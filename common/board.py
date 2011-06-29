@@ -76,6 +76,9 @@ class Card(object):
         self.territory = territory
         self.unit = unit
 
+    def __hash__(self):
+        return hash(self.territory.name + str(self.unit))
+
 class Board(object):
     def __init__(self, name, territories, borders, regions, image = None):
         self.name = name
