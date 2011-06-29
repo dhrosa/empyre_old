@@ -53,8 +53,7 @@ class PlayerInfo(QTableWidget):
         items = self.findItems(name, Qt.MatchFixedString)
         if items:
             row = self.row(items[0])
-            col = self.Color
-            self.item(row, col).setBackground(QColor(*color))
+            self.item(row, self.Color).setBackground(QColor(*color))
 
     def changeCurrentPlayer(self, name):
         for r in range(self.rowCount()):
@@ -62,3 +61,9 @@ class PlayerInfo(QTableWidget):
         items = self.findItems(name, Qt.MatchFixedString)
         if items:
             items[0].setBackground(Qt.green)
+
+    def setCardCount(self, player, count):
+        items = self.findItems(player, Qt.MatchFixedString)
+        if items:
+            row = self.row(items[0])
+            self.item(row, self.Cards).setData(Qt.DisplayRole, count)

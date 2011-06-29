@@ -264,9 +264,11 @@ class Client(QObject):
 
         elif msg == Message.CardAwarded:
             name = args[0]
-            if name != self.game.clientPlayer.name:
-                self.game.getPlayer(name).cards.append(Card())
-                self.game.changed.emit()
+            player = self.game.getPlayer(name)
+            if player != self.game.clientPlayer:
+                player.cards.append(Card())
+            count = len(player.cards)
+            self.mainWindow.playerInfo.setCardCount(name, count)
 
     def handleStateChange(self, old, new):
         self.mainWindow.cashCards.setEnabled(False)
