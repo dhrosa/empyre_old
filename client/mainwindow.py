@@ -22,12 +22,16 @@ class MainWindow(QMainWindow):
         self.nameEdit = QLineEdit(text=self.game.clientPlayer.name, returnPressed=self.__emitNameChanged)
         changeColor = QPushButton("Change color", released=self.chooseColor)
 
-        infoLayout = QVBoxLayout()
-        infoLayout.addWidget(self.nameEdit)
-        infoLayout.addWidget(changeColor)
-        infoLayout.addWidget(self.chat)
-        info = QWidget()
-        info.setLayout(infoLayout)
+        chatLayout = QVBoxLayout()
+        chatLayout.addWidget(self.nameEdit)
+        chatLayout.addWidget(changeColor)
+        chatLayout.addWidget(self.chat)
+        chatWidget = QWidget()
+        chatWidget.setLayout(chatLayout)
+        chatDock = QDockWidget("Chat")
+        chatDock.setWidget(chatWidget)
+        chatDock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
+        self.addDockWidget(Qt.RightDockWidgetArea, chatDock)
 
         buttonLayout = QHBoxLayout()
         self.cashCards = QPushButton("Cash in Cards", enabled=False, released=self.cashCardsReleased)
@@ -43,11 +47,7 @@ class MainWindow(QMainWindow):
         tempWidget = QWidget()
         tempWidget.setLayout(boardLayout)
 
-        splitter = QSplitter()
-        splitter.addWidget(tempWidget)
-        splitter.addWidget(info)
-
-        self.setCentralWidget(splitter)
+        self.setCentralWidget(tempWidget)
         self.statusBar()
         self.initMenuBar()
 
