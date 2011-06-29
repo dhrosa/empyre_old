@@ -12,7 +12,7 @@ from PyQt4.QtGui import QApplication, QInputDialog, QMessageBox
 
 from common.network import Message, Connection
 from common.game import Player, State
-from common.board import Board, loadBoard
+from common.board import Card, Board, loadBoard
 from chat import Chat, Line
 from mainwindow import MainWindow
 from connectdialog import ConnectDialog
@@ -254,6 +254,18 @@ class Client(QObject):
         elif msg == Message.Attacked:
             (attacker, source, target) = args
             self.mainWindow.boardWidget.attack(*args)
+
+        elif msg == Message.ReceiveCard:
+            (t, u) = args
+            t = self.game.board.getTerritory(t)
+            self.game.clientPlayer.cards.append(Card(t, u))
+            self.game.changed.emit()
+
+        elif msg == Message.CardAwarded:
+            name = args[0]
+            if name != self.game.clientPlayer.name:
+                self.game.getPlayer(name).cards.append(Card())
+                self.game.changed.emit()
 
     def handleStateChange(self, old, new):
         self.mainWindow.cashCards.setEnabled(False)

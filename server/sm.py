@@ -32,6 +32,7 @@ class SM(QObject):
     playersTied = pyqtSignal(list)
     remainingTroopsChanged = pyqtSignal(int)
     attacked = pyqtSignal(str, str, str)
+    cardAwarded = pyqtSignal(str, str, int)
 
     def __init__(self, board, parent = None):
         super(SM, self).__init__(parent)
@@ -314,7 +315,9 @@ class SM(QObject):
                 return True
             elif action == Action.EndTurn:
                 if self.awardCard and self.board.cards:
-                    self.currentPlayer.cards.append(self.board.cards.pop())
+                    card = self.board.cards.pop()
+                    self.cardAwarded.emit(self.currentPlayer.name, card.territory.name, card.unit)
+                    self.currentPlayer.cards.append(card)
                     self.awardCard = False
                 self.currentPlayer = self.nextPlayer()
                 self.remainingTroops = self.draftCount(self.currentPlayer)

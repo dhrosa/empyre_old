@@ -44,6 +44,7 @@ class Server(QTcpServer):
        self.sm.territoryUpdated.connect(self.sendTerritoryUpdate)
        self.sm.remainingTroopsChanged.connect(self.sendRemainingTroopsChange)
        self.sm.attacked.connect(self.sendAttack)
+       self.sm.cardAwarded.connect(self.sendCardAward)
        self.chatHistory = []
        self.colors = self.predefinedColors
        timer = QTimer(self)
@@ -279,6 +280,12 @@ class Server(QTcpServer):
 
     def sendAttack(self, attacker, source, target):
         self.send(Message.Attacked, [attacker, source, target])
+
+    def sendCardAward(self, player, territory, unit):
+        for c in self.connections:
+            if c.player.name == player:
+                self.sendTo(c.id, Message.ReceiveCard, [territory, unit])
+        self.send(Message.CardAwarded, [player])
 
 if __name__ == "__main__":
     from PyQt4.QtCore import pyqtRemoveInputHook

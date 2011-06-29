@@ -62,7 +62,9 @@ class Message(object):
         TerritoryUpdated,
         RemainingTroopsChanged,
         Attacked,
-    ) = range (100, 132)
+        ReceiveCard,
+        CardAwarded,
+    ) = range (100, 134)
         
     validArgs = {
         Pong: (),
@@ -121,6 +123,8 @@ class Message(object):
         TerritoryUpdated: (str, str, int,),
         RemainingTroopsChanged: (int,),
         Attacked: (str, str, str),
+        ReceiveCard: (str, int),
+        CardAwarded: (str,),
     }
 
     @staticmethod
