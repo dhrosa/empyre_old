@@ -216,10 +216,7 @@ class Client(QObject):
             name = args[0]
             self.game.setCurrentPlayer(name)
             if self.game.yourTurn():
-                self.mainWindow.chat.addLine("It is now your turn.")
                 self.mainWindow.activateWindow()
-            else:
-                self.mainWindow.chat.addLine("It is now %s's turn." % name)
             self.mainWindow.playerInfo.changeCurrentPlayer(name)
 
         elif msg == Message.BeginTiedPlayerList:

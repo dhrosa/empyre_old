@@ -39,22 +39,26 @@ class PlayerInfo(QTableWidget):
         self.setItem(r, self.TroopsPerTurn, troops)
 
     def removePlayer(self, name):
-        items = self.findItems(name)
+        items = self.findItems(name, Qt.MatchFixedString)
         if items:
             row = self.row(items[0])
             self.removeRow(row)
 
     def changePlayerName(self, before, after):
-        items = self.findItems(before)
+        items = self.findItems(before, Qt.MatchFixedString)
         if items:
             items[0].setData(Qt.DisplayRole, after)
 
     def changePlayerColor(self, name, color):
-        items = self.findItems(name)
+        items = self.findItems(name, Qt.MatchFixedString)
         if items:
             row = self.row(items[0])
             col = self.Color
             self.item(row, col).setBackground(QColor(*color))
 
     def changeCurrentPlayer(self, name):
-        pass
+        for r in range(self.rowCount()):
+            self.item(r, self.Name).setBackground(Qt.white)
+        items = self.findItems(name, Qt.MatchFixedString)
+        if items:
+            items[0].setBackground(Qt.green)
