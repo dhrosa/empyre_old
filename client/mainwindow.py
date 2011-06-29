@@ -25,14 +25,14 @@ class MainWindow(QMainWindow):
         toolBar = QToolBar()
         self.changeName = QPushButton("Change Name", released=self.__changeName)
         self.changeColor = QPushButton("Change Color", released=self.__changeColor)
-        self.cashCards = QAction("Cash in Cards", self, enabled=False, triggered=self.cashCardsReleased)
-        self.endAttack = QAction("End Attack", self, enabled=False, triggered=self.endAttackReleased)
-        self.endTurn = QAction("End Turn", self, enabled=False, triggered=self.endTurnReleased)
+        self.cashCards = QPushButton("Cash in Cards", self, enabled=False, released=self.cashCardsReleased)
+        self.endAttack = QPushButton("End Attack", self, enabled=False, released=self.endAttackReleased)
+        self.endTurn = QPushButton("End Turn", self, enabled=False, released=self.endTurnReleased)
         toolBar.addWidget(self.changeName)
         toolBar.addWidget(self.changeColor)
-        toolBar.addAction(self.cashCards)
-        toolBar.addAction(self.endAttack)
-        toolBar.addAction(self.endTurn)
+        toolBar.addWidget(self.cashCards)
+        toolBar.addWidget(self.endAttack)
+        toolBar.addWidget(self.endTurn)
         self.addToolBar(toolBar)
 
         self.setCentralWidget(self.boardWidget)
@@ -45,7 +45,6 @@ class MainWindow(QMainWindow):
         quit = file.addAction("&Quit", QApplication.instance().quit)
         quit.setShortcutContext(Qt.ApplicationShortcut)
         quit.setShortcut(QKeySequence.Quit)
-
         self.setMenuBar(menuBar)
 
     def __changeName(self):
