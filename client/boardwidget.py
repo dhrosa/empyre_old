@@ -206,13 +206,13 @@ class BoardWidget(QWidget):
     def stateChange(self, old, new):
         self.cancelSelection()
 
-    def minimumSizeHint(self):
+    def sizeHint(self):
         return self.game.board.image.size()
 
     def resizeEvent(self, event):
-        size = self.minimumSizeHint()
+        size = self.sizeHint()
         size.scale(event.size(), Qt.KeepAspectRatio)
-        self.scaleFactor = float(self.minimumSizeHint().width()) / size.width()
+        self.scaleFactor = float(self.sizeHint().width()) / size.width()
         self.recreateMasks()
         self.scaledRegionMap = self.regionMap.scaled(size)
         self.scaledOwnershipMap = self.ownershipMap.scaled(size)
