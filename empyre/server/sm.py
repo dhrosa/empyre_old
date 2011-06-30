@@ -1,4 +1,4 @@
-from empyre.game import State, Action, Player
+from empyre import State, Action, Player
 from empyre.board import Board
 from random import randint
 from math import floor

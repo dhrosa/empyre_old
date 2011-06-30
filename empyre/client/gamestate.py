@@ -1,4 +1,4 @@
-from empyre.game import Player
+from empyre import Player
 from PyQt4.QtCore import pyqtSignal, QObject
 
 class GameState(QObject):

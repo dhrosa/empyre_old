@@ -2,7 +2,7 @@ import random
 import string
 
 from sm import SM
-from empyre.game import State, Action
+from empyre import State, Action
 from empyre.network import Message, Connection
 from empyre.board import loadBoard
 

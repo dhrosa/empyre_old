@@ -2,7 +2,7 @@ from PyQt4.QtCore import pyqtSignal, QObject, Qt
 from PyQt4.QtGui import QApplication, QInputDialog, QMessageBox
 
 from empyre.network import Message, Connection
-from empyre.game import Player, State
+from empyre import Player, State
 from empyre.board import Card, Board, loadBoard
 from chat import Chat, Line
 from mainwindow import MainWindow
