@@ -5,17 +5,19 @@ from common.board import Card
 class CardDialog(QDialog):
     def __init__(self, cards, parent = None):
         super(CardDialog, self).__init__(parent)
+        self.combination = None
+        self.setWindowTitle("Cash In Cards")
         cardList = QListWidget()
         units = ("Infantry", "Cavalry", "Artillery", "Wild")
         cardToIndex = {}
         for i, c in enumerate(cards):
-            label = "%d: %s: %s" % (i, c.territory.name, units(c.unit))
+            label = "%d: %s (%s)" % (i, units[c.unit], c.territory.name)
             cardList.addItem(label)
             cardToIndex[c] = i
         combinationList = QListWidget()
         combinationList.currentItemChanged.connect(self.__setCombination)
         combinationList.itemDoubleClicked.connect(self.__setCombination)
-        combinationList.itemDoubleClicked.connect(self.accepted)
+        combinationList.itemDoubleClicked.connect(self.accept)
         self.combinations = {}
         for combo in combinations(cards, 3):
             if [c.unit for c in combo] in Card.validCombinations:
@@ -29,7 +31,7 @@ class CardDialog(QDialog):
 
         layout = QVBoxLayout()
         layout.addLayout(listLayout)
-        layout.addWidget(QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, accepted=self.accepted, rejected=self.rejected))
+        layout.addWidget(QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, accepted=self.accept, rejected=self.reject))
 
         self.setLayout(layout)
 

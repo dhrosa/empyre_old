@@ -4,13 +4,14 @@ from PyQt4.QtGui import QApplication, QMainWindow, QDockWidget, QToolBar, QPushB
 from chat import Chat
 from boardwidget import BoardWidget
 from playerinfo import PlayerInfo
+from carddialog import CardDialog
 
 class MainWindow(QMainWindow):
     colorChanged = pyqtSignal(list)
     nameChanged = pyqtSignal(str)
-    cashCardsReleased = pyqtSignal()
     endAttackReleased = pyqtSignal()
     endTurnReleased = pyqtSignal()
+    cardsSelected = pyqtSignal(list)
 
     def __init__(self, game, parent = None):
         super(MainWindow, self).__init__(parent)
@@ -22,7 +23,7 @@ class MainWindow(QMainWindow):
         toolBar = QToolBar()
         self.changeName = QPushButton("Change Name", released=self.__changeName)
         self.changeColor = QPushButton("Change Color", released=self.__changeColor)
-        self.cashCards = QPushButton("Cash in Cards", self, enabled=False, released=self.cashCardsReleased)
+        self.cashCards = QPushButton("Cash in Cards", self, enabled=False, released=self.__cashCards)
         self.endAttack = QPushButton("End Attack", self, enabled=False, released=self.endAttackReleased)
         self.endTurn = QPushButton("End Turn", self, enabled=False, released=self.endTurnReleased)
         toolBar.addWidget(self.changeName)
@@ -68,6 +69,12 @@ class MainWindow(QMainWindow):
         if color.isValid():
             color = color.getRgb()
             self.colorChanged.emit(list(color[:-1]))
+
+    def __cashCards(self):
+        dialog = CardDialog(self.game.clientPlayer.cards)
+        if dialog.exec_() == CardDialog.Accepted and dialog.combination:
+            self.cardsSelected.emit(list(dialog.combination))
+            print dialog.combination
 
     def setStatus(self, text):
         self.statusBar().showMessage(text)
