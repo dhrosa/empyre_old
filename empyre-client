@@ -1,0 +1,26 @@
+#! /usr/bin/python
+from empyre.client.connectdialog import ConnectDialog
+from empyre.client.client import Client
+from PyQt4.QtGui import QApplication
+import sys
+
+debug = False
+
+if __name__ == "__main__":
+    from PyQt4.QtCore import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
+    if "opengl" in sys.argv and "-graphicssystem" in sys.argv:
+        import OpenGL.GL
+    app = QApplication(sys.argv)
+    if len(app.arguments()) > 1:
+        clientName = app.arguments()[1]
+        debug = True
+    if not debug:
+        dialog = ConnectDialog()
+        if dialog.exec_():
+            client = Client(dialog.hostEdit.text(), dialog.portEdit.value())
+        else:
+            sys.exit()
+    else:
+        client = Client("127.0.0.1", 9002)
+    sys.exit(app.exec_())

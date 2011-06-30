@@ -1,22 +1,15 @@
-#! /usr/bin/python
-import sys
-import os.path
-__current = os.path.dirname(os.path.abspath(__file__))
-__parent = os.path.join(__current, "..")
-sys.path.append(os.path.abspath(__parent))
-import sip
-sip.setapi('QString', 2)
-
 from PyQt4.QtCore import pyqtSignal, QObject, Qt
 from PyQt4.QtGui import QApplication, QInputDialog, QMessageBox
 
-from common.network import Message, Connection
-from common.game import Player, State
-from common.board import Card, Board, loadBoard
+from empyre.common.network import Message, Connection
+from empyre.common.game import Player, State
+from empyre.common.board import Card, Board, loadBoard
 from chat import Chat, Line
 from mainwindow import MainWindow
 from connectdialog import ConnectDialog
 from gamestate import GameState
+
+import sys
 
 class Client(QObject):
     sendReady = pyqtSignal(int, list)
@@ -72,9 +65,11 @@ class Client(QObject):
 
         elif msg == Message.JoinSuccess:
             name = ""
+            """
             if debug:
                 global clientName
                 name = clientName
+            """
             while not name:
                 (name, ok) = QInputDialog.getText(None, "Username", "Name")
                 if not ok:
@@ -327,25 +322,3 @@ class Client(QObject):
 
     def sendEndTurn(self):
         self.send(Message.EndTurn)
-
-debug = False
-clientName = ""
-
-if __name__ == "__main__":
-    from PyQt4.QtCore import pyqtRemoveInputHook
-    pyqtRemoveInputHook()
-    if "opengl" in sys.argv and "-graphicssystem" in sys.argv:
-        import OpenGL.GL
-    app = QApplication(sys.argv)
-    if len(app.arguments()) > 1:
-        clientName = app.arguments()[1]
-        debug = True
-    if not debug:
-        dialog = ConnectDialog()
-        if dialog.exec_():
-            client = Client(dialog.hostEdit.text(), dialog.portEdit.value())
-        else:
-            sys.exit()
-    else:
-        client = Client("127.0.0.1", 9002)
-    sys.exit(app.exec_())

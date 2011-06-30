@@ -1,0 +1,26 @@
+#! /usr/bin/python
+from empyre.server.server import Server
+from empyre.common.board import loadBoard
+from PyQt4.QtCore import QCoreApplication, QSocketNotifier
+import sys
+
+if __name__ == "__main__":
+    from PyQt4.QtCore import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
+    app = QCoreApplication(sys.argv)
+    try:
+        boardName = sys.argv[1]
+    except IndexError:
+        print "Please specify a board to load."
+        sys.exit(1)
+    board = loadBoard(boardName)
+    if not board:
+        print "Could not load board: %s" % (boardName)
+    print "Loaded \"%s\" board." % (board.name)
+    server = Server(boardName, board)
+    socket = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Read)
+    socket.activated.connect(server.readStdin)
+    if not server.listen(port=9002):
+        print "could not listen"
+    sys.exit(app.exec_())
+

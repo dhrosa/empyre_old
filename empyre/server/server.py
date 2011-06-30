@@ -1,22 +1,15 @@
-#! /usr/bin/python
-import sys
-import os.path
-__current = os.path.dirname(os.path.abspath(__file__))
-__parent = os.path.abspath(os.path.join(__current, ".."))
-sys.path.append(os.path.abspath(__parent))
-import sip
-sip.setapi('QString', 2)
-
 import random
 import string
 
 from sm import SM
-from common.game import State, Action
-from common.network import Message, Connection
-from common.board import loadBoard
+from empyre.common.game import State, Action
+from empyre.common.network import Message, Connection
+from empyre.common.board import loadBoard
 
 from PyQt4.QtNetwork import QTcpServer, QTcpSocket
-from PyQt4.QtCore import QCoreApplication, pyqtSignal, QSocketNotifier, QDateTime, QTimer
+from PyQt4.QtCore import QCoreApplication, pyqtSignal, QDateTime, QTimer
+
+import sys
 
 class Server(QTcpServer):
     sendReady = pyqtSignal(int, list)
@@ -287,22 +280,3 @@ class Server(QTcpServer):
                 self.sendTo(c.id, Message.ReceiveCard, [territory, unit])
         self.send(Message.CardAwarded, [player])
 
-if __name__ == "__main__":
-    from PyQt4.QtCore import pyqtRemoveInputHook
-    pyqtRemoveInputHook()
-    app = QCoreApplication(sys.argv)
-    try:
-        boardName = sys.argv[1]
-    except IndexError:
-        print "Please specify a board to load."
-        sys.exit(1)
-    board = loadBoard(boardName)
-    if not board:
-        print "Could not load board: %s" % (boardName)
-    print "Loaded \"%s\" board." % (board.name)
-    server = Server(boardName, board)
-    socket = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Read)
-    socket.activated.connect(server.readStdin)
-    if not server.listen(port=9002):
-        print "could not listen"
-    sys.exit(app.exec_())

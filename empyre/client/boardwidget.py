@@ -4,7 +4,7 @@ from PyQt4.QtCore import pyqtSignal, Qt, QRect, QPoint
 from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor, QInputDialog, QAction, QKeySequence
 
 from animations import LineAnimation, BlinkingAnimation, ExplodingAnimation
-from common.game import State
+from empyre.common.game import State
 
 class ColoredMaskCache(object):
     def __init__(self):

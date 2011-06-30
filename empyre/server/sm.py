@@ -1,5 +1,5 @@
-from common.game import State, Action, Player
-from common.board import Board
+from empyre.common.game import State, Action, Player
+from empyre.common.board import Board
 from random import randint
 from math import floor
 from PyQt4.QtCore import pyqtSignal, QObject
