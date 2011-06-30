@@ -1,6 +1,6 @@
 #! /usr/bin/python
 from empyre.client.connectdialog import ConnectDialog
-from empyre.client.client import Client
+from empyre.client import Client
 from PyQt4.QtGui import QApplication
 import sys
 

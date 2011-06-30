@@ -1,5 +1,5 @@
 #! /usr/bin/python
-from empyre.server.server import Server
+from empyre.server import Server
 from empyre.common.board import loadBoard
 from PyQt4.QtCore import QCoreApplication, QSocketNotifier
 import sys
