@@ -28,6 +28,7 @@ territories:
 borders:
   - [ME, NH]
   - [NH, VT]
+  - [NH, MA]
   - [VT, MA]
   - [MA, RI]
   - [MA, CT]
