@@ -2,9 +2,9 @@ import random
 import string
 
 from sm import SM
-from empyre.common.game import State, Action
-from empyre.common.network import Message, Connection
-from empyre.common.board import loadBoard
+from empyre.game import State, Action
+from empyre.network import Message, Connection
+from empyre.board import loadBoard
 
 from PyQt4.QtNetwork import QTcpServer, QTcpSocket
 from PyQt4.QtCore import QCoreApplication, pyqtSignal, QDateTime, QTimer

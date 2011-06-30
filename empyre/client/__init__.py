@@ -1,9 +1,9 @@
 from PyQt4.QtCore import pyqtSignal, QObject, Qt
 from PyQt4.QtGui import QApplication, QInputDialog, QMessageBox
 
-from empyre.common.network import Message, Connection
-from empyre.common.game import Player, State
-from empyre.common.board import Card, Board, loadBoard
+from empyre.network import Message, Connection
+from empyre.game import Player, State
+from empyre.board import Card, Board, loadBoard
 from chat import Chat, Line
 from mainwindow import MainWindow
 from connectdialog import ConnectDialog

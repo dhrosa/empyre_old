@@ -1,6 +1,6 @@
 from itertools import combinations
 from PyQt4.QtGui import QDialog, QListWidget, QListWidgetItem, QDialogButtonBox, QHBoxLayout, QVBoxLayout
-from empyre.common.board import Card
+from empyre.board import Card
 
 class CardDialog(QDialog):
     def __init__(self, cards, parent = None):
