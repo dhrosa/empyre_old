@@ -100,7 +100,7 @@ class Board(object):
         for t in self.territoryNames():
             self.__territories[t].owner = None
             self.__territories[t].troopCount = None
-            for u in range(4):
+            for u in range(3):
                 self.cards.append(Card(self.__territories[t], u))
         self.cards += [Card(None, Card.Wild)] * 2
         shuffle(self.cards)
