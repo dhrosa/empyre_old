@@ -15,11 +15,12 @@ class Client(QObject):
     sendReady = pyqtSignal(int, list)
     readyToConnect = pyqtSignal()
 
-    def __init__(self, host, port, parent = None):
+    def __init__(self, host, port, name = "", parent = None):
         QObject.__init__(self, parent)
         self.game = GameState()
         self.host = host
         self.port = port
+        self.name = name
         self.connection = Connection()
         self.connection.messageReceived.connect(self.handleMessage)
         self.connection.error.connect(self.handleError)
@@ -64,12 +65,7 @@ class Client(QObject):
             self.mainWindow.chat.addLine("No such player.")
 
         elif msg == Message.JoinSuccess:
-            name = ""
-            """
-            if debug:
-                global clientName
-                name = clientName
-            """
+            name = self.name
             while not name:
                 (name, ok) = QInputDialog.getText(None, "Username", "Name")
                 if not ok:
