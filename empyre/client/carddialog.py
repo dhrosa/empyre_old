@@ -11,7 +11,7 @@ class CardDialog(QDialog):
         units = ("Infantry", "Cavalry", "Artillery", "Wild")
         cardToIndex = {}
         for i, c in enumerate(cards):
-            label = "%d: %s (%s)" % (i, units[c.unit], c.territory.name)
+            label = "%d: %s (%s)" % (i, units[c.unit], c.territoryName)
             cardList.addItem(label)
             cardToIndex[c] = i
         combinationList = QListWidget()

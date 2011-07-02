@@ -38,6 +38,8 @@ class Server(QTcpServer):
        self.sm.remainingTroopsChanged.connect(self.sendRemainingTroopsChange)
        self.sm.attacked.connect(self.sendAttack)
        self.sm.cardAwarded.connect(self.sendCardAward)
+       self.sm.cardsExchanged.connect(self.sendCardsExchanged)
+       self.sm.mustExchangeCards.connect(self.sendMustExchangeCards)
        self.chatHistory = []
        self.colors = self.predefinedColors
        timer = QTimer(self)
@@ -213,6 +215,9 @@ class Server(QTcpServer):
                     (name, count) = args
                     self.sm.next(Action.PlaceTroops, [name, count])
 
+                elif msg == Message.ExchangeCards:
+                    self.sm.next(Action.ExchangeCards, args)
+
                 elif msg == Message.Attack:
                     (source, target, count) = args
                     self.sm.next(Action.Attack, [source, target, count])
@@ -271,6 +276,14 @@ class Server(QTcpServer):
             print "%s has %d troops remaining." % (self.sm.currentPlayer.name, n)
             self.send(Message.RemainingTroopsChanged, [n])
 
+    def sendCardsExchanged(self, name, c1, c2, c3):
+        self.send(Message.CardsExchanged, [name, c1, c2, c3]) 
+
+    def sendMustExchangeCards(self, name):
+        for c in self.connections:
+            if c.player.name == name:
+                self.sendTo(c.id, Message.MustExchangeCards)
+
     def sendAttack(self, attacker, source, target):
         self.send(Message.Attacked, [attacker, source, target])
 
@@ -279,4 +292,3 @@ class Server(QTcpServer):
             if c.player.name == player:
                 self.sendTo(c.id, Message.ReceiveCard, [territory, unit])
         self.send(Message.CardAwarded, [player])
-

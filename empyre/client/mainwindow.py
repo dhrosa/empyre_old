@@ -74,7 +74,6 @@ class MainWindow(QMainWindow):
         dialog = CardDialog(self.game.clientPlayer.cards)
         if dialog.exec_() == CardDialog.Accepted and dialog.combination:
             self.cardsSelected.emit(list(dialog.combination))
-            print dialog.combination
 
     def setStatus(self, text):
         self.statusBar().showMessage(text)

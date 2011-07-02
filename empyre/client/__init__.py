@@ -156,6 +156,7 @@ class Client(QObject):
             self.mainWindow.chat.lineEntered.connect(self.sendChat)
             self.mainWindow.colorChanged.connect(self.sendColorChange)
             self.mainWindow.nameChanged.connect(self.sendNameChange)
+            self.mainWindow.cardsSelected.connect(self.sendExchangeCards)
             self.mainWindow.endAttackReleased.connect(self.sendEndAttack)
             self.mainWindow.endTurnReleased.connect(self.sendEndTurn)
             for p in self.game.players:
@@ -247,13 +248,23 @@ class Client(QObject):
             troops = args[0]
             self.game.remainingTroops = troops
 
+        elif msg == Message.MustExchangeCards:
+            self.mainWindow.chat.addLine("You must trade in your cards.")
+
+        elif msg == Message.CardsExchanged:
+            name = args[0]
+            indexes = args[1:]
+            player = self.game.getPlayer(name)
+            if player == self.game.clientPlayer:
+                player.cards = [c for i, c in enumerate(player.cards) if not i in indexes]
+            self.mainWindow.playerInfo.setCardCount(name, len(player.cards))
+
         elif msg == Message.Attacked:
             (attacker, source, target) = args
             self.mainWindow.boardWidget.attack(*args)
 
         elif msg == Message.ReceiveCard:
             (t, u) = args
-            t = self.game.board.getTerritory(t)
             self.game.clientPlayer.cards.append(Card(t, u))
             self.game.changed.emit()
 
@@ -308,6 +319,9 @@ class Client(QObject):
     def sendClaimTerritory(self, name):
         self.send(Message.ClaimTerritory, [name])
 
+    def sendExchangeCards(self, cards):
+        self.send(Message.ExchangeCards, cards)
+        
     def sendDraft(self, name, count):
         self.send(Message.Draft, [name, count])
 

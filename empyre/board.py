@@ -72,12 +72,12 @@ class Card(object):
             two[i] = v[i]
             validCombinations.append(two)
 
-    def __init__(self, territory = None, unit = None):
-        self.territory = territory
+    def __init__(self, territoryName = "", unit = Wild):
+        self.territoryName = territoryName
         self.unit = unit
 
     def __hash__(self):
-        return hash(self.territory.name + str(self.unit))
+        return hash(self.territoryName + str(self.unit))
 
 class Board(object):
     def __init__(self, name, territories, borders, regions, image = None):
@@ -101,8 +101,8 @@ class Board(object):
             self.__territories[t].owner = None
             self.__territories[t].troopCount = None
             for u in range(3):
-                self.cards.append(Card(self.__territories[t], u))
-        self.cards += [Card(None, Card.Wild)] * 2
+                self.cards.append(Card(t, u))
+        self.cards += [Card("", Card.Wild)] * 2
         shuffle(self.cards)
 
     def getTerritory(self, name):

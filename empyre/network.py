@@ -20,12 +20,13 @@ class Message(object):
 
         ReadyToPlay,
         ClaimTerritory,
+        ExchangeCards,
         Draft,
         Attack,
         EndAttack,
         Fortify,
         EndTurn,
-    ) = range(20)
+    ) = range(21)
 
     (
         Ping,
@@ -61,11 +62,13 @@ class Message(object):
         DiceRolled,
         TerritoryUpdated,
         RemainingTroopsChanged,
+        MustExchangeCards,
+        CardsExchanged,
         Attacked,
         ReceiveCard,
         CardAwarded,
-    ) = range (100, 134)
-        
+    ) = range (100, 136)
+
     validArgs = {
         Pong: (),
         RequestState: (),
@@ -83,6 +86,7 @@ class Message(object):
 
         ReadyToPlay: (),
         ClaimTerritory: (str,),
+        ExchangeCards: (int, int, int),
         Draft: (str, int),
         Attack: (str, str, int),
         EndAttack: (),
@@ -122,6 +126,8 @@ class Message(object):
         DiceRolled: (str, int, int, int),
         TerritoryUpdated: (str, str, int,),
         RemainingTroopsChanged: (int,),
+        MustExchangeCards: (),
+        CardsExchanged: (str, int, int, int),
         Attacked: (str, str, str),
         ReceiveCard: (str, int),
         CardAwarded: (str,),

@@ -1,5 +1,5 @@
 from empyre import State, Action, Player
-from empyre.board import Board
+from empyre.board import Board, Card
 from random import randint
 from math import floor
 from PyQt4.QtCore import pyqtSignal, QObject
@@ -33,6 +33,8 @@ class SM(QObject):
     remainingTroopsChanged = pyqtSignal(int)
     attacked = pyqtSignal(str, str, str)
     cardAwarded = pyqtSignal(str, str, int)
+    cardsExchanged = pyqtSignal(str, int, int, int)
+    mustExchangeCards = pyqtSignal(str)
 
     def __init__(self, board, parent = None):
         super(SM, self).__init__(parent)
@@ -218,15 +220,25 @@ class SM(QObject):
 
         elif s == State.Draft:
             if action == Action.ExchangeCards:
-                cards = self.exchangecards(args)
-                if not cards:
+                if len(set(args)) < 3:
                     return False
-                pass
+                if False in [0 <= i < len(self.currentPlayer.cards) for i in args]:
+                    return False
+                cards = [self.currentPlayer.cards[i] for i in args]
+                if not [self.currentPlayer.cards[i].unit for i in args] in Card.validCombinations:
+                    return False
+                cards = [c for i, c in enumerate(self.currentPlayer.cards) if not i in args]
+                self.currentPlayer.cards = cards
+                self.cardsExchanged.emit(self.currentPlayer.name, *args)
+                self.remainingTroops = self.remainingTroops + self.cardValue()
+                self.setsExchanged += 1
+                return True
 
             elif action == Action.PlaceTroops:
                 (t, n) = args
-#                if self.currentPlayer.cardCount() > 4:
-#                    return False
+                if self.currentPlayer.cardCount() >= 5:
+                    self.mustExchangeCards.emit(self.currentPlayer.name)
+                    return False
                 if n < 1:
                     return False
                 n = self.placeTroops(t, n)
@@ -316,9 +328,9 @@ class SM(QObject):
             elif action == Action.EndTurn:
                 if self.awardCard and self.board.cards:
                     card = self.board.cards.pop()
-                    self.cardAwarded.emit(self.currentPlayer.name, card.territory.name, card.unit)
+                    self.cardAwarded.emit(self.currentPlayer.name, card.territoryName, card.unit)
                     self.currentPlayer.cards.append(card)
-                    self.awardCard = False
+                self.awardCard = False
                 self.currentPlayer = self.nextPlayer()
                 self.remainingTroops = self.draftCount(self.currentPlayer)
                 self.substate = State.Draft
