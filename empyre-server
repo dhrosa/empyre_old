@@ -3,24 +3,28 @@ from empyre.server import Server
 from empyre.board import loadBoard
 from PyQt4.QtCore import QCoreApplication, QSocketNotifier
 import sys
+from argparse import ArgumentParser
 
 if __name__ == "__main__":
     from PyQt4.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
     app = QCoreApplication(sys.argv)
-    try:
-        boardName = sys.argv[1]
-    except IndexError:
-        print "Please specify a board to load."
-        sys.exit(1)
-    board = loadBoard(boardName)
+    p = ArgumentParser()
+    p.add_argument("board", nargs='?', default="newengland", help="The name of the board to play on.")
+    p.add_argument("-b", "--boardpath", help="The directory to search for boards in.")
+    p.add_argument("-p", "--port", type=int, default="9002", help="The port to listen on. Defaults to 9002.")
+    args = p.parse_args()
+    board = loadBoard(args.board, args.boardpath)
     if not board:
         print "Could not load board: %s" % (boardName)
+        sys.exit(1)
     print "Loaded \"%s\" board." % (board.name)
-    server = Server(boardName, board)
+    server = Server(args.board, board)
     socket = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Read)
     socket.activated.connect(server.readStdin)
-    if not server.listen(port=9002):
+    print "Listening on port %d." % args.port
+    if not server.listen(port=args.port):
         print "could not listen"
+        sys.exit(1)
     sys.exit(app.exec_())
 

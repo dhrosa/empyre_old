@@ -135,7 +135,7 @@ class Client(QObject):
 
         elif msg == Message.LoadBoard:
             boardName = args[0]
-            board = loadBoard(boardName, images=True)
+            board = loadBoard(boardName)
             if not board:
                 QMessageBox.critical(None, "Board Missing", "You do not have the board \"%s\" required for this game." % (boardName), QMessageBox.Close)
                 QApplication.quit()
