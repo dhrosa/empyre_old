@@ -196,6 +196,13 @@ class Server(QTcpServer):
                 for line in self.chatHistory:
                     self.sendTo(conn.id, Message.ReceiveChat, [line[0].name, line[1]])
 
+            elif msg == Message.RequestOwnershipList:
+                self.sendTo(conn.id, Message.BeginOwnershipList)
+                for t in self.sm.board.iterTerritories():
+                    owner = t.owner.name if t.owner else ""
+                    self.sendTo(conn.id, Message.Ownership, [t.name, owner, t.troopCount])
+                self.sendTo(conn.id, Message.EndOwnershipList)
+
             elif msg == Message.ChangeName:
                 before = conn.player.name
                 after = args[0]
