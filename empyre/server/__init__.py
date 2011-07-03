@@ -178,7 +178,7 @@ class Server(QTcpServer):
                 if not targetPlayer:
                     self.sendTo(conn.id, Message.WhisperError)
                 else:
-                    timestamp = QDateTime.currentMSecsSinceEpoch()
+                    timestamp = QDateTime.currentDateTime().toTime_t()
                     for c in self.connections:
                         if c.player == targetPlayer:
                             self.sendTo(c.id, Message.ReceiveWhisper, [conn.player.name, c.player.name, text, timestamp])
