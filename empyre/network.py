@@ -5,7 +5,6 @@ import inspect
 class Message(object):
     (
         Pong,
-        RequestState,
         SendChat,
         WhisperError,
         SendWhisper,
@@ -15,8 +14,10 @@ class Message(object):
         RequestBoardName,
         RequestPlayerList,
         RequestChatHistory,
+        RequestState,
         RequestOwnershipList,
         RequestCardList,
+        RequestCurrentPlayer,
         ChangeName,
         ChangeColor,
 
@@ -28,11 +29,10 @@ class Message(object):
         EndAttack,
         Fortify,
         EndTurn,
-    ) = range(23)
+    ) = range(24)
 
     (
         Ping,
-        CurrentState,
         StateChanged,
         ReceiveChat,
         ReceiveWhisper,
@@ -48,12 +48,14 @@ class Message(object):
         PlayerInfo,
         EndPlayerList,
         LoadBoard,
+        CurrentState,
         BeginOwnershipList,
         Ownership,
         EndOwnershipList,
         BeginCardList,
         Card,
         EndCardList,
+        CurrentPlayer,
 
         PlayerLeft,
         PlayerLeftDuringGame,
@@ -75,7 +77,7 @@ class Message(object):
         Attacked,
         ReceiveCard,
         CardAwarded,
-    ) = range (100, 142)
+    ) = range (100, 143)
 
     validArgs = {
         Pong: (),
@@ -91,6 +93,7 @@ class Message(object):
         RequestChatHistory: (),
         RequestOwnershipList: (),
         RequestCardList: (),
+        RequestCurrentPlayer: (),
         ChangeName: (str,),
         ChangeColor: (int, int, int),
 
@@ -126,6 +129,7 @@ class Message(object):
         BeginCardList: (),
         Card: (str, int),
         EndCardList: (),
+        CurrentPlayer: (str,),
 
         PlayerLeft: (str,),
         PlayerLeftDuringGame: (str,),

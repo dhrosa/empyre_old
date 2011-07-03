@@ -196,6 +196,9 @@ class Server(QTcpServer):
                 for line in self.chatHistory:
                     self.sendTo(conn.id, Message.ReceiveChat, [line[0].name, line[1]])
 
+            elif msg == Message.RequestState:
+                self.sendTo(conn.id, Message.CurrentState, [self.sm.substate])
+
             elif msg == Message.RequestOwnershipList:
                 self.sendTo(conn.id, Message.BeginOwnershipList)
                 for t in self.sm.board.iterTerritories():
@@ -204,10 +207,13 @@ class Server(QTcpServer):
                 self.sendTo(conn.id, Message.EndOwnershipList)
 
             elif msg == Message.RequestCardList:
-                self.sendTo(conn.id, BeginCardList)
+                self.sendTo(conn.id, Message.BeginCardList)
                 for c in conn.player.cards:
                     self.sendTo(conn.id, Message.Card, [c.territoryName, c.unit])
-                self.sendTo(conn.id, EndCardList)
+                self.sendTo(conn.id, Message.EndCardList)
+
+            elif msg == Message.RequestCurrentPlayer:
+                self.sendTo(conn.id, Message.CurrentPlayer, [self.sm.currentPlayer.name])
 
             elif msg == Message.ChangeName:
                 before = conn.player.name

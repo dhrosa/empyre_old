@@ -170,6 +170,10 @@ class Client(QObject):
             except AttributeError:
                 self.mainWindow.chat.addLine("Welcome back to the game!")
                 self.mainWindow.boardWidget.setEnabled(True)
+                self.send(Message.RequestState)
+                self.send(Message.RequestOwnershipList)
+                self.send(Message.RequestCardList)
+                self.send(Message.RequestCurrentPlayer)
             QApplication.setQuitOnLastWindowClosed(True)
             self.send(Message.RequestChatHistory)
             
