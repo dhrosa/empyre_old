@@ -125,15 +125,35 @@ def loadBoard(boardName, boardPath = None):
     import sys
     import os.path
     import yaml
+    import zipfile
+    import tempfile
     if boardPath:
         base = os.path.join(boardPath, boardName)
     if not boardPath:
         current = os.path.dirname(os.path.abspath(__file__))
-        base = os.path.join(current, "boards/%s/" % boardName)
+        base = os.path.join(current, "boards/%s" % boardName)
     print "Attempting to load board from %s" % base
     if not os.path.exists(base):
-        print "Board does not exist."
-        return
+        print "Extracted board directory not found, searching for .board file."
+        fileName = base + ".board"
+        if not os.path.exists(fileName):
+            print "Could not find .board file."
+            return
+        print "Found .board file."
+        if not zipfile.is_zipfile(fileName):
+            print "Invalid .board file format."
+            return
+        try:
+            boardFile = zipfile.ZipFile(fileName)
+        except zipfile.BadZipfile:
+            print "Invalid .board file format."
+            return
+        for f in boardFile.namelist():
+            if f.startswith(".") or f.startswith("/"):
+                print "File names must be relative to board directory (%s)" % f
+                return
+        base = tempfile.mkdtemp(prefix="empyre-board-%s-" % boardName)
+        boardFile.extractall(base)
     yamlFile = os.path.join(base, "board.yaml")
     if not os.path.exists(yamlFile):
         print "Board configuration file missing."
@@ -142,7 +162,7 @@ def loadBoard(boardName, boardPath = None):
     try:
         d = yaml.load(f.read())
     except:
-        print "Invalid board file."
+        print "Invalid board configuration file."
         return
     f.close()
     name = d["name"] if "name" in d else boardName
