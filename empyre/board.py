@@ -121,17 +121,20 @@ class Board(object):
     def territoriesBorder(self, t1, t2):
         return Border(t1, t2) in self.borders
 
-def loadBoard(boardName, images = False):
+def loadBoard(boardName, boardPath = None):
     import sys
     import os.path
     import yaml
-    current = os.path.dirname(os.path.abspath(__file__))
-    base = os.path.join(current, "boards/%s/" % boardName)
+    if boardPath:
+        base = os.path.join(boardPath, boardName)
+    if not boardPath:
+        current = os.path.dirname(os.path.abspath(__file__))
+        base = os.path.join(current, "boards/%s/" % boardName)
+    print "Attempting to load board from %s" % base
     if not os.path.exists(base):
         print "Board does not exist."
-        print base
         return
-    yamlFile = base + "board.yaml"
+    yamlFile = os.path.join(base, "board.yaml")
     if not os.path.exists(yamlFile):
         print "Board configuration file missing."
         return
@@ -143,7 +146,7 @@ def loadBoard(boardName, images = False):
         return
     f.close()
     name = d["name"] if "name" in d else boardName
-    image = (base + d["image"]) if "image" in d else (base + "board.png")
+    image = os.path.join(base, d["image"]) if "image" in d else os.path.join(base, "board.png")
     if not "territories" in d:
         print "Board has no territories."
         return
@@ -153,7 +156,7 @@ def loadBoard(boardName, images = False):
             print "Invalid territory description."
             return
         id = t["id"]
-        territoryImage = (base + t["image"]) if "image" in t else (base + id + ".png")
+        territoryImage = os.path.join(base, t["image"]) if "image" in t else os.path.join(base, id + ".png")
         if not os.path.exists(territoryImage):
             print "File: %s missing." % territoryImage
             return
