@@ -104,7 +104,11 @@ class Server(QTcpServer):
         conn.abort()
 
     def handleError(self, err):
-        print self.sender().errorString()
+        if self.sender().player:
+            name = self.sender().player.name
+        else:
+            name = "Anonymous client"
+        print "%s: %s" % (name, self.sender().errorString())
         self.sender().abort()
 
     def handleDisconnect(self):
@@ -187,7 +191,6 @@ class Server(QTcpServer):
                             break
 
             elif msg == Message.RequestBoardName:
-                print "Sending board information to %s." % (conn.player.name)
                 self.sendTo(conn.id, Message.LoadBoard, [self.boardName])
 
             elif msg == Message.RequestPlayerList:
