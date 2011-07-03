@@ -257,9 +257,7 @@ class Client(QObject):
             self.mainWindow.chat.addLine("%s and %s have tied!" % (names, last))
 
         elif msg == Message.DiceRolled:
-            (name, r1, r2, r3) = args
-            roll = [r1, r2, r3]
-            self.mainWindow.chat.addLine("%s rolled %s" % (name, [r for r in roll if r]))
+            pass
 
         elif msg == Message.TerritoryUpdated:
             (name, owner, count) = args
