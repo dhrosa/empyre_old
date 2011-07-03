@@ -170,13 +170,41 @@ class Client(QObject):
             except AttributeError:
                 self.mainWindow.chat.addLine("Welcome back to the game!")
                 self.mainWindow.boardWidget.setEnabled(True)
-                self.send(Message.RequestState)
                 self.send(Message.RequestOwnershipList)
                 self.send(Message.RequestCardList)
                 self.send(Message.RequestCurrentPlayer)
+                self.send(Message.RequestState)
+                self.send(Message.RequestRemainingTroops)
             QApplication.setQuitOnLastWindowClosed(True)
             self.send(Message.RequestChatHistory)
-            
+
+        elif msg == Message.CurrentState:
+            self.handleStateChange(State.Lobby, args[0])
+
+        elif msg == Message.BeginOwnershipList:
+            self.mainWindow.boardWidget.setUpdatesEnabled(False)
+
+        elif msg == Message.Ownership:
+            (t, player, count) = args
+            t = self.game.board.getTerritory(t)
+            t.owner = self.game.getPlayer(player)
+            t.troopCount = count
+            if t.owner:
+                self.mainWindow.boardWidget.updateTerritoryOwner(t.name, t.owner.name)
+                self.mainWindow.boardWidget.updateTerritoryTroopCount(t.name, count)
+
+        elif msg == Message.EndOwnershipList:
+            self.mainWindow.boardWidget.setUpdatesEnabled(True)
+
+        elif msg == Message.BeginCardList:
+            pass
+
+        elif msg == Message.Card:
+            self.game.clientPlayer.cards.append(Card(*args))
+        
+        elif msg == Message.EndCardList:
+            self.mainWindow.playerInfo.setCardCount(self.game.clientPlayer.name, len(self.game.clientPlayer.cards))
+
         elif msg == Message.PlayerLeft:
             name = args[0]
             self.game.removePlayer(name)
@@ -210,7 +238,7 @@ class Client(QObject):
             self.mainWindow.chat.addLine("%s changed their name to %s" % (before, after))
             self.mainWindow.playerInfo.changePlayerName(before, after)
 
-        elif msg == Message.TurnChanged:
+        elif msg == Message.TurnChanged or msg == Message.CurrentPlayer:
             name = args[0]
             self.game.setCurrentPlayer(name)
             if self.game.yourTurn():
@@ -287,7 +315,7 @@ class Client(QObject):
             self.mainWindow.boardWidget.setEnabled(True)
             self.mainWindow.changeName.setEnabled(False)
             self.mainWindow.changeColor.setEnabled(False)
-        elif self.game.yourTurn():
+        if self.game.yourTurn():
             if new == State.Draft:
                 self.mainWindow.cashCards.setEnabled(True)
             elif new == State.Attack:

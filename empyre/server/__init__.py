@@ -215,6 +215,9 @@ class Server(QTcpServer):
             elif msg == Message.RequestCurrentPlayer:
                 self.sendTo(conn.id, Message.CurrentPlayer, [self.sm.currentPlayer.name])
 
+            elif msg == Message.RequestRemainingTroops:
+                self.sendTo(conn.id, Message.RemainingTroopsChanged, [self.sm.remainingTroops])
+
             elif msg == Message.ChangeName:
                 before = conn.player.name
                 after = args[0]

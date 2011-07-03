@@ -18,6 +18,7 @@ class Message(object):
         RequestOwnershipList,
         RequestCardList,
         RequestCurrentPlayer,
+        RequestRemainingTroops,
         ChangeName,
         ChangeColor,
 
@@ -29,7 +30,7 @@ class Message(object):
         EndAttack,
         Fortify,
         EndTurn,
-    ) = range(24)
+    ) = range(25)
 
     (
         Ping,
@@ -94,6 +95,7 @@ class Message(object):
         RequestOwnershipList: (),
         RequestCardList: (),
         RequestCurrentPlayer: (),
+        RequestRemainingTroops: (),
         ChangeName: (str,),
         ChangeColor: (int, int, int),
 
