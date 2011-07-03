@@ -3,22 +3,28 @@ from empyre.client.connectdialog import ConnectDialog
 from empyre.client import Client
 from PyQt4.QtGui import QApplication
 import sys
+from argparse import ArgumentParser
 
 if __name__ == "__main__":
     from PyQt4.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
-    if "opengl" in sys.argv and "-graphicssystem" in sys.argv:
+    p = ArgumentParser()
+    p.add_argument("name", nargs="?", help="Your in-game name.")
+    p.add_argument("-b", "--boardpath", help="The directory to search for boards in.")
+    p.add_argument("--host", help="The hostname to connect to.")
+    p.add_argument("-p", "--port", type=int, help="The port to connect to. Defaults to 9002.")
+    p.add_argument("--opengl", action="store_true", help="Render the UI using OpenGL for better performance. Off by default.")
+    args = p.parse_args()
+    if args.opengl:
         import OpenGL.GL
+        QApplication.setGraphicsSystem("opengl")
     app = QApplication(sys.argv)
-    name = ""
-    if len(app.arguments()) > 1:
-        name = app.arguments()[1]
-    if not name:
+    if args.host and args.port:
+        client = Client(args.host, args.port, args.name)
+    else:
         dialog = ConnectDialog()
         if dialog.exec_():
-            client = Client(dialog.hostEdit.text(), dialog.portEdit.value())
+            client = Client(dialog.hostEdit.text(), dialog.portEdit.value(), args.name)
         else:
             sys.exit()
-    else:
-        client = Client("127.0.0.1", 9002, name)
     sys.exit(app.exec_())
