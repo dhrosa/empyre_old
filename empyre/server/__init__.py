@@ -10,6 +10,7 @@ from PyQt4.QtNetwork import QTcpServer, QTcpSocket
 from PyQt4.QtCore import QCoreApplication, pyqtSignal, QDateTime, QTimer
 
 import sys
+import os.path
 
 def __smDebug(func):
     def printer(self, action, args=[]):
@@ -61,6 +62,9 @@ class Server(QTcpServer):
        self.sm.mustExchangeCards.connect(self.sendMustExchangeCards)
        self.chatHistory = []
        self.colors = self.predefinedColors
+       parent = os.path.dirname(__file__)
+       with open(os.path.join(parent, "words")) as f:
+           self.words = f.read().split("\n")
        timer = QTimer(self)
        timer.setInterval(3000)
        timer.timeout.connect(self.sendPing)
@@ -134,7 +138,7 @@ class Server(QTcpServer):
                     print "Name taken."
                     self.sendTo(conn.id, Message.NameTaken)
                 else:
-                    password = "".join([random.choice(string.ascii_lowercase) for i in range(8)])
+                    password = random.choice(self.words)
                     conn.player = self.sm.players[-1]
                     conn.player.password = password
                     if not self.colors:
