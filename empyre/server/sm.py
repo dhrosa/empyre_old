@@ -176,7 +176,7 @@ class SM(QObject):
                     return False
                 t.owner = self.currentPlayer
                 t.troopCount = 1
-                self.territoryUpdated.emit(t.name, self.currentPlayer.name, 1)
+                self.territoryUpdated.emit(t.name, t.owner.name, 1)
                 self.currentPlayer = self.nextPlayer()
                 if self.freeTerritoryCount() == 0:
                     self.substate = State.InitialDraft
@@ -209,6 +209,11 @@ class SM(QObject):
                 cards = [self.currentPlayer.cards[i] for i in args]
                 if not [self.currentPlayer.cards[i].unit for i in args] in Card.validCombinations:
                     return False
+                for c in cards:
+                    t = self.board.getTerritory(c.territoryName)
+                    if t and t.owner == self.currentPlayer:
+                        t.troopCount += 2
+                        self.territoryUpdated.emit(t.name, t.owner.name, t.troopCount)
                 cards = [c for i, c in enumerate(self.currentPlayer.cards) if not i in args]
                 self.currentPlayer.cards = cards
                 self.cardsExchanged.emit(self.currentPlayer.name, *args)
