@@ -223,6 +223,8 @@ class Server(QTcpServer):
                 self.sendTo(conn.id, Message.RemainingTroopsChanged, [self.sm.remainingTroops])
 
             elif msg == Message.ChangeName:
+                if self.sm.substate != State.Lobby:
+                    return
                 before = conn.player.name
                 after = args[0]
                 if before == after:
@@ -239,6 +241,8 @@ class Server(QTcpServer):
                 self.send(Message.NameChanged, [before, after])            
 
             elif msg == Message.ChangeColor:
+                if self.sm.substate != State.Lobby:
+                    return
                 color = args
                 player = conn.player
                 player.color = color
