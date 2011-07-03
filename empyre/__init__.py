@@ -3,6 +3,17 @@ sip.setapi("QString", 2)
 
 import inspect
 
+from PyQt4.QtCore import QDateTime
+class TimeStampPrinter(object):
+    def __init__(self, stdout):
+        self.stdout = stdout
+
+    def write(self, out):
+        if out.isspace():
+            self.stdout.write(out)
+        else:
+            self.stdout.write("[%s] %s" % (QDateTime.currentDateTime().toString("hh:mm:ss"), out))
+
 class Player(object):
     def __init__(self, name):
         self.name = name

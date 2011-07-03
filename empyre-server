@@ -1,4 +1,5 @@
 #! /usr/bin/python
+from empyre import TimeStampPrinter
 from empyre.server import Server
 from empyre.board import loadBoard
 from PyQt4.QtCore import QCoreApplication, QSocketNotifier
@@ -15,6 +16,7 @@ if __name__ == "__main__":
     p.add_argument("-p", "--port", type=int, default="9002", help="The port to listen on. Defaults to 9002.")
     p.add_argument("-d", "--debug", action="store_true", help="Prints the state of the game's internal state machine after every action. Defaults to False.")
     args = p.parse_args()
+    sys.stdout = TimeStampPrinter(sys.stdout)
     board = loadBoard(args.board, args.boardpath)
     if not board:
         print "Could not load board: %s" % (boardName)
