@@ -11,6 +11,23 @@ from PyQt4.QtCore import QCoreApplication, pyqtSignal, QDateTime, QTimer
 
 import sys
 
+def __smDebug(func):
+    def printer(self, action, args=[]):
+        print "Passed in action: %s with args %s" % (Action.toString(action), args)
+        if func(self, action, args):
+            print "=" * 80
+            print "OK",
+            print self
+            print "=" * 80
+            return True
+        else:
+            print "=" * 80
+            print "FAIL",
+            print self
+            print "=" * 80
+            return False
+    return printer
+
 class Server(QTcpServer):
     sendReady = pyqtSignal(int, list)
     sendReadySpecific = pyqtSignal(int, list, int)
@@ -25,10 +42,12 @@ class Server(QTcpServer):
         [255, 0, 255],
     ]
 
-    def __init__(self, boardName, board, parent = None):
+    def __init__(self, boardName, board, debug = False, parent = None):
        QTcpServer.__init__(self, parent)
        self.boardName = boardName
        self.connections = []
+       if debug:
+           SM.next = __smDebug(SM.next)
        self.sm = SM(board)
        self.sm.stateChanged.connect(self.sendStateChange)
        self.sm.playersTied.connect(self.sendTiedPlayers)

@@ -7,23 +7,6 @@ from PyQt4.QtCore import pyqtSignal, QObject
 def rollDice(n):
     return sorted([randint(1, 6) for i in range(n)], reverse=True)
 
-def debug(func):
-    def printer(s, action, args=[]):
-        print "Passed in action: %s with args %s" % (Action.toString(action), args)
-        if func(s, action, args):
-            print "=" * 80
-            print "OK",
-            print s
-            print "=" * 80
-            return True
-        else:
-            print "=" * 80
-            print "FAIL",
-            print s
-            print "=" * 80
-            return False
-    return printer
-
 class SM(QObject):
     stateChanged = pyqtSignal(int, int)
     turnChanged = pyqtSignal(str)
@@ -137,7 +120,6 @@ class SM(QObject):
                 bonus += region.bonus
         return bonus
 
-    @debug
     def next(self, action, args=[]):
         s = self.substate
         if not Action.argMatch(action, args):
