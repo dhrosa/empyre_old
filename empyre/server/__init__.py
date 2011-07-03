@@ -12,7 +12,7 @@ from PyQt4.QtCore import QCoreApplication, pyqtSignal, QDateTime, QTimer
 import sys
 import os.path
 
-def __smDebug(func):
+def _smDebug(func):
     def printer(self, action, args=[]):
         print "Passed in action: %s with args %s" % (Action.toString(action), args)
         if func(self, action, args):
@@ -48,7 +48,7 @@ class Server(QTcpServer):
        self.boardName = boardName
        self.connections = []
        if debug:
-           SM.next = __smDebug(SM.next)
+           SM.next = _smDebug(SM.next)
        self.sm = SM(board)
        self.sm.stateChanged.connect(self.sendStateChange)
        self.sm.playersTied.connect(self.sendTiedPlayers)
