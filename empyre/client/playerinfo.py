@@ -12,10 +12,12 @@ class PlayerInfo(QTableWidget):
         self.horizontalHeader().setResizeMode(QHeaderView.ResizeToContents)
         self.horizontalHeader().setResizeMode(QHeaderView.Stretch)
 
-    def addPlayer(self, name, color):
+    def addPlayer(self, player):
         r = self.rowCount()
         self.setRowCount(r + 1)
-        print name, color, r
+        name = player.name
+        cardCount = len(player.cards)
+        color = player.color
         name = QTableWidgetItem(name)
         name.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
 
@@ -26,7 +28,7 @@ class PlayerInfo(QTableWidget):
         cards = QTableWidgetItem()
         cards.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         cards.setTextAlignment(Qt.AlignCenter)
-        cards.setData(Qt.DisplayRole, 0)
+        cards.setData(Qt.DisplayRole, cardCount)
 
         troops = QTableWidgetItem()
         troops.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)

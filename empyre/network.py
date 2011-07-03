@@ -16,6 +16,7 @@ class Message(object):
         RequestPlayerList,
         RequestChatHistory,
         RequestOwnershipList,
+        RequestCardList,
         ChangeName,
         ChangeColor,
 
@@ -27,7 +28,7 @@ class Message(object):
         EndAttack,
         Fortify,
         EndTurn,
-    ) = range(22)
+    ) = range(23)
 
     (
         Ping,
@@ -50,7 +51,9 @@ class Message(object):
         BeginOwnershipList,
         Ownership,
         EndOwnershipList,
-        
+        BeginCardList,
+        Card,
+        EndCardList,
 
         PlayerLeft,
         PlayerLeftDuringGame,
@@ -72,7 +75,7 @@ class Message(object):
         Attacked,
         ReceiveCard,
         CardAwarded,
-    ) = range (100, 139)
+    ) = range (100, 142)
 
     validArgs = {
         Pong: (),
@@ -87,6 +90,7 @@ class Message(object):
         RequestPlayerList: (),
         RequestChatHistory: (),
         RequestOwnershipList: (),
+        RequestCardList: (),
         ChangeName: (str,),
         ChangeColor: (int, int, int),
 
@@ -113,12 +117,15 @@ class Message(object):
         RejoinSuccess: (str,),
         PlayerRejoined: (str,),
         BeginPlayerList: (),
-        PlayerInfo: (str, int, int, int),
+        PlayerInfo: (str, int, int, int, int),
         EndPlayerList: (),
         LoadBoard: (str,),
         BeginOwnershipList: (),
         Ownership: (str, str, int),
         EndOwnershipList: (),
+        BeginCardList: (),
+        Card: (str, int),
+        EndCardList: (),
 
         PlayerLeft: (str,),
         PlayerLeftDuringGame: (str,),

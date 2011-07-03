@@ -92,7 +92,7 @@ class Client(QObject):
             player = self.game.addPlayer(name)
             player.color = color
             self.mainWindow.chat.addLine(Line(Line.PlayerJoined, target=name))
-            self.mainWindow.playerInfo.addPlayer(name, color)
+            self.mainWindow.playerInfo.addPlayer(player)
 
         elif msg == Message.GameInProgress:
             password = ""
@@ -126,9 +126,11 @@ class Client(QObject):
 
         elif msg == Message.PlayerInfo:
             name = args[0]
-            color = args[1:]
+            cardCount = args[1]
+            color = args[2:]
             player = self.game.addPlayer(name)
             player.color = color
+            player.cards = [Card() for i in range(cardCount)]
 
         elif msg == Message.EndPlayerList:
             self.send(Message.RequestBoardName)
@@ -156,7 +158,7 @@ class Client(QObject):
             self.mainWindow.endAttackReleased.connect(self.sendEndAttack)
             self.mainWindow.endTurnReleased.connect(self.sendEndTurn)
             for p in self.game.players:
-                self.mainWindow.playerInfo.addPlayer(p.name, p.color)
+                self.mainWindow.playerInfo.addPlayer(p)
             self.mainWindow.show()
             try:
                 _ = self.password
