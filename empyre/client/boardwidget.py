@@ -197,7 +197,7 @@ class BoardWidget(QWidget):
         source = self.game.board.getTerritory(source)
         target = self.game.board.getTerritory(target)
         attacker = self.game.getPlayer(attacker)
-        anim = ExplodingAnimation(QPoint(*target.center), 1000)
+        anim = ExplodingAnimation(QPoint(*target.center) / self.scaleFactor, 1000)
         anim.finished.connect(self.removeAnimation)
         anim.updated.connect(self.repaint)
         self.animations.append(anim)
@@ -210,6 +210,7 @@ class BoardWidget(QWidget):
         return self.game.board.image.size()
 
     def resizeEvent(self, event):
+        self.cancelSelection()
         size = self.sizeHint()
         size.scale(event.size(), Qt.KeepAspectRatio)
         self.scaleFactor = float(self.sizeHint().width()) / size.width()
