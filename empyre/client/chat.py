@@ -65,7 +65,7 @@ class Chat(QWidget):
             text = Qt.escape(line.text)
             target = Qt.escape(line.target)
             if line.type == Line.Chat or line.type == Line.Whisper:
-                (r, g, b) = line.playerColor
+                (r, g, b) = [int(c * 0.75) for c in line.playerColor]
                 sender = Qt.escape(line.sender)
                 dateTime = QDateTime.fromTime_t(int(line.timestamp))
                 time = dateTime.toString("hh:mm:ss AP")
