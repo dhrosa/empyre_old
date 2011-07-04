@@ -1,4 +1,5 @@
 from random import shuffle
+from math import floor
 
 class Territory(object):
     def __init__(self, name, image, center = None):
@@ -79,12 +80,18 @@ class Card(object):
     def __hash__(self):
         return hash(self.territoryName + str(self.unit))
 
+defaultDraftCount = lambda t: max(3, int(floor(t / 3)))
+
 class Board(object):
-    def __init__(self, name, territories, borders, regions, image = None):
+    def __init__(self, name, territories, borders, regions, draftCount = None, image = None):
         self.name = name
         self.__territories = dict([(t.name, t) for t in territories])
         self.borders = borders
         self.regions = regions
+        if not draftCount:
+            self.draftCount = defaultDraftCount
+        else:
+            self.draftCount = draftCount
         self.image = image
         self.cards = []
         self.reset()
@@ -127,6 +134,8 @@ def loadBoard(boardName, boardPath = None):
     import yaml
     import zipfile
     import tempfile
+    import math
+    import __builtin__
     if boardPath:
         base = os.path.join(boardPath, boardName)
     if not boardPath:
@@ -167,6 +176,17 @@ def loadBoard(boardName, boardPath = None):
     f.close()
     name = d["name"] if "name" in d else boardName
     image = os.path.join(base, d["image"]) if "image" in d else os.path.join(base, "board.png")
+    if "draftCount" in d:
+        evalLocals = [("__builtins__",  None)]
+        evalLocals += [(k, vars(__builtin__).get(k, None)) for k in "abs bool cmp divmod float int max min pow round".split()]
+        evalLocals += [(k, vars(math).get(k, None)) for k in dir(math)]
+        try:
+            draftCount = eval("lambda t: %s" % d["draftCount"], dict(evalLocals))
+        except Exception as e:
+            print "Invalid draftCount expression (%s): %s" % (type(e), e)
+            return
+    else:
+        draftCount = None
     if not "territories" in d:
         print "Board has no territories."
         return
@@ -246,4 +266,4 @@ def loadBoard(boardName, boardPath = None):
     terrs = []
     for k in territories.keys():
         terrs.append(territories[k])
-    return Board(name, territories.values(), borders, regions, image)
+    return Board(name, territories.values(), borders, regions, draftCount, image)

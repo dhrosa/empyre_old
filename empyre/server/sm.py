@@ -113,10 +113,10 @@ class SM(QObject):
             return -10 + 5 * self.setsExchanged
 
     def draftCount(self, player):
-        myTerritories = self.ownedTerritories(player)
-        bonus = max(3, int(floor(len(myTerritories) / 3)))
+        t = self.territoryCount(player)
+        bonus = self.board.draftCount(t)
         for region in self.board.regions:
-            if region.hasBonus(myTerritories):
+            if region.hasBonus(self.ownedTerritories(player)):
                 bonus += region.bonus
         return bonus
 
