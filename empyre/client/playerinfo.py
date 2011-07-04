@@ -17,7 +17,6 @@ class PlayerInfo(QTableWidget):
         r = self.rowCount()
         self.setRowCount(r + 1)
         name = player.name
-        cardCount = len(player.cards)
         color = player.color
         name = QTableWidgetItem(name)
         name.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
@@ -29,7 +28,7 @@ class PlayerInfo(QTableWidget):
         cards = QTableWidgetItem()
         cards.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         cards.setTextAlignment(Qt.AlignCenter)
-        cards.setData(Qt.DisplayRole, cardCount)
+        cards.setData(Qt.DisplayRole, 0)
 
         troops = QTableWidgetItem()
         troops.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
@@ -76,12 +75,6 @@ class PlayerInfo(QTableWidget):
         items = self.findItems(name, Qt.MatchFixedString)
         if items:
             items[0].setBackground(Qt.green)
-
-    def setCardCount(self, player, count):
-        items = self.findItems(player, Qt.MatchFixedString)
-        if items:
-            row = self.row(items[0])
-            self.item(row, self.Cards).setData(Qt.DisplayRole, count)
 
     def updateStatistics(self):
         for r in range(self.rowCount()):

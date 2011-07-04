@@ -204,7 +204,7 @@ class Client(QObject):
             self.game.clientPlayer.cards.append(Card(*args))
         
         elif msg == Message.EndCardList:
-            self.mainWindow.playerInfo.setCardCount(self.game.clientPlayer.name, len(self.game.clientPlayer.cards))
+            self.mainWindow.updateStatistics()
 
         elif msg == Message.PlayerLeft:
             name = args[0]
@@ -287,7 +287,7 @@ class Client(QObject):
             player = self.game.getPlayer(name)
             if player == self.game.clientPlayer:
                 player.cards = [c for i, c in enumerate(player.cards) if not i in indexes]
-            self.mainWindow.playerInfo.setCardCount(name, len(player.cards))
+            self.mainWindow.player.updateStatistics()
 
         elif msg == Message.Attacked:
             (attacker, source, target) = args
@@ -304,7 +304,7 @@ class Client(QObject):
             if player != self.game.clientPlayer:
                 player.cards.append(Card())
             count = len(player.cards)
-            self.mainWindow.playerInfo.setCardCount(name, count)
+            self.mainWindow.playerInfo.updateStatistics()
 
     def handleStateChange(self, old, new):
         self.mainWindow.cashCards.setEnabled(False)
