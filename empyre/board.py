@@ -89,9 +89,9 @@ class Board(object):
         self.borders = borders
         self.regions = regions
         if not draftCount:
-            self.draftCount = defaultDraftCount
+            self.draftCountLambda = defaultDraftCount
         else:
-            self.draftCount = draftCount
+            self.draftCountLambda = draftCount
         self.image = image
         self.cards = []
         self.reset()
@@ -128,6 +128,24 @@ class Board(object):
     def territoriesBorder(self, t1, t2):
         return Border(t1, t2) in self.borders
 
+    def ownedTerritories(self, player):
+        owned = []
+        for t in self.territoryNames():
+            if self.__territories[t].owner == player:
+                owned.append(self.__territories[t])
+        return owned
+
+    def ownedTerritoryCount(self, player):
+        return len(self.ownedTerritories(player))
+
+    def draftCount(self, player):
+        owned = self.ownedTerritories(player)
+        bonus = self.draftCountLambda(len(owned))
+        for region in self.regions:
+            if region.hasBonus(owned):
+                bonus += region.bonus
+        return bonus
+    
 def loadBoard(boardName, boardPath = None):
     import sys
     import os.path

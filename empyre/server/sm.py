@@ -70,12 +70,6 @@ class SM(QObject):
     def livePlayerCount(self):
         return len(self.livePlayers())
 
-    def ownedTerritories(self, player):
-        return [t for t in self.board.iterTerritories() if t.owner == player]
-
-    def territoryCount(self, player):
-        return len(self.ownedTerritories(player))
-
     def freeTerritoryCount(self):
         return sum([1 for t in self.board.iterTerritories() if not t.owner])
 
@@ -111,14 +105,6 @@ class SM(QObject):
             return 4 + 2 * self.setsExchanged
         else:
             return -10 + 5 * self.setsExchanged
-
-    def draftCount(self, player):
-        t = self.territoryCount(player)
-        bonus = self.board.draftCount(t)
-        for region in self.board.regions:
-            if region.hasBonus(self.ownedTerritories(player)):
-                bonus += region.bonus
-        return bonus
 
     def next(self, action, args=[]):
         s = self.substate
@@ -180,7 +166,7 @@ class SM(QObject):
                 self.currentPlayer = self.nextPlayer()
                 if self.freeTerritoryCount() == 0:
                     self.substate = State.InitialDraft
-                    self.remainingTroops = self.draftCount(self.currentPlayer)
+                    self.remainingTroops = self.board.draftCount(self.currentPlayer)
                 return True
 
         elif s == State.InitialDraft:
@@ -194,7 +180,7 @@ class SM(QObject):
                 self.remainingTroops = self.remainingTroops - n
                 if self.remainingTroops == 0:
                     self.currentPlayer = self.nextPlayer()
-                    self.remainingTroops = self.draftCount(self.currentPlayer)
+                    self.remainingTroops = self.board.draftCount(self.currentPlayer)
                     if self.currentPlayer == self.firstPlayer:
                         self.substate = State.Draft
                     return True
@@ -319,7 +305,7 @@ class SM(QObject):
                     self.currentPlayer.cards.append(card)
                 self.awardCard = False
                 self.currentPlayer = self.nextPlayer()
-                self.remainingTroops = self.draftCount(self.currentPlayer)
+                self.remainingTroops = self.board.draftCount(self.currentPlayer)
                 self.substate = State.Draft
                 return True
 
