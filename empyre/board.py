@@ -80,10 +80,12 @@ class Card(object):
     def __hash__(self):
         return hash(self.territoryName + str(self.unit))
 
+
 defaultDraftCount = lambda t: max(3, int(floor(t / 3)))
+defaultCardValue = lambda e: 4 + 2 * e if e <= 5 else -10 + 5 * e
 
 class Board(object):
-    def __init__(self, name, territories, borders, regions, draftCount = None, image = None):
+    def __init__(self, name, territories, borders, regions, draftCount = None, cardValue = None, image = None):
         self.name = name
         self.__territories = dict([(t.name, t) for t in territories])
         self.borders = borders
@@ -92,6 +94,10 @@ class Board(object):
             self.draftCountLambda = defaultDraftCount
         else:
             self.draftCountLambda = draftCount
+        if not cardValue:
+            self.cardValueLambda = defaultCardValue
+        else:
+            self.cardValueLambda = cardValue
         self.image = image
         self.cards = []
         self.reset()
@@ -146,6 +152,9 @@ class Board(object):
                 bonus += region.bonus
         return bonus
     
+    def cardValue(self, setsExchanged):
+        return self.cardValueLambda(setsExchanged)
+
 def loadBoard(boardName, boardPath = None):
     import sys
     import os.path
@@ -194,6 +203,7 @@ def loadBoard(boardName, boardPath = None):
     f.close()
     name = d["name"] if "name" in d else boardName
     image = os.path.join(base, d["image"]) if "image" in d else os.path.join(base, "board.png")
+
     if "draftCount" in d:
         evalLocals = [("__builtins__",  None)]
         evalLocals += [(k, vars(__builtin__).get(k, None)) for k in "abs bool cmp divmod float int max min pow round".split()]
@@ -205,6 +215,19 @@ def loadBoard(boardName, boardPath = None):
             return
     else:
         draftCount = None
+
+    if "cardValue" in d:
+        evalLocals = [("__builtins__",  None)]
+        evalLocals += [(k, vars(__builtin__).get(k, None)) for k in "abs bool cmp divmod float int max min pow round".split()]
+        evalLocals += [(k, vars(math).get(k, None)) for k in dir(math)]
+        try:
+            draftCount = eval("lambda e: %s" % d["cardValue"], dict(evalLocals))
+        except Exception as e:
+            print "Invalid cardValue expression (%s): %s" % (type(e), e)
+            return
+    else:
+        cardValue = None
+
     if not "territories" in d:
         print "Board has no territories."
         return
@@ -284,4 +307,4 @@ def loadBoard(boardName, boardPath = None):
     terrs = []
     for k in territories.keys():
         terrs.append(territories[k])
-    return Board(name, territories.values(), borders, regions, draftCount, image)
+    return Board(name, territories.values(), borders, regions, draftCount, cardValue, image)

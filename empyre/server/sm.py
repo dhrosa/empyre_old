@@ -90,22 +90,6 @@ class SM(QObject):
         i = (selection.index(self.currentPlayer) + 1) % len(selection)
         return selection[i]
 
-    def cardsExchangable(self, indexes):
-        try:
-            cards = [self.currentPlayer.cards[i] for i in indexes]
-        except:
-            return False
-        units = [c.unit for c in cards]
-        if units in Card.validCombinations:
-            return cards
-        return False
-
-    def cardValue(self):
-        if (self.setsExchanged <= 5):
-            return 4 + 2 * self.setsExchanged
-        else:
-            return -10 + 5 * self.setsExchanged
-
     def next(self, action, args=[]):
         s = self.substate
         if not Action.argMatch(action, args):
@@ -203,7 +187,7 @@ class SM(QObject):
                 cards = [c for i, c in enumerate(self.currentPlayer.cards) if not i in args]
                 self.currentPlayer.cards = cards
                 self.cardsExchanged.emit(self.currentPlayer.name, *args)
-                self.remainingTroops = self.remainingTroops + self.cardValue()
+                self.remainingTroops = self.remainingTroops + self.board.cardValue(self.setsExchanged)
                 self.setsExchanged += 1
                 return True
 
@@ -254,7 +238,7 @@ class SM(QObject):
                 target.troopCount -= defenderLoss
                 if target.troopCount == 0:
                     self.awardCard = True
-                    if self.territoryCount(targetPlayer) == 1:
+                    if self.board.ownedTerritoryCount(targetPlayer) == 1:
                         self.currentPlayer.cards += targetPlayer.cards
                         targetPlayer.cards = []
                         targetPlayer.isPlaying = False
