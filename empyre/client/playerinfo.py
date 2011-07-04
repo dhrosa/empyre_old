@@ -2,11 +2,12 @@ from PyQt4.QtCore import pyqtSignal, Qt
 from PyQt4.QtGui import QTableWidget, QTableWidgetItem, QHeaderView, QColor
 
 class PlayerInfo(QTableWidget):
-    (Name, Color, Cards, TroopsPerTurn) = range(4)
+    (Name, Color, Cards, NumberOfTroops, NumberOfTerritories, TroopsPerTurn) = range(6)
 
-    def __init__(self, parent = None):
+    def __init__(self, game, parent = None):
         super(PlayerInfo, self).__init__(parent)
-        columns = ["Name", "Color", "Cards", "Troops Per Turn"]
+        self.game = game
+        columns = ["Name", "Color", "Cards", "# of Troops", "# of Territories", "Troops Per Turn"]
         self.setColumnCount(len(columns))
         self.setHorizontalHeaderLabels(columns)
         self.horizontalHeader().setResizeMode(QHeaderView.ResizeToContents)
@@ -35,10 +36,22 @@ class PlayerInfo(QTableWidget):
         troops.setTextAlignment(Qt.AlignCenter)
         troops.setData(Qt.DisplayRole, 0)
 
+        territories = QTableWidgetItem()
+        territories.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+        territories.setTextAlignment(Qt.AlignCenter)
+        territories.setData(Qt.DisplayRole, 0)
+
+        troopsPerTurn = QTableWidgetItem()
+        troopsPerTurn.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+        troopsPerTurn.setTextAlignment(Qt.AlignCenter)
+        troopsPerTurn.setData(Qt.DisplayRole, 0)
+
         self.setItem(r, self.Name, name)
         self.setItem(r, self.Color, colorItem)
         self.setItem(r, self.Cards, cards)
-        self.setItem(r, self.TroopsPerTurn, troops)
+        self.setItem(r, self.NumberOfTroops, troops)
+        self.setItem(r, self.NumberOfTerritories, territories)
+        self.setItem(r, self.TroopsPerTurn, troopsPerTurn)
 
     def removePlayer(self, name):
         items = self.findItems(name, Qt.MatchFixedString)
@@ -69,3 +82,13 @@ class PlayerInfo(QTableWidget):
         if items:
             row = self.row(items[0])
             self.item(row, self.Cards).setData(Qt.DisplayRole, count)
+
+    def updateStatistics(self):
+        for r in range(self.rowCount()):
+            player = self.game.getPlayer(self.item(r, self.Name).text())
+            troops = self.game.board.troopCount(player)
+            territoryCount = self.game.board.ownedTerritoryCount(player)
+            troopsPerTurn = self.game.board.draftCount(player)
+            self.item(r, self.NumberOfTroops).setData(Qt.DisplayRole, troops)
+            self.item(r, self.NumberOfTerritories).setData(Qt.DisplayRole, territoryCount)
+            self.item(r, self.TroopsPerTurn).setData(Qt.DisplayRole, troopsPerTurn)

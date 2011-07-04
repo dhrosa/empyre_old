@@ -18,7 +18,7 @@ class MainWindow(QMainWindow):
         self.game = game
         self.boardWidget = BoardWidget(self.game)
         self.chat = Chat()
-        self.playerInfo = PlayerInfo()
+        self.playerInfo = PlayerInfo(self.game)
 
         toolBar = QToolBar()
         self.changeName = QPushButton("Change Name", released=self.__changeName)

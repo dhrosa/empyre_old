@@ -144,6 +144,9 @@ class Board(object):
     def ownedTerritoryCount(self, player):
         return len(self.ownedTerritories(player))
 
+    def troopCount(self, player):
+        return sum([t.troopCount for t in self.ownedTerritories(player)])
+
     def draftCount(self, player):
         owned = self.ownedTerritories(player)
         bonus = self.draftCountLambda(len(owned))

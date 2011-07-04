@@ -195,6 +195,7 @@ class Client(QObject):
 
         elif msg == Message.EndOwnershipList:
             self.mainWindow.boardWidget.setUpdatesEnabled(True)
+            self.mainWindow.playerInfo.updateStatistics()
 
         elif msg == Message.BeginCardList:
             pass
@@ -270,6 +271,7 @@ class Client(QObject):
                 self.mainWindow.boardWidget.updateTerritoryOwner(name, owner)
             if t.troopCount != previousTroopCount:
                 self.mainWindow.boardWidget.updateTerritoryTroopCount(name, count)
+            self.mainWindow.playerInfo.updateStatistics()
             self.game.changed.emit()
 
         elif msg == Message.RemainingTroopsChanged:
