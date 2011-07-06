@@ -4,7 +4,7 @@ PATCH = 0
 RELEASE = ''
 
 def version():
-    v = "%d.%d.%02d" % (MAJOR, MINOR, PATCH)
+    v = "%d.%d.%d" % (MAJOR, MINOR, PATCH)
     if RELEASE:
         return v + "-" + RELEASE
     else:
