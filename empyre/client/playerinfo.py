@@ -11,7 +11,6 @@ class PlayerInfo(QTableWidget):
         self.setColumnCount(len(columns))
         self.setHorizontalHeaderLabels(columns)
         self.horizontalHeader().setResizeMode(QHeaderView.ResizeToContents)
-        self.horizontalHeader().setResizeMode(QHeaderView.Stretch)
 
     def addPlayer(self, player):
         r = self.rowCount()

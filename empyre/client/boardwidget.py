@@ -1,7 +1,7 @@
 from random import randint
 
 from PyQt4.QtCore import pyqtSignal, Qt, QRect, QPoint
-from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor, QInputDialog, QAction, QKeySequence
+from PyQt4.QtGui import QWidget, QImage, QProgressDialog, QPainter, QPixmap, QColor, QInputDialog, QAction, QKeySequence, QSizePolicy
 
 from animations import LineAnimation, BlinkingAnimation, ExplodingAnimation
 from empyre import State
@@ -38,11 +38,13 @@ class BoardWidget(QWidget):
         self.sourceAnimation = None
         self.scaleFactor = 1.0
         self.showRegionMap = False
+        policy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        policy.setHeightForWidth(True)
+        self.setSizePolicy(policy)
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.StrongFocus)
         self.setEnabled(False)
         self.loadImages()
-
         toggleRegionMap = QAction(self,
                                   shortcutContext=Qt.ApplicationShortcut,
                                   shortcut=Qt.Key_B,
@@ -208,6 +210,10 @@ class BoardWidget(QWidget):
 
     def sizeHint(self):
         return self.game.board.image.size()
+
+    def heightForWidth(self, width):
+        aspect = float(self.sizeHint().width()) / self.sizeHint().height()
+        return int(width / aspect)
 
     def resizeEvent(self, event):
         self.cancelSelection()

@@ -20,15 +20,15 @@ class MainWindow(QMainWindow):
         self.chat = Chat()
         self.playerInfo = PlayerInfo(self.game)
 
+        playerDock = QDockWidget("Players")
+        playerDock.setWidget(self.playerInfo)
+        playerDock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
+        self.addDockWidget(Qt.RightDockWidgetArea, playerDock)
+
         chatDock = QDockWidget("Chat")
         chatDock.setWidget(self.chat)
         chatDock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
         self.addDockWidget(Qt.RightDockWidgetArea, chatDock)
-
-        playerDock = QDockWidget("Players")
-        playerDock.setWidget(self.playerInfo)
-        playerDock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
-        self.addDockWidget(Qt.BottomDockWidgetArea, playerDock)
 
         self.setCentralWidget(self.boardWidget)
         self.statusBar()
