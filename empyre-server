@@ -1,26 +1,60 @@
 #! /usr/bin/python
+import empyre
 from empyre.server import Server
 from empyre.board import loadBoard
 from PyQt4.QtCore import QCoreApplication, QSocketNotifier
 import sys
-from argparse import ArgumentParser
-import logging
 import os.path
+import logging, logging.handlers
+
+def parseArgs():
+    from argparse import ArgumentParser
+    p = ArgumentParser()
+    p.add_argument("board", nargs='?', default="newengland", help="The name of the board to play on.")
+    p.add_argument("-b", "--boardpath", help="The directory to search for boards in.")
+    p.add_argument("-p", "--port", type=int, default="9002", help="The port to listen on. Defaults to 9002.")
+    p.add_argument("-l", "--logfile", help="The file to write logs to. Defaults to ~/.empyre/server/log")
+    p.add_argument("-n", "--no-logging", action="store_true", help="Don't write to log file.")
+    p.add_argument("-d", "--debug", action="store_true", help="Displays debugging information.")
+    p.add_argument("-q", "--quiet", action="store_true", help="Don't output any debug or information lines, warnings and errors will still be output.")
+    p.add_argument("-s", "--silent", action="store_true", help="Suppresses all output, even warnings and errors.")
+    return p.parse_args()
+
+def setupLogger(args):
+    log = logging.getLogger()
+    log.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(fmt="%(levelname)-8s %(name)-8s %(asctime)s %(message)s",
+                                  datefmt="%H:%M:%S")
+    if not args.no_logging:
+        if args.logfile:
+            logHandler = logging.FileHandler(args.logfile)
+            logHandler.setFormatter(formatter)
+            logHandler.setLevel(logging.DEBUG)
+            log.addHandler(logHandler)
+        else:
+            logHandler = logging.handlers.TimedRotatingFileHandler(empyre.serverLog, when="midnight")
+            logHandler.setFormatter(formatter)
+            logHandler.setLevel(logging.DEBUG)
+            log.addHandler(logHandler)
+
+    if not args.silent:
+        if args.debug:
+            level = logging.DEBUG
+        elif args.quiet:
+            level = logging.WARNING
+        else:
+            level = logging.INFO
+        streamHandler = logging.StreamHandler(stream=sys.stderr)
+        streamHandler.setFormatter(formatter)
+        streamHandler.setLevel(level)
+        log.addHandler(streamHandler)
 
 if __name__ == "__main__":
     from PyQt4.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
     app = QCoreApplication(sys.argv)
-    p = ArgumentParser()
-    p.add_argument("board", nargs='?', default="newengland", help="The name of the board to play on.")
-    p.add_argument("-b", "--boardpath", help="The directory to search for boards in.")
-    p.add_argument("-p", "--port", type=int, default="9002", help="The port to listen on. Defaults to 9002.")
-    p.add_argument("-d", "--debug", action="store_true", help="Prints the state of the game's internal state machine after every action. Defaults to False.")
-    args = p.parse_args()
-    logging.basicConfig(stream=sys.stderr,
-                        level=logging.DEBUG,
-                        format="%(levelname)s [%(asctime)s] %(message)s",
-                        datefmt="%Y-%m-%d %H:%M:%S")
+    args = parseArgs()
+    setupLogger(args)
     board = loadBoard(args.board, args.boardpath)
     if not board:
         logging.error("Could not load board: %s", args.board)

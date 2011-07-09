@@ -14,7 +14,7 @@ import os.path
 import logging
 
 def _smDebug(func):
-    log = logging.getLogger("SM")
+    log = logging.getLogger("sm")
     def printer(self, action, args=[]):
         log.debug("Passed in action: %s with args %s", Action.toString(action), args)
         if func(self, action, args):
@@ -102,11 +102,12 @@ class Server(QTcpServer):
         conn.abort()
 
     def handleError(self, err):
-        if self.sender().player:
-            name = self.sender().player.name
-        else:
-            name = "Anonymous client"
-        log.warning("%s network error:  %s", name, self.sender().errorString())
+        if err != Connection.RemoteHostClosedError:
+            if self.sender().player:
+                name = self.sender().player.name
+            else:
+                name = "Anonymous client"
+            log.warning("%s network error:  %s", name, self.sender().errorString())
         self.sender().abort()
 
     def handleDisconnect(self):
@@ -147,8 +148,8 @@ class Server(QTcpServer):
                         conn.player.color = [random.randint(0, 255) for i in range(3)]
                     else:
                         conn.player.color = self.colors.pop(random.randint(0, len(self.colors) - 1))
-                    log.info("%s has been granted the name \"%s\" and password: %s." % conn.peerAddress().toString(), name, password)
-                    log.info("%s has been assigned the color %s" % name, conn.player.color)
+                    log.info("%s has been granted the name \"%s\" and password: %s.", conn.peerAddress().toString(), name, password)
+                    log.info("%s has been assigned the color %s", name, conn.player.color)
                     self.sendTo(conn.id, Message.NameAccepted, [name, conn.player.password])
                     self.sendExcept(conn.id, Message.PlayerJoined, [name] + conn.player.color)
 

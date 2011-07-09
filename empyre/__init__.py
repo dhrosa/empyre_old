@@ -10,9 +10,11 @@ if not os.path.exists(configDir):
 serverConfigDir = os.path.join(configDir, "server")
 if not os.path.exists(serverConfigDir):
     os.mkdir(serverConfigDir)
+serverLog = os.path.join(serverConfigDir, "log")
 clientConfigDir = os.path.join(configDir, "client")
 if not os.path.exists(clientConfigDir):
     os.mkdir(clientConfigDir)
+clientLog = os.path.join(clientConfigDir, "log")
     
 import inspect
 
