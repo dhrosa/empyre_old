@@ -78,9 +78,11 @@ class PlayerInfo(QTableWidget):
     def updateStatistics(self):
         for r in range(self.rowCount()):
             player = self.game.getPlayer(self.item(r, self.Name).text())
+            cards = len(player.cards)
             troops = self.game.board.troopCount(player)
             territoryCount = self.game.board.ownedTerritoryCount(player)
             troopsPerTurn = self.game.board.draftCount(player)
+            self.item(r, self.Cards).setData(Qt.DisplayRole, cards)
             self.item(r, self.NumberOfTroops).setData(Qt.DisplayRole, troops)
             self.item(r, self.NumberOfTerritories).setData(Qt.DisplayRole, territoryCount)
             self.item(r, self.TroopsPerTurn).setData(Qt.DisplayRole, troopsPerTurn)
