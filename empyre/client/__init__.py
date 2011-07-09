@@ -10,6 +10,8 @@ from connectdialog import ConnectDialog
 from gamestate import GameState
 
 import sys
+import logging
+log = logging.getLogger("client")
 
 class Client(QObject):
     sendReady = pyqtSignal(int, list)
@@ -36,11 +38,11 @@ class Client(QObject):
         self.sendReady.emit(msg, args)
 
     def handleError(self, err):
+        log.error(self.connection.errorString())
         QMessageBox.critical(None, "Network Error", self.connection.errorString())
         QApplication.quit()
 
     def handleMessage(self, msg, args):
-        print Message.toString(msg), args
         if msg == Message.Ping:
             self.send(Message.Pong)
 
