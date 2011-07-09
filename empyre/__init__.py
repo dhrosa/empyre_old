@@ -1,18 +1,22 @@
 import sip
 sip.setapi("QString", 2)
 
+import os
+import os.path
+home = os.path.expanduser("~")
+configDir = os.path.join(home, ".empyre")
+if not os.path.exists(configDir):
+    os.mkdir(configDir)
+serverConfigDir = os.path.join(configDir, "server")
+if not os.path.exists(serverConfigDir):
+    os.mkdir(serverConfigDir)
+clientConfigDir = os.path.join(configDir, "client")
+if not os.path.exists(clientConfigDir):
+    os.mkdir(clientConfigDir)
+    
 import inspect
 
 from PyQt4.QtCore import QDateTime
-class TimeStampPrinter(object):
-    def __init__(self, stdout):
-        self.stdout = stdout
-
-    def write(self, out):
-        if out.isspace():
-            self.stdout.write(out)
-        else:
-            self.stdout.write("[%s] %s" % (QDateTime.currentDateTime().toString("hh:mm:ss"), out))
 
 class Player(object):
     def __init__(self, name):
