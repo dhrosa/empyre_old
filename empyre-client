@@ -1,20 +1,25 @@
 #! /usr/bin/python
+import empyre
 from empyre.client.connectdialog import ConnectDialog
 from empyre.client import Client
 from PyQt4.QtGui import QApplication
 import sys
-from argparse import ArgumentParser
+
+def parseArgs():
+    from argparse import ArgumentParser
+    p = ArgumentParser()
+    p.add_argument("name", nargs="?", help="Your in-game name.")
+    p.add_argument("--host", help="The hostname to connect to.")
+    p.add_argument("-p", "--port", type=int, help="The port to connect to. Defaults to 9002.")
+    p.add_argument("--opengl", action="store_true", help="Render the UI using OpenGL for better performance. Off by default.")
+    empyre.setupArguments(p, client=True)
+    return p.parse_args()
 
 if __name__ == "__main__":
     from PyQt4.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
-    p = ArgumentParser()
-    p.add_argument("name", nargs="?", help="Your in-game name.")
-    p.add_argument("-b", "--boardpath", help="The directory to search for boards in.")
-    p.add_argument("--host", help="The hostname to connect to.")
-    p.add_argument("-p", "--port", type=int, help="The port to connect to. Defaults to 9002.")
-    p.add_argument("--opengl", action="store_true", help="Render the UI using OpenGL for better performance. Off by default.")
-    args = p.parse_args()
+    args = parseArgs()
+    empyre.setupLogger(args, client=True)
     if args.opengl:
         import OpenGL.GL
         QApplication.setGraphicsSystem("opengl")

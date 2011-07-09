@@ -15,10 +15,48 @@ clientConfigDir = os.path.join(configDir, "client")
 if not os.path.exists(clientConfigDir):
     os.mkdir(clientConfigDir)
 clientLog = os.path.join(clientConfigDir, "log")
-    
-import inspect
 
-from PyQt4.QtCore import QDateTime
+def setupArguments(p, client):
+    import version
+    p.add_argument("-b", "--boardpath", help="The directory to search for boards in.")
+    p.add_argument("-l", "--logfile", help="The file to write logs to. Defaults to ~/.empyre/%s/log" % ("client" if client else "server"))
+    p.add_argument("-n", "--no-logging", action="store_true", help="Don't write to log file.")
+    p.add_argument("-d", "--debug", action="store_true", help="Displays debugging information.")
+    p.add_argument("-q", "--quiet", action="store_true", help="Don't output any debug or information lines; warnings and errors will still be output.")
+    p.add_argument("-s", "--silent", action="store_true", help="Suppresses all output, even warnings and errors.")
+    p.add_argument("-v", "--version", action="version", version=version.version())
+
+def setupLogger(args, client):
+    import logging, logging.handlers
+    import sys
+    log = logging.getLogger()
+    log.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(fmt="%(levelname)-8s %(name)-8s %(asctime)s %(message)s",
+                                  datefmt="%H:%M:%S")
+    if not args.no_logging:
+        if args.logfile:
+            logHandler = logging.FileHandler(args.logfile)
+            logHandler.setFormatter(formatter)
+            logHandler.setLevel(logging.DEBUG)
+            log.addHandler(logHandler)
+        else:
+            logFile = clientLog if client else serverLog
+            logHandler = logging.handlers.TimedRotatingFileHandler(logFile, when="midnight")
+            logHandler.setFormatter(formatter)
+            logHandler.setLevel(logging.DEBUG)
+            log.addHandler(logHandler)
+
+    if not args.silent:
+        if args.debug:
+            level = logging.DEBUG
+        elif args.quiet:
+            level = logging.WARNING
+        else:
+            level = logging.INFO
+        streamHandler = logging.StreamHandler(stream=sys.stderr)
+        streamHandler.setFormatter(formatter)
+        streamHandler.setLevel(level)
+        log.addHandler(streamHandler)
 
 class Player(object):
     def __init__(self, name):
@@ -35,6 +73,7 @@ class Player(object):
     def cardCount(self):
         return len(self.cards)
 
+import inspect
 class State(object):
     (
         OutOfSync,
