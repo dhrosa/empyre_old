@@ -21,7 +21,7 @@ class Client(QObject):
         self.host = host
         self.port = port
         self.name = name
-        self.connection = Connection()
+        self.connection = Connection(client=True)
         self.connection.messageReceived.connect(self.handleMessage)
         self.connection.error.connect(self.handleError)
         self.sendReady.connect(self.connection.sendMessage)

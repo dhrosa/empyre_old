@@ -1,6 +1,9 @@
 from PyQt4.QtCore import pyqtSignal, Qt, QObject, QByteArray, QDataStream, QCoreApplication, QBuffer
 from PyQt4.QtNetwork import QTcpSocket
 import inspect
+import logging
+
+log = logging.getLogger("network")
 
 class Message(object):
     (
@@ -177,21 +180,20 @@ class Message(object):
 
 messageToString = dict([(m[1], m[0]) for m in inspect.getmembers(Message) if m[0][0].isupper()])
 
-
 class Connection(QTcpSocket):
     messageSent = pyqtSignal(int, list)
     messageReceived = pyqtSignal(int, list)
     messageReceived2 = pyqtSignal()
 
-    def __init__(self, id = None, parent = None):
+    def __init__(self, id = None, client = False, parent = None):
         QTcpSocket.__init__(self, parent)
-        self.valid = True
         if id:
             if not self.setSocketDescriptor(id):
                 self.done()
                 return
             self.id = id
         self.player = None
+        self.client = client
         self.buffer = QBuffer()
         self.buffer.open(QBuffer.ReadWrite)
         self.readyRead.connect(self.readIncomingData)        
@@ -206,7 +208,14 @@ class Connection(QTcpSocket):
         bytesRead = 0
         while result:
             bytesRead += result[2]
-            self.messageReceived.emit(*result[:2])
+            msg, args = result[:2]
+            if self.client:
+                log.debug("Received %s %s", Message.toString(msg), args)
+            elif self.player and self.player.name:
+                log.debug("Received %s %s from %s", Message.toString(msg), args, self.player)
+            else:
+                log.debug("Received %s %s from %s", Message.toString(msg), args, self.peerAddress().toString())
+            self.messageReceived.emit(msg, args)
             self.messageReceived2.emit()
             result = self.parse()
         #remove the successfully parsed data
@@ -249,8 +258,14 @@ class Connection(QTcpSocket):
             if self.socketDescriptor() != id:
                 return
         if not Message.argMatch(msg, args):
-            print "Message: %d, args: %s have invalid types. Message not sent." % (msg, args)
+            log.warning("Message %d and args %s have invalid types. Message not sent.", Message.toString(msg), args)
             return
+        if self.client:
+            log.debug("Sending %s %s", Message.toString(msg), args)
+        elif self.player and self.player.name:
+            log.debug("Sending %s %s to %s", Message.toString(msg), args, self.player)
+        else:
+            log.debug("Sending %s %s to %s", Message.toString(msg), args, self.peerAddress().toString())
         data = QByteArray()
         stream = QDataStream(data, self.WriteOnly)
         stream.writeInt32(msg)
