@@ -306,6 +306,10 @@ class Client(QObject):
             count = len(player.cards)
             self.mainWindow.playerInfo.updateStatistics()
 
+        elif msg == Message.PlayerEliminated:
+            name = args[0]
+            self.mainWindow.chat.addLine("%s has been eliminated!" % name)
+
     def handleStateChange(self, old, new):
         self.mainWindow.cashCards.setEnabled(False)
         self.mainWindow.endAttack.setEnabled(False)

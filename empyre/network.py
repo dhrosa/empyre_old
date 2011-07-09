@@ -78,7 +78,8 @@ class Message(object):
         Attacked,
         ReceiveCard,
         CardAwarded,
-    ) = range (100, 143)
+        PlayerEliminated,
+    ) = range (100, 144)
 
     validArgs = {
         Pong: (),
@@ -153,6 +154,7 @@ class Message(object):
         Attacked: (str, str, str),
         ReceiveCard: (str, int),
         CardAwarded: (str,),
+        PlayerEliminated: (str,),
     }
 
     @staticmethod

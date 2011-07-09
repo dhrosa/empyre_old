@@ -60,6 +60,7 @@ class Server(QTcpServer):
        self.sm.cardAwarded.connect(self.sendCardAward)
        self.sm.cardsExchanged.connect(self.sendCardsExchanged)
        self.sm.mustExchangeCards.connect(self.sendMustExchangeCards)
+       self.sm.playerEliminated.connect(self.sendPlayerEliminated)
        self.chatHistory = []
        self.colors = self.predefinedColors
        parent = os.path.dirname(__file__)
@@ -344,3 +345,6 @@ class Server(QTcpServer):
             if c.player.name == player:
                 self.sendTo(c.id, Message.ReceiveCard, [territory, unit])
         self.send(Message.CardAwarded, [player])
+
+    def sendPlayerEliminated(self, player):
+        self.send(Message.PlayerEliminated, [player])

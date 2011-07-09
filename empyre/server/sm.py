@@ -18,6 +18,7 @@ class SM(QObject):
     cardAwarded = pyqtSignal(str, str, int)
     cardsExchanged = pyqtSignal(str, int, int, int)
     mustExchangeCards = pyqtSignal(str)
+    playerEliminated = pyqtSignal(str)
 
     def __init__(self, board, parent = None):
         super(SM, self).__init__(parent)
@@ -242,6 +243,7 @@ class SM(QObject):
                         self.currentPlayer.cards += targetPlayer.cards
                         targetPlayer.cards = []
                         targetPlayer.isPlaying = False
+                        self.playerEliminated.emit(targetPlayer.name)
                         if self.livePlayerCount() == 1:
                             self.substate = State.GameOver
                             return True
