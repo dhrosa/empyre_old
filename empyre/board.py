@@ -158,6 +158,11 @@ class Board(object):
     def cardValue(self, setsExchanged):
         return self.cardValueLambda(setsExchanged)
 
+def _removeTempDir(path):
+    import shutil
+    print "Removing temporary directory %s" % path
+    shutil.rmtree(path)
+
 def loadBoard(boardName, boardPath = None):
     import sys
     import os.path
@@ -166,6 +171,7 @@ def loadBoard(boardName, boardPath = None):
     import tempfile
     import math
     import __builtin__
+    import atexit
     if boardPath:
         base = os.path.join(boardPath, boardName)
     if not boardPath:
@@ -192,6 +198,7 @@ def loadBoard(boardName, boardPath = None):
                 print "File names must be relative to board directory (%s)" % f
                 return
         base = tempfile.mkdtemp(prefix="empyre-board-%s-" % boardName)
+        atexit.register(_removeTempDir, base)
         boardFile.extractall(base)
     yamlFile = os.path.join(base, "board.yaml")
     if not os.path.exists(yamlFile):
