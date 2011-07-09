@@ -1,10 +1,11 @@
 #! /usr/bin/python
-from empyre import TimeStampPrinter
 from empyre.server import Server
 from empyre.board import loadBoard
 from PyQt4.QtCore import QCoreApplication, QSocketNotifier
 import sys
 from argparse import ArgumentParser
+import logging
+import os.path
 
 if __name__ == "__main__":
     from PyQt4.QtCore import pyqtRemoveInputHook
@@ -16,18 +17,21 @@ if __name__ == "__main__":
     p.add_argument("-p", "--port", type=int, default="9002", help="The port to listen on. Defaults to 9002.")
     p.add_argument("-d", "--debug", action="store_true", help="Prints the state of the game's internal state machine after every action. Defaults to False.")
     args = p.parse_args()
-    sys.stdout = TimeStampPrinter(sys.stdout)
+    logging.basicConfig(stream=sys.stderr,
+                        level=logging.DEBUG,
+                        format="%(levelname)s [%(asctime)s] %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S")
     board = loadBoard(args.board, args.boardpath)
     if not board:
-        print "Could not load board: %s" % (boardName)
+        logging.error("Could not load board: %s", args.board)
         sys.exit(1)
-    print "Loaded \"%s\" board." % (board.name)
-    server = Server(args.board, board, debug=args.debug)
+    logging.info("Loaded \"%s\" board." % (board.name))
+    server = Server(args.board, board)
     socket = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Read)
     socket.activated.connect(server.readStdin)
-    print "Listening on port %d." % args.port
+    logging.info("Listening on port %d.", args.port)
     if not server.listen(port=args.port):
-        print "could not listen"
+        logging.error("Could not listen on port %d", args.port)
         sys.exit(1)
     sys.exit(app.exec_())
 

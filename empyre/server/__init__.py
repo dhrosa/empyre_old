@@ -11,23 +11,21 @@ from PyQt4.QtCore import QCoreApplication, pyqtSignal, QDateTime, QTimer
 
 import sys
 import os.path
+import logging
 
 def _smDebug(func):
+    log = logging.getLogger("SM")
     def printer(self, action, args=[]):
-        print "Passed in action: %s with args %s" % (Action.toString(action), args)
+        log.debug("Passed in action: %s with args %s", Action.toString(action), args)
         if func(self, action, args):
-            print "=" * 80
-            print "OK",
-            print self
-            print "=" * 80
+            log.debug("OK %s", self)
             return True
         else:
-            print "=" * 80
-            print "FAIL",
-            print self
-            print "=" * 80
+            log.debug("FAIL %s", self)
             return False
     return printer
+
+log = logging.getLogger("server")
 
 class Server(QTcpServer):
     sendReady = pyqtSignal(int, list)
@@ -43,12 +41,11 @@ class Server(QTcpServer):
         [255, 0, 255],
     ]
 
-    def __init__(self, boardName, board, debug = False, parent = None):
+    def __init__(self, boardName, board, parent = None):
        QTcpServer.__init__(self, parent)
        self.boardName = boardName
        self.connections = []
-       if debug:
-           SM.next = _smDebug(SM.next)
+       SM.next = _smDebug(SM.next)
        self.sm = SM(board)
        self.sm.stateChanged.connect(self.sendStateChange)
        self.sm.playersTied.connect(self.sendTiedPlayers)
@@ -101,7 +98,7 @@ class Server(QTcpServer):
     def handleTimeout(self):
         conn = self.sender().parent()
         if conn.player:
-            print "%s has timed out." % conn.player.name
+            log.warning("%s has timed out.", conn.player.name)
         conn.abort()
 
     def handleError(self, err):
@@ -109,20 +106,20 @@ class Server(QTcpServer):
             name = self.sender().player.name
         else:
             name = "Anonymous client"
-        print "%s: %s" % (name, self.sender().errorString())
+        log.warning("%s network error:  %s", name, self.sender().errorString())
         self.sender().abort()
 
     def handleDisconnect(self):
         conn = self.sender()
         if conn.player:
-            print "%s has disconnected." % (conn.player)
+            log.info("%s has disconnected.", conn.player)
             self.sm.next(Action.RemovePlayer, [conn.player.name])
             if self.sm.substate == State.Lobby:
                 self.send(Message.PlayerLeft, [conn.player.name])
             else:
                 self.send(Message.PlayerLeftDuringGame, [conn.player.name])
         else:
-            print "Anonymous client disconnected."
+            log.info("Anonymous client disconnected.")
         self.connections.remove(conn)
         conn.deleteLater()
 
@@ -130,7 +127,7 @@ class Server(QTcpServer):
         conn = self.sender()
         if not conn.player:
             if msg == Message.Join:
-                print "%s connected." % (conn.peerAddress().toString())
+                log.info("%s connected.", conn.peerAddress().toString())
                 if self.sm.substate != State.Lobby:
                     self.sendTo(conn.id, Message.GameInProgress)
                 else:
@@ -138,9 +135,9 @@ class Server(QTcpServer):
 
             elif msg == Message.RequestName:
                 name = args[0]
-                print "%s requested the name \"%s\"." % (conn.peerAddress().toString(), name)
+                log.info("%s requested the name \"%s\".", conn.peerAddress().toString(), name)
                 if not self.sm.next(Action.AddPlayer, [name]):
-                    print "Name taken."
+                    log.info("Name taken.")
                     self.sendTo(conn.id, Message.NameTaken)
                 else:
                     password = random.choice(self.words)
@@ -150,8 +147,8 @@ class Server(QTcpServer):
                         conn.player.color = [random.randint(0, 255) for i in range(3)]
                     else:
                         conn.player.color = self.colors.pop(random.randint(0, len(self.colors) - 1))
-                    print "%s has been granted the name \"%s\" and password: %s." % (conn.peerAddress().toString(), name, password)
-                    print "%s has been assigned the color %s" % (name, conn.player.color)
+                    log.info("%s has been granted the name \"%s\" and password: %s." % conn.peerAddress().toString(), name, password)
+                    log.info("%s has been assigned the color %s" % name, conn.player.color)
                     self.sendTo(conn.id, Message.NameAccepted, [name, conn.player.password])
                     self.sendExcept(conn.id, Message.PlayerJoined, [name] + conn.player.color)
 
@@ -163,7 +160,7 @@ class Server(QTcpServer):
                         conn.player = self.sm.players[i]
                         break
                 if conn.player:
-                    print "%s has rejoined." % (conn.player.name)
+                    log.info("%s has rejoined.", conn.player.name)
                     self.sendTo(conn.id, Message.RejoinSuccess, [conn.player.name])
                     self.sendExcept(conn.id, Message.PlayerRejoined, [conn.player.name])
                 else:
@@ -172,7 +169,7 @@ class Server(QTcpServer):
         else:
             if msg == Message.SendChat:
                 text = args[0]
-                print "%s: %s" % (conn.player.name, text)
+                log.info("%s: %s", conn.player.name, text)
                 timestamp = QDateTime.currentDateTime().toTime_t()
                 self.chatHistory.append([conn.player, text, timestamp])
                 self.send(Message.ReceiveChat, [conn.player.name, text, timestamp])
@@ -188,7 +185,7 @@ class Server(QTcpServer):
                         if c.player == targetPlayer:
                             self.sendTo(c.id, Message.ReceiveWhisper, [conn.player.name, c.player.name, text, timestamp])
                             self.sendTo(conn.id, Message.ReceiveWhisper, [conn.player.name, c.player.name, text, timestamp])
-                            print "%s >> %s: %s" % (conn.player.name, target, text)
+                            log.info("%s >> %s: %s", conn.player.name, target, text)
                             break
 
             elif msg == Message.RequestBoardName:
@@ -240,7 +237,7 @@ class Server(QTcpServer):
                         self.sendTo(conn.id, Message.NameChangeTaken)
                         return
                 conn.player.name = after
-                print "%s changed their name to %s." % (before, after)
+                log.info("%s changed their name to %s.", before, after)
                 self.sendTo(conn.id, Message.NameChangeSuccess, [after])
                 self.send(Message.NameChanged, [before, after])            
 
@@ -250,13 +247,13 @@ class Server(QTcpServer):
                 color = args
                 player = conn.player
                 player.color = color
-                print "%s changed their color to (%d, %d, %d)" % (player.name, color[0], color[1], color[2])
+                log.info("%s changed their color to (%d, %d, %d)", player.name, color[0], color[1], color[2])
                 self.send(Message.ColorChanged, [player.name] + color)
 
             elif msg == Message.ReadyToPlay:
                 conn.player.ready = True
                 if not False in [p.ready for p in self.sm.players] and self.sm.playerCount() > 1:
-                    print "Game automatically started."
+                    log.info("Game automatically started.")
                     self.sm.next(Action.StartGame)
 
             elif conn.player == self.sm.currentPlayer:
@@ -291,13 +288,13 @@ class Server(QTcpServer):
         if line.lower() == "quit":
             QCoreApplication.quit()
         elif line.lower() == "reset":
-            print "Resetting server."
+            log.info("Resetting server.")
             self.colors = self.predefinedColors
             self.sm.reset()
             self.resetting.emit()
         elif line.lower() == "start":
             if not self.sm.next(Action.StartGame):
-                print "Need more players to start."
+                log.warning("Need more players to start.")
 
     def sendPing(self):
         self.send(Message.Ping)
@@ -306,7 +303,7 @@ class Server(QTcpServer):
         self.send(Message.StateChanged, [old, new])
 
     def sendDiceRoll(self, playerName, rolls):
-        print "%s rolled %s." % (playerName, rolls)
+        log.debug("%s rolled %s.", playerName, rolls)
         self.send(Message.DiceRolled, [playerName] + rolls + [0] * (3 - len(rolls)))
 
     def sendTiedPlayers(self, names):
@@ -321,12 +318,12 @@ class Server(QTcpServer):
     def sendTerritoryUpdate(self, name, owner, troopCount):
         name = str(name)
         owner = str(owner)
-        print "%s owns %s with %d troops" % (owner, name, troopCount)
+        log.info("%s owns %s with %d troops", owner, name, troopCount)
         self.send(Message.TerritoryUpdated, [name, owner, troopCount])
 
     def sendRemainingTroopsChange(self, n):
         if self.sm.currentPlayer:
-            print "%s has %d troops remaining." % (self.sm.currentPlayer.name, n)
+            log.info("%s has %d troops remaining.", self.sm.currentPlayer.name, n)
             self.send(Message.RemainingTroopsChanged, [n])
 
     def sendCardsExchanged(self, name, c1, c2, c3):

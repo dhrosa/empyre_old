@@ -1,5 +1,6 @@
 from random import shuffle
 from math import floor
+import logging
 
 class Territory(object):
     def __init__(self, name, image, center = None):
@@ -177,38 +178,39 @@ def loadBoard(boardName, boardPath = None):
     if not boardPath:
         current = os.path.dirname(os.path.abspath(__file__))
         base = os.path.join(current, "boards/%s" % boardName)
-    print "Attempting to load board from %s" % base
+    log = logging.getLogger("board")
+    log.info("Attempting to load board from %s", base)
     if not os.path.exists(base):
-        print "Extracted board directory not found, searching for .board file."
+        log.info("Extracted board directory not found, searching for .board file.")
         fileName = base + ".board"
         if not os.path.exists(fileName):
-            print "Could not find .board file."
+            log.error("Could not find .board file.")
             return
-        print "Found .board file."
+        log.info("Found .board file.")
         if not zipfile.is_zipfile(fileName):
-            print "Invalid .board file format."
+            log.error("Invalid .board file format.")
             return
         try:
             boardFile = zipfile.ZipFile(fileName)
         except zipfile.BadZipfile:
-            print "Invalid .board file format."
+            log.error("Invalid .board file format.")
             return
         for f in boardFile.namelist():
             if f.startswith(".") or f.startswith("/"):
-                print "File names must be relative to board directory (%s)" % f
+                log.error("File names must be relative to board directory (%s)", f)
                 return
         base = tempfile.mkdtemp(prefix="empyre-board-%s-" % boardName)
         atexit.register(_removeTempDir, base)
         boardFile.extractall(base)
     yamlFile = os.path.join(base, "board.yaml")
     if not os.path.exists(yamlFile):
-        print "Board configuration file missing."
+        log.error("Board configuration file missing.")
         return
     f = open(yamlFile)
     try:
         d = yaml.load(f.read())
     except:
-        print "Invalid board configuration file."
+        log.error("Invalid board configuration file.")
         return
     f.close()
     name = d["name"] if "name" in d else boardName
@@ -221,7 +223,7 @@ def loadBoard(boardName, boardPath = None):
         try:
             draftCount = eval("lambda t: %s" % d["draftCount"], dict(evalLocals))
         except Exception as e:
-            print "Invalid draftCount expression (%s): %s" % (type(e), e)
+            log.error("Invalid draftCount expression (%s): %s", type(e), e)
             return
     else:
         draftCount = None
@@ -233,84 +235,84 @@ def loadBoard(boardName, boardPath = None):
         try:
             draftCount = eval("lambda e: %s" % d["cardValue"], dict(evalLocals))
         except Exception as e:
-            print "Invalid cardValue expression (%s): %s" % (type(e), e)
+            log.error("Invalid cardValue expression (%s): %s", type(e), e)
             return
     else:
         cardValue = None
 
     if not "territories" in d:
-        print "Board has no territories."
+        log.error("Board has no territories.")
         return
     territories = {}
     for t in d["territories"]:
         if not "id" in t or not "name" in t:
-            print "Invalid territory description."
+            log.error("Invalid territory description.")
             return
         id = t["id"]
         territoryImage = os.path.join(base, t["image"]) if "image" in t else os.path.join(base, id + ".png")
         if not os.path.exists(territoryImage):
-            print "File: %s missing." % territoryImage
+            log.error("File: %s missing.", territoryImage)
             return
         if "center" in t:
             center = t["center"]
             if type(center) != list:
-                print "%s: Center must be a coordinate pair." % id
+                log.error("%s: Center must be a coordinate pair.", id)
                 return
             if len(center) != 2:
-                print "%s: Must list two coordinates." % id
+                log.error("%s: Must list two coordinates.", id)
                 return
             try:
                 x = int(center[0])
                 y = int(center[1])
                 center = (x, y)
             except ValueError:
-                print "%s: Coordinates must be integral."
+                log.error("%s: Coordinates must be integral.", id)
                 return
         else:
             center = (0, 0)
-            print "Warning: %s has no center." % id
+            log.warning("%s has no center.", id)
         territories[id] = Territory(t["name"], territoryImage, center)
     borders = []
     if not "borders" in d:
-        print "Board has no borders."
+        log.error("Board has no borders.")
         return
     for b in d["borders"]:
         if type(b) != list:
-            print "Border must be a list."
+            log.error("Border must be a list.")
             return
         if len(b) != 2:
-            print "Border must contain two territories."
+            log.error("Border must contain two territories.")
             return
         (t1, t2) = b
         if t1 not in territories:
-            print "Territory %s does not exist." % t1
+            log.error("Territory %s does not exist.", t1)
             return
         if t2 not in territories:
-            print "Territory %s does not exist." % t1
+            log.error("Territory %s does not exist.", t1)
             return
         borders.append(Border(territories[t1], territories[t2]))
     regions = []
     if "regions" in d:
         for r in d["regions"]:
             if not "name" in r:
-                print "Region must have name."
+                log.error("Region must have name.")
                 return
             regionName = r["name"]
             if not "bonus" in r:
-                print "%s: Missing bonus." % regionName
+                log.error("%s: Missing bonus.", regionName)
                 return
             bonus = r["bonus"]
             if not "territories" in r:
-                print "%s: Missing territories." % regionName
+                log.error("%s: Missing territories.", regionName)
                 return
             terrs = r["territories"]
             if type(terrs) != list:
-                print "%s: Territories must be a list." % regionName
+                log.error("%s: Territories must be a list.", regionName)
                 return
             regionTerritories = []
             for t in terrs:
                 if not t in territories:
-                    print "%s: %s does not exist." % (regionName, t)
+                    log.error("%s: %s does not exist.", regionName, t)
                     return
                 regionTerritories.append(territories[t])
             regions.append(Region(regionName, bonus, regionTerritories))
