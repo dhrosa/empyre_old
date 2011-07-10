@@ -1,4 +1,4 @@
-from empyre import State, Action, Player
+from empyre import State, Player, Enumerated, makeValidatedEnumeration
 from empyre.board import Board, Card
 from random import randint
 from math import floor
@@ -6,6 +6,31 @@ from PyQt4.QtCore import pyqtSignal, QObject
 
 def rollDice(n):
     return sorted([randint(1, 6) for i in range(n)], reverse=True)
+
+class Action(Enumerated):
+    """Enumeration of all possible game state machine actions.
+
+    AddPlayer -- Add a player to the game. Args: player name
+    RemovePlayer -- Remove a player from the game. Args: player name
+    StartGame -- Start the game.
+    ExchangeCards -- Exchange cards for troops. Args: indexes of the three cards
+    PlaceTroops -- Place troops in a territory. Args: territory name, number of troops
+    Attack -- Attack an enemy territory. Args: attacking territory name, target territory name, number of troops
+    EndAttack -- End the attack phase.
+    EndTurn -- End the current player's turn."""
+    pass
+
+makeValidatedEnumeration(Action, {
+    "AddPlayer": (str,),
+    "RemovePlayer": (str,),
+    "StartGame": (),
+    "ExchangeCards": (int, int, int),
+    "PlaceTroops": (str, int),
+    "Attack": (str, str, int),
+    "EndAttack": (),
+    "Fortify": (str, str, int),
+    "EndTurn": (),
+    })
 
 class SM(QObject):
     stateChanged = pyqtSignal(int, int)

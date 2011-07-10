@@ -236,28 +236,3 @@ makeEnumeration(State, [
         "Fortify",
         "GameOver",
         ])
-
-class Action(Enumerated):
-    """Enumeration of all possible game state machine actions.
-
-    AddPlayer -- Add a player to the game. Args: player name
-    RemovePlayer -- Remove a player from the game. Args: player name
-    StartGame -- Start the game.
-    ExchangeCards -- Exchange cards for troops. Args: indexes of the three cards
-    PlaceTroops -- Place troops in a territory. Args: territory name, number of troops
-    Attack -- Attack an enemy territory. Args: attacking territory name, target territory name, number of troops
-    EndAttack -- End the attack phase.
-    EndTurn -- End the current player's turn."""
-    pass
-
-makeValidatedEnumeration(Action, {
-    "AddPlayer": (str,),
-    "RemovePlayer": (str,),
-    "StartGame": (),
-    "ExchangeCards": (int, int, int),
-    "PlaceTroops": (str, int),
-    "Attack": (str, str, int),
-    "EndAttack": (),
-    "Fortify": (str, str, int),
-    "EndTurn": (),
-    })

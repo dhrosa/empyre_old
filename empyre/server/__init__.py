@@ -1,8 +1,8 @@
 import random
 import string
 
-from sm import SM
-from empyre import State, Action
+from sm import SM, Action
+from empyre import State
 from empyre.network import Message, Connection
 from empyre.board import loadBoard
 
