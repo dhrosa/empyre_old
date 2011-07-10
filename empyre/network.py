@@ -153,11 +153,21 @@ makeValidatedEnumeration(Message, {
     })
 
 class Connection(QTcpSocket):
+    """Abstracts server-client connections.
+    
+    Whenever data is received, a Connection attempts to parse a Message and arguments from the data, and emits messageReceived for each parsed message. See QTcpSocket documentation for other members."""
     messageSent = pyqtSignal(int, list)
+    """Emitted whenever a message is sent. Arguments: the message type, list of arguments."""
     messageReceived = pyqtSignal(int, list)
+    """Emitted whenever a message is recieved. Arguments: the message type, list of arguments."""
     messageReceived2 = pyqtSignal()
 
     def __init__(self, id = None, client = False, parent = None):
+        """Creates a connection.
+        
+        id -- Optional socket descriptor.
+        client -- Whether this connection is opened from the client side or server side.
+        parent -- Parent object."""
         QTcpSocket.__init__(self, parent)
         if id:
             if not self.setSocketDescriptor(id):
@@ -168,15 +178,16 @@ class Connection(QTcpSocket):
         self.client = client
         self.buffer = QBuffer()
         self.buffer.open(QBuffer.ReadWrite)
-        self.readyRead.connect(self.readIncomingData)        
+        self.readyRead.connect(self._readIncomingData)        
 
     def abort(self):
+        """Aborts the connection."""
         super(Connection, self).abort()
 
-    def readIncomingData(self):
+    def _readIncomingData(self):
         bytesWritten = self.buffer.write(self.readAll())
         self.buffer.seek(0)
-        result = self.parse()
+        result = self._parse()
         bytesRead = 0
         while result:
             bytesRead += result[2]
@@ -189,7 +200,7 @@ class Connection(QTcpSocket):
                 log.debug("Received %s %s from %s", msg, args, self.peerAddress().toString())
             self.messageReceived.emit(msg, args)
             self.messageReceived2.emit()
-            result = self.parse()
+            result = self._parse()
         #remove the successfully parsed data
         size = self.buffer.size()
         self.buffer.close()
@@ -198,7 +209,7 @@ class Connection(QTcpSocket):
         self.buffer.open(QBuffer.ReadWrite)
         self.buffer.seek(self.buffer.size())
 
-    def parse(self):
+    def _parse(self):
         if self.buffer.bytesAvailable() >= 4:
             stream = QDataStream(self.buffer)
             msg = Message.fromInt(stream.readInt32())
@@ -228,6 +239,11 @@ class Connection(QTcpSocket):
             return (msg, args, bytesRead)
 
     def sendMessage(self, msg, args, id = None):
+        """Sends a message.
+
+        msg -- The message type.
+        args -- List of message arguments.
+        id -- An optional socket descriptor. If specified, then the message will only be sent if this connection's socket descriptor matches id."""
         if id:
             if self.socketDescriptor() != id:
                 return
