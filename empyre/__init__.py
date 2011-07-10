@@ -1,3 +1,6 @@
+"""Basic functionality of Empyre.
+Sets SIP's QString API to version 2, and creates configuration directories in ~/.empyre."""
+
 import sip
 sip.setapi("QString", 2)
 
@@ -17,6 +20,9 @@ if not os.path.exists(clientConfigDir):
 clientLog = os.path.join(clientConfigDir, "log")
 
 def setupArguments(p, client):
+    """Adds command line arguments common to both the server and client to the ArgumentParser p.
+
+    client -- Boolean value indicating whether the caller is the client or server."""
     import version
     p.add_argument("-b", "--boardpath", help="The directory to search for boards in.")
     p.add_argument("-l", "--logfile", help="The file to write logs to. Defaults to ~/.empyre/%s/log" % ("client" if client else "server"))
@@ -27,6 +33,21 @@ def setupArguments(p, client):
     p.add_argument("-v", "--version", action="version", version=version.version())
 
 def setupLogger(args, client):
+    """Configures the logging module to write to stderr and a log file.
+
+    args -- An argparse NameSpace object as returned by parse_args.
+    client -- Whether the caller is the client or server.
+
+    Log file options:
+    args.no_logging -- Do not write to log file.
+    args.logfile -- The log file to write to. By default logs to ~/.empyre/server/log or ~/.empyre/client/log, rotating logfiles every midnight.
+
+    Stderr logging options:
+    If none of the following are specified, information and more server messages will be printed to stderr.
+    args.silent -- Do not print to stderr.
+    args.quiet -- Print only warning and more severe messages to stderr.
+    args.debug -- Print debug messages in addition to other messages to stderr.
+    """
     import logging, logging.handlers
     import sys
     log = logging.getLogger()
@@ -59,6 +80,16 @@ def setupLogger(args, client):
         log.addHandler(streamHandler)
 
 class Player(object):
+    """Represents a player.
+    
+    name -- The player's name.
+    color -- A 3-tuple representing a player's color in RGB [0-255].
+    isPlaying -- Whether the player is in-play.
+    cards -- Currently held cards.
+    password -- The password used to rejoin the game if the player is disconnected.
+    ready -- Whether the player is ready to start the game.
+    """
+
     def __init__(self, name):
         self.name = name
         self.color = (0, 0, 0)
@@ -71,12 +102,21 @@ class Player(object):
         return self.name
 
     def cardCount(self):
+        """The number of cards held by the player."""
         return len(self.cards)
 
 import inspect
 class State(object):
+    """Enumeration of the game's possible states.
+
+    Lobby -- Waiting period before the game has started
+    InitialPlacement -- Initial territory claim phase
+    InitialDraft -- Placement of first troops after InitialPlacement
+    Draft -- Current player is placing troops
+    Attack -- Current player is attacking another
+    Fortify -- Current player is fortifying troops from one territory to another
+    GameOver -- There are no other players remaining"""
     (
-        OutOfSync,
         Lobby,
         InitialPlacement,
         InitialDraft,
@@ -84,13 +124,14 @@ class State(object):
         Attack,
         Fortify,
         GameOver,
-    ) = range(8)
+    ) = range(7)
 
     @staticmethod
     def toString(state):
-        return stateToString[state]
+        """Returns a string representation of a state."""
+        return _stateToString[state]
 
-stateToString = dict([(m[1], m[0]) for m in inspect.getmembers(State) if m[0][0].isupper()])
+_stateToString = dict([(m[1], m[0]) for m in inspect.getmembers(State) if m[0][0].isupper()])
 
 class Action(object):
     (
