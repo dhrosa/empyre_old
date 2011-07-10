@@ -105,6 +105,91 @@ class Player(object):
         """The number of cards held by the player."""
         return len(self.cards)
 
+class Enumerated(object):
+    """Represents a named enumeration item.
+    Intended for use with makeEnumeration. See the State, Action, and network.Message classes for example subclasses."""
+    def __init__(self, name, value, argTypes = None):
+        """name -- The name of the item.
+        value -- The integral value of the item.
+        argTypes -- An optional list of valid argument types to go with this item."""
+        self.name = name
+        self.value = value
+        self.argTypes = argTypes
+
+    def __eq__(self, other):
+        return self.value == other.value
+    
+    def __int__(self):
+        return self.value
+
+    def __repr__(self):
+        if self.argTypes:
+            return "%s(%s, %d)" % (self.__class__.__name__, self.name, self.value)
+        return "%s(%s, %d, %s)" % (self.__class__.__name__, self.name, self.value, self.argTypes)
+
+    def __str__(self):
+        return self.name
+
+    def validateArgs(self, args = []):
+        """Validates the types of the objects in args against self.argTypes, returns whether the args are valid.
+        Any unicode objects in args are converted to str if the expected type is str."""
+        if len(args) != len(self.argTypes):
+            return False
+        for i, arg in enumerate(args):
+            validType = self.argTypes[i]
+            if validType == str and type(arg) in (str, unicode):
+                args[i] = str(arg)
+            elif validType != type(arg):
+                return False
+        return True
+
+def makeEnumeration(klass, names):
+    """Adds an enumeration to klass's attributes.
+    
+    klass -- The class to add the attributes to.
+    names -- A list of enumeration names.
+    
+    Example usage:
+    >>> class Fruits(Enumerated):
+    >>>     pass
+    >>>
+    >>> makeEnumeration(Fruits, ["Apple", "Banana", "Cucumber", "Durian"])
+    >>> print Fruits.Apple
+    'Apple'
+    >>> print int(Fruits.Apple)
+    0
+    >>> print int(Fruits.Banana)
+    1
+    >>> print int(Fruits.Cucumber)
+    2"""
+    for i, name in enumerate(names):
+        setattr(klass, name, klass(name, i))
+
+def makeValidatedEnumeration(klass, entries):
+    """Adds an enumeration to klass's attributes.
+    
+    klass -- The class to add the attributes to.
+    entries -- A dictionary whose keys are enumeration names and whose values are lists of valid argument types.
+
+    Example usage:
+    >>> class Action(Enumerated):
+    >>>    pass
+    >>> #DoPushUps takes an integer that represents the number of pushups to do
+    >>> #Run takes two integers, speed and number of laps to run
+    >>> makeValidatedEnumeration(Action, {"DoPushUps": (int,), "Run": (int, int)})
+    >>> print Action.Run
+    'Run'
+    >>> print int(Action.DoPushups)
+    0
+    >>> print int(Action.Run)
+    1
+    >>> print Action.Run.validateArgs([5, 10])
+    True
+    >>> print Action.Run.validateArgs(["cats", 3])
+    False"""
+    for i, (name, args) in enumerate(entries.iteritems()):
+        setattr(klass, name, klass(name, i, args))
+
 import inspect
 class State(object):
     """Enumeration of the game's possible states.
