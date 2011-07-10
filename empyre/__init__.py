@@ -117,22 +117,35 @@ class Enumerated(object):
         self.argTypes = argTypes
 
     def __eq__(self, other):
-        return self.value == other.value
+        try:
+            return int(self) == int(other)
+        except TypeError:
+            return False
     
     def __int__(self):
         return self.value
 
     def __repr__(self):
         if self.argTypes:
-            return "%s(%s, %d)" % (self.__class__.__name__, self.name, self.value)
-        return "%s(%s, %d, %s)" % (self.__class__.__name__, self.name, self.value, self.argTypes)
+            return "%s('%s', %d, %s)" % (self.__class__.__name__, self.name, self.value, self.argTypes)
+        else:
+            return "%s('%s', %d)" % (self.__class__.__name__, self.name, self.value)
 
     def __str__(self):
         return self.name
 
+    @classmethod
+    def fromInt(cls, val):
+        try:
+            return cls._int_to_enum[int(val)]
+        except KeyError:
+            return None
+
     def validateArgs(self, args = []):
         """Validates the types of the objects in args against self.argTypes, returns whether the args are valid.
         Any unicode objects in args are converted to str if the expected type is str."""
+        if not self.argTypes:
+            return True
         if len(args) != len(self.argTypes):
             return False
         for i, arg in enumerate(args):
@@ -162,8 +175,14 @@ def makeEnumeration(klass, names):
     1
     >>> print int(Fruits.Cucumber)
     2"""
+    try:
+        klass._int_to_enum
+    except AttributeError:
+        klass._int_to_enum = {}
     for i, name in enumerate(names):
-        setattr(klass, name, klass(name, i))
+        enum = klass(name, i)
+        klass._int_to_enum[i] = enum
+        setattr(klass, name, enum)
 
 def makeValidatedEnumeration(klass, entries):
     """Adds an enumeration to klass's attributes.
@@ -187,11 +206,16 @@ def makeValidatedEnumeration(klass, entries):
     True
     >>> print Action.Run.validateArgs(["cats", 3])
     False"""
+    try:
+        klass._int_to_enum
+    except AttributeError:
+        klass._int_to_enum = {}
     for i, (name, args) in enumerate(entries.iteritems()):
-        setattr(klass, name, klass(name, i, args))
+        enum = klass(name, i, args)
+        klass._int_to_enum[i] = enum
+        setattr(klass, name, enum)
 
-import inspect
-class State(object):
+class State(Enumerated):
     """Enumeration of the game's possible states.
 
     Lobby -- Waiting period before the game has started
@@ -201,61 +225,39 @@ class State(object):
     Attack -- Current player is attacking another
     Fortify -- Current player is fortifying troops from one territory to another
     GameOver -- There are no other players remaining"""
-    (
-        Lobby,
-        InitialPlacement,
-        InitialDraft,
-        Draft,
-        Attack,
-        Fortify,
-        GameOver,
-    ) = range(7)
+    pass
 
-    @staticmethod
-    def toString(state):
-        """Returns a string representation of a state."""
-        return _stateToString[state]
+makeEnumeration(State, [
+        "Lobby",
+        "InitialPlacement",
+        "InitialDraft",
+        "Draft",
+        "Attack",
+        "Fortify",
+        "GameOver",
+        ])
 
-_stateToString = dict([(m[1], m[0]) for m in inspect.getmembers(State) if m[0][0].isupper()])
+class Action(Enumerated):
+    """Enumeration of all possible game state machine actions.
 
-class Action(object):
-    (
-        AddPlayer,
-        RemovePlayer,
-        StartGame,
-        ExchangeCards,
-        PlaceTroops,
-        Attack,
-        EndAttack,
-        Fortify,
-        EndTurn,
-     ) = range(9)
+    AddPlayer -- Add a player to the game. Args: player name
+    RemovePlayer -- Remove a player from the game. Args: player name
+    StartGame -- Start the game.
+    ExchangeCards -- Exchange cards for troops. Args: indexes of the three cards
+    PlaceTroops -- Place troops in a territory. Args: territory name, number of troops
+    Attack -- Attack an enemy territory. Args: attacking territory name, target territory name, number of troops
+    EndAttack -- End the attack phase.
+    EndTurn -- End the current player's turn."""
+    pass
 
-    validArgs = {
-        AddPlayer: (str,),
-        RemovePlayer: (str,),
-        StartGame: (),
-        ExchangeCards: (int, int, int),
-        PlaceTroops: (str, int),
-        Attack: (str, str, int),
-        EndAttack: (),
-        Fortify: (str, str, int),
-        EndTurn: (),
-    }
-
-    @staticmethod
-    def argMatch(action, args):
-        try:
-            valid = Action.validArgs[action]
-            for i, a in enumerate(args):
-                if not type(a) == valid[i]:
-                    return False
-        except:
-            return False
-        return True
-
-    @staticmethod
-    def toString(action):
-        return actionToString[action]
-
-actionToString = dict([(m[1], m[0]) for m in inspect.getmembers(Action) if m[0][0].isupper()])
+makeValidatedEnumeration(Action, {
+    "AddPlayer": (str,),
+    "RemovePlayer": (str,),
+    "StartGame": (),
+    "ExchangeCards": (int, int, int),
+    "PlaceTroops": (str, int),
+    "Attack": (str, str, int),
+    "EndAttack": (),
+    "Fortify": (str, str, int),
+    "EndTurn": (),
+    })

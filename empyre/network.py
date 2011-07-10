@@ -1,184 +1,90 @@
 from PyQt4.QtCore import pyqtSignal, Qt, QObject, QByteArray, QDataStream, QCoreApplication, QBuffer
 from PyQt4.QtNetwork import QTcpSocket
-import inspect
+
+from empyre import Enumerated, makeValidatedEnumeration
+
 import logging
 
 log = logging.getLogger("network")
 
-class Message(object):
-    (
-        Pong,
-        SendChat,
-        WhisperError,
-        SendWhisper,
-        Join,
-        RequestName,
-        Rejoin,
-        RequestBoardName,
-        RequestPlayerList,
-        RequestChatHistory,
-        RequestState,
-        RequestOwnershipList,
-        RequestCardList,
-        RequestCurrentPlayer,
-        RequestRemainingTroops,
-        ChangeName,
-        ChangeColor,
+class Message(Enumerated):
+    pass
 
-        ReadyToPlay,
-        ClaimTerritory,
-        ExchangeCards,
-        Draft,
-        Attack,
-        EndAttack,
-        Fortify,
-        EndTurn,
-    ) = range(25)
+makeValidatedEnumeration(Message, {
+    "Pong": (),
+    "RequestState": (),
+    "SendChat": (str,),
+    "SendWhisper": (str, str),
+    "WhisperError": (),
+    "Join": (),
+    "RequestName": (str,),
+    "Rejoin": (str,),
+    "RequestBoardName": (),
+    "RequestPlayerList": (),
+    "RequestChatHistory": (),
+    "RequestOwnershipList": (),
+    "RequestCardList": (),
+    "RequestCurrentPlayer": (),
+    "RequestRemainingTroops": (),
+    "ChangeName": (str,),
+    "ChangeColor": (int, int, int),
 
-    (
-        Ping,
-        StateChanged,
-        ReceiveChat,
-        ReceiveWhisper,
-        JoinSuccess,
-        NameTaken,
-        NameAccepted,
-        PlayerJoined,
-        GameInProgress,
-        IncorrectPassword,
-        RejoinSuccess,
-        PlayerRejoined,
-        BeginPlayerList,
-        PlayerInfo,
-        EndPlayerList,
-        LoadBoard,
-        CurrentState,
-        BeginOwnershipList,
-        Ownership,
-        EndOwnershipList,
-        BeginCardList,
-        Card,
-        EndCardList,
-        CurrentPlayer,
+    "ReadyToPlay": (),
+    "ClaimTerritory": (str,),
+    "ExchangeCards": (int, int, int),
+    "Draft": (str, int),
+    "Attack": (str, str, int),
+    "EndAttack": (),
+    "Fortify": (str, str, int),
+    "EndTurn": (),
 
-        PlayerLeft,
-        PlayerLeftDuringGame,
-        ColorChanged,
-        NameChangeTaken,
-        NameChangeSuccess,
-        NameChanged,
-        GameStarted,
-        
-        BeginTiedPlayerList,
-        TiedPlayer,
-        EndTiedPlayerList,
-        TurnChanged,
-        DiceRolled,
-        TerritoryUpdated,
-        RemainingTroopsChanged,
-        MustExchangeCards,
-        CardsExchanged,
-        Attacked,
-        ReceiveCard,
-        CardAwarded,
-        PlayerEliminated,
-    ) = range (100, 144)
+    "Ping": (),
+    "CurrentState": (int,),
+    "StateChanged": (int, int,),
+    "ReceiveChat": (str, str, long),
+    "ReceiveWhisper": (str, str, str, long),
+    "JoinSuccess": (),
+    "NameTaken": (),
+    "NameAccepted": (str,str),
+    "PlayerJoined": (str, int, int, int),
+    "GameInProgress": (),
+    "IncorrectPassword": (),
+    "RejoinSuccess": (str,),
+    "PlayerRejoined": (str,),
+    "BeginPlayerList": (),
+    "PlayerInfo": (str, int, int, int, int),
+    "EndPlayerList": (),
+    "LoadBoard": (str,),
+    "BeginOwnershipList": (),
+    "Ownership": (str, str, int),
+    "EndOwnershipList": (),
+    "BeginCardList": (),
+    "Card": (str, int),
+    "EndCardList": (),
+    "CurrentPlayer": (str,),
 
-    validArgs = {
-        Pong: (),
-        RequestState: (),
-        SendChat: (str,),
-        SendWhisper: (str, str),
-        WhisperError: (),
-        Join: (),
-        RequestName: (str,),
-        Rejoin: (str,),
-        RequestBoardName: (),
-        RequestPlayerList: (),
-        RequestChatHistory: (),
-        RequestOwnershipList: (),
-        RequestCardList: (),
-        RequestCurrentPlayer: (),
-        RequestRemainingTroops: (),
-        ChangeName: (str,),
-        ChangeColor: (int, int, int),
+    "PlayerLeft": (str,),
+    "PlayerLeftDuringGame": (str,),
+    "ColorChanged": (str, int, int, int),
+    "NameChangeTaken": (),
+    "NameChangeSuccess": (str,),
+    "NameChanged": (str, str),
+    "GameStarted": (),
 
-        ReadyToPlay: (),
-        ClaimTerritory: (str,),
-        ExchangeCards: (int, int, int),
-        Draft: (str, int),
-        Attack: (str, str, int),
-        EndAttack: (),
-        Fortify: (str, str, int),
-        EndTurn: (),
-
-        Ping: (),
-        CurrentState: (int,),
-        StateChanged: (int, int,),
-        ReceiveChat: (str, str, long),
-        ReceiveWhisper: (str, str, str, long),
-        JoinSuccess: (),
-        NameTaken: (),
-        NameAccepted: (str,str),
-        PlayerJoined: (str, int, int, int),
-        GameInProgress: (),
-        IncorrectPassword: (),
-        RejoinSuccess: (str,),
-        PlayerRejoined: (str,),
-        BeginPlayerList: (),
-        PlayerInfo: (str, int, int, int, int),
-        EndPlayerList: (),
-        LoadBoard: (str,),
-        BeginOwnershipList: (),
-        Ownership: (str, str, int),
-        EndOwnershipList: (),
-        BeginCardList: (),
-        Card: (str, int),
-        EndCardList: (),
-        CurrentPlayer: (str,),
-
-        PlayerLeft: (str,),
-        PlayerLeftDuringGame: (str,),
-        ColorChanged: (str, int, int, int),
-        NameChangeTaken: (),
-        NameChangeSuccess: (str,),
-        NameChanged: (str, str),
-        GameStarted: (),
-
-        BeginTiedPlayerList: (),
-        TiedPlayer: (str,),
-        EndTiedPlayerList: (),
-        TurnChanged: (str,),
-        DiceRolled: (str, int, int, int),
-        TerritoryUpdated: (str, str, int,),
-        RemainingTroopsChanged: (int,),
-        MustExchangeCards: (),
-        CardsExchanged: (str, int, int, int),
-        Attacked: (str, str, str),
-        ReceiveCard: (str, int),
-        CardAwarded: (str,),
-        PlayerEliminated: (str,),
-    }
-
-    @staticmethod
-    def argMatch(msg, args):
-        try:
-            valid = Message.validArgs[msg]
-            for i, a in enumerate(args):
-                if type(a) == unicode and valid[i] == str:
-                    args[i] = str(args[i])
-                    continue
-                if not type(a) == valid[i]:
-                    return False
-        except:
-            return False
-        return True
-
-    @staticmethod
-    def toString(message):
-        return messageToString[message]
-
-messageToString = dict([(m[1], m[0]) for m in inspect.getmembers(Message) if m[0][0].isupper()])
+    "BeginTiedPlayerList": (),
+    "TiedPlayer": (str,),
+    "EndTiedPlayerList": (),
+    "TurnChanged": (str,),
+    "DiceRolled": (str, int, int, int),
+    "TerritoryUpdated": (str, str, int,),
+    "RemainingTroopsChanged": (int,),
+    "MustExchangeCards": (),
+    "CardsExchanged": (str, int, int, int),
+    "Attacked": (str, str, str),
+    "ReceiveCard": (str, int),
+    "CardAwarded": (str,),
+    "PlayerEliminated": (str,),
+    })
 
 class Connection(QTcpSocket):
     messageSent = pyqtSignal(int, list)
@@ -210,11 +116,11 @@ class Connection(QTcpSocket):
             bytesRead += result[2]
             msg, args = result[:2]
             if self.client:
-                log.debug("Received %s %s", Message.toString(msg), args)
+                log.debug("Received %s %s", msg, args)
             elif self.player and self.player.name:
-                log.debug("Received %s %s from %s", Message.toString(msg), args, self.player)
+                log.debug("Received %s %s from %s", msg, args, self.player)
             else:
-                log.debug("Received %s %s from %s", Message.toString(msg), args, self.peerAddress().toString())
+                log.debug("Received %s %s from %s", msg, args, self.peerAddress().toString())
             self.messageReceived.emit(msg, args)
             self.messageReceived2.emit()
             result = self.parse()
@@ -229,10 +135,12 @@ class Connection(QTcpSocket):
     def parse(self):
         if self.buffer.bytesAvailable() >= 4:
             stream = QDataStream(self.buffer)
-            msg = stream.readInt32()
+            msg = Message.fromInt(stream.readInt32())
+            if msg == None:
+                return
             args = []
             bytesRead = 4
-            for aType in Message.validArgs[msg]:
+            for aType in msg.argTypes:
                 if aType == str:
                     if self.buffer.bytesAvailable() < 4:
                         return
@@ -257,18 +165,19 @@ class Connection(QTcpSocket):
         if id:
             if self.socketDescriptor() != id:
                 return
-        if not Message.argMatch(msg, args):
-            log.warning("Message %d and args %s have invalid types. Message not sent.", Message.toString(msg), args)
+        msg = Message.fromInt(msg)
+        if not msg.validateArgs(args):
+            log.warning("Message %d and args %s have invalid types. Message not sent.", msg, args)
             return
         if self.client:
-            log.debug("Sending %s %s", Message.toString(msg), args)
+            log.debug("Sending %s %s", msg, args)
         elif self.player and self.player.name:
-            log.debug("Sending %s %s to %s", Message.toString(msg), args, self.player)
+            log.debug("Sending %s %s to %s", msg, args, self.player)
         else:
-            log.debug("Sending %s %s to %s", Message.toString(msg), args, self.peerAddress().toString())
+            log.debug("Sending %s %s to %s", msg, args, self.peerAddress().toString())
         data = QByteArray()
         stream = QDataStream(data, self.WriteOnly)
-        stream.writeInt32(msg)
+        stream.writeInt32(int(msg))
         for arg in args:
             if type(arg) == str:
                 stream.writeInt32(len(arg))

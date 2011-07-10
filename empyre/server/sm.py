@@ -26,7 +26,7 @@ class SM(QObject):
         self.reset()
 
     def __str__(self):
-        return "substate: %s, current: %s, first: %s" % (State.toString(self.substate), self.currentPlayer, self.firstPlayer)
+        return "substate: %s, current: %s, first: %s" % (self.substate, self.currentPlayer, self.firstPlayer)
 
     def __setattr__(self, name, value):
         if value != None:
@@ -34,7 +34,7 @@ class SM(QObject):
                 self.turnChanged.emit(value.name)
             elif name == "substate":
                 try:
-                    self.stateChanged.emit(self.substate, value)
+                    self.stateChanged.emit(int(self.substate), int(value))
                 except AttributeError:
                     pass
             elif name == "remainingTroops":
@@ -93,7 +93,8 @@ class SM(QObject):
 
     def next(self, action, args=[]):
         s = self.substate
-        if not Action.argMatch(action, args):
+        action = Action.fromInt(action)
+        if not action.validateArgs(args):
             return False
         if action == Action.RemovePlayer and self.substate != State.Lobby:
             return True

@@ -16,7 +16,7 @@ import logging
 def _smDebug(func):
     log = logging.getLogger("sm")
     def printer(self, action, args=[]):
-        log.debug("Passed in action: %s with args %s", Action.toString(action), args)
+        log.debug("Passed in action: %s with args %s", Action.fromInt(action), args)
         if func(self, action, args):
             log.debug("OK %s", self)
             return True
@@ -260,7 +260,7 @@ class Server(QTcpServer):
             elif conn.player == self.sm.currentPlayer:
                 if msg == Message.ClaimTerritory:
                     name = args[0]
-                    self.sm.next(Action.PlaceTroops, [name])
+                    self.sm.next(Action.PlaceTroops, [name, 1])
 
                 elif msg == Message.Draft:
                     (name, count) = args
