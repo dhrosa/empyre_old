@@ -36,8 +36,6 @@ class SM(QObject):
     stateChanged = pyqtSignal(int, int)
     turnChanged = pyqtSignal(str)
     territoryUpdated = pyqtSignal(str, str, int)
-    diceRolled = pyqtSignal(str, list)
-    playersTied = pyqtSignal(list)
     remainingTroopsChanged = pyqtSignal(int)
     attacked = pyqtSignal(str, str, str)
     cardAwarded = pyqtSignal(str, str, int)
@@ -86,9 +84,6 @@ class SM(QObject):
 
     def playerCount(self):
         return len(self.players)
-
-    def tiedPlayerCount(self):
-        return len(self.tiedPlayers)
 
     def livePlayers(self):
         return [p for p in self.players if p.isPlaying]
@@ -143,7 +138,6 @@ class SM(QObject):
                     rolls = []
                     for p in self.players:
                         r = rollDice(2)
-                        self.diceRolled.emit(p.name, r)
                         rolls.append(sum(r))
                     highest = max(rolls)
                     #tie condition
@@ -153,7 +147,6 @@ class SM(QObject):
                             if rolls[i] == highest:
                                 newTiedPlayers.append(p)
                         tiedPlayers = newTiedPlayers
-                        self.playersTied.emit([p.name for p in tiedPlayers])
                     else:
                         i = rolls.index(highest)
                         name = tiedPlayers[i].name
@@ -251,8 +244,6 @@ class SM(QObject):
                 self.remainingTroops = n
                 attackRoll = rollDice(min(self.remainingTroops, 3))
                 defenceRoll = rollDice(min(target.troopCount, 2))
-                self.diceRolled.emit(self.currentPlayer.name, attackRoll)
-                self.diceRolled.emit(targetPlayer.name, defenceRoll)
                 attackerLoss = 0
                 defenderLoss = 0
                 for a, d in zip(attackRoll, defenceRoll):

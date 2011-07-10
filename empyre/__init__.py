@@ -117,6 +117,9 @@ class Enumerated(object):
         self.argTypes = argTypes
 
     def __eq__(self, other):
+        """Equality operator.
+        
+        This operator is implemented such that an Enumerated can be compared to an int."""
         try:
             return int(self) == int(other)
         except TypeError:
@@ -136,6 +139,11 @@ class Enumerated(object):
 
     @classmethod
     def fromInt(cls, val):
+        """Converts an integer into an Enumerated subclass, returns None if the conversion fails.
+
+        Example usage:
+        >>> State.fromInt(0)
+        State('Lobby', 0)"""
         try:
             return cls._int_to_enum[int(val)]
         except KeyError:

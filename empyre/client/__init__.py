@@ -248,20 +248,6 @@ class Client(QObject):
                 self.mainWindow.activateWindow()
             self.mainWindow.playerInfo.changeCurrentPlayer(name)
 
-        elif msg == Message.BeginTiedPlayerList:
-            self.tiedPlayers = []
-
-        elif msg == Message.TiedPlayer:
-            self.tiedPlayers.append(args[0])
-
-        elif msg == Message.EndTiedPlayerList:
-            names = ",".join(self.tiedPlayers[:-1])
-            last = self.tiedPlayers[-1]
-            self.mainWindow.chat.addLine("%s and %s have tied!" % (names, last))
-
-        elif msg == Message.DiceRolled:
-            pass
-
         elif msg == Message.TerritoryUpdated:
             (name, owner, count) = args
             t = self.game.board.getTerritory(name)

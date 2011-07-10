@@ -8,6 +8,77 @@ import logging
 log = logging.getLogger("network")
 
 class Message(Enumerated):
+    """Represents a message to be sent between clients and the server.
+    
+    Client to server messages:
+    Pong -- See Ping.
+    RequestState -- Request the current state of the state.
+    SendChat -- Send a chat message. Args: the message
+    SendWhisper -- Send a private message to a player. Args: the target player name, the message
+    Join -- Request to log into the server.
+    RequestName -- Send your desired player name. Args: your desired name
+    Rejoin -- Request to rejoin an ongoing game. Args: your password
+    RequestBoardName -- Request the name of the game's board.
+    RequestPlayerList -- Request a list of all the players. See BeginPlayerList.
+    RequestChatHistory -- Request a history of all the chat messages. See RecieveChat.
+    RequestOwnershipList -- Request a list of all of the territories' ownership status. See BeginOwnershipList.
+    RequestCardList -- Request the number of cards each player has, and what cards you have. See BeginCardList, Card.
+    RequestCurrentPlayer -- Request the name of the current player.
+    RequestRemainingTroops -- Request the number of remaining troops.
+    ChangeName -- Ask to change your name. Args: your desired new name
+    ChangeColor -- Ask to change your color. Args: R, G, and B values
+    
+    ReadyToPlay -- You are ready to start the game.
+    ClaimTerritory -- Claim an open territory. Args: territory name.
+    ExchangeCards -- Exchange 3 cards. Args: the indexes of the cards.
+    Draft -- Place troops in a territory. Args: territory name, number of troops.
+    Attack -- Attack a territory. Args: attacking territory, victim territory, number of troops.
+    EndAttack -- End your attack phase.
+    Fortify -- Fortify troops from one territory to another. Args: from territory name, to territory name, number of troops
+    EndTurn -- End your turn.
+
+   
+    Server to client messages:
+    Ping -- This message is sent periodically by the server to check if the client is still responding. The client should respond with a Pong.
+    CurrentState -- The current game state. Args: the state as an integer.
+    StateChanged -- The current game state has changed. Args: the old and new states as integers .
+    ReceiveChat -- Sends a chat message to the clients. Args: sender name, message, UTC timestamp.
+    ReceiveWhisper -- Sends a whisper to the clients. Args: sender name, target name, message, UTC timestamp.
+    JoinSuccess -- Successful response to Join.
+    NameTaken -- The client's requested name is taken.
+    NameAccepted -- The client's name has been accepted. Args: the client's name, password to rejoin game.
+    PlayerJoined -- A new player has joined the game. Args: player name, R, G, and B values of player's color.
+    GameInProgress -- A game is already in progress. Client must supply password to rejoin.
+    IncorrectPassword -- The password is incorrect.
+    RejoinSuccess -- The client has successfully rejoined. Args: the player's name
+    BeginPlayerList -- Prepare to recieve a list of players.
+    PlayerInfo -- Player information. Args: player name, number of cards, R, G, and B values of player's color.
+    EndPlayerList -- The player list is complete.
+    LoadBoard -- Load the board with this name. Args: the board name.
+    BeginOwnershipList -- Prepare to receive a list of territory ownerships.
+    Ownership -- Territory information. Args: territory name, owner name, number of troops.
+    EndOwnershipList -- Territory ownership list complete.
+    BeginCardList -- Prepare to receive a list of your cards.
+    Card -- Your card. Args: bonus territory name, unit type.
+    EndCardList -- Card list complete.
+    CurrentPlayer -- The current player. Args: the current player name.
+    PlayerLeft -- A player left the lobby. Args: the player name.
+    PlayerLeftDuringGame -- A player left mid-game. Args: the player name.
+    ColorChanged -- A player changed their color. Args: player name, R, G, and B values of new color.
+    NameChangeTaken -- The requested new name was taken.
+    NameChangeSuccess -- You have been granted your new name. Args: new name.
+    NameChanged -- A player changed their name. Args: old name, new name.
+
+    TurnChanged -- It is someone else's turn now. Args: the current player's name.
+    TerritoryUpdated -- Territory ownership changed. Args: the territory name, owner name, troop count.
+    RemainingTroopsChanged -- The number of troops remaining. Args: remaining troops
+    MustExchangeCards -- You must exchange cards before playing.
+    CardsExchanged -- A player exchanged cards. Args: player name.
+    Attacked -- A territory was attacked. Args: attacker name,  attacking territory name, defending territory name, number of troops.
+    ReceiveCard -- You've been awarded a card. Args: bonus territory name, unit type.
+    CardAwarded -- A player recieved a card. Args: the player name.
+    PlayerEliminated -- A player has lost. Args: the player name.
+    """
     pass
 
 makeValidatedEnumeration(Message, {
@@ -69,13 +140,8 @@ makeValidatedEnumeration(Message, {
     "NameChangeTaken": (),
     "NameChangeSuccess": (str,),
     "NameChanged": (str, str),
-    "GameStarted": (),
 
-    "BeginTiedPlayerList": (),
-    "TiedPlayer": (str,),
-    "EndTiedPlayerList": (),
     "TurnChanged": (str,),
-    "DiceRolled": (str, int, int, int),
     "TerritoryUpdated": (str, str, int,),
     "RemainingTroopsChanged": (int,),
     "MustExchangeCards": (),
